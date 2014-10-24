@@ -110,10 +110,19 @@ namespace MatterHackers.MatterControl
                 }
             }
 
+
+            //var xxx = new System.Diagnostics.Process();
+
+            ////xxx.StartInfo.RedirectStandardError
+            //xxx.StartInfo.redi
+            //xxx.StandardError.ReadToEnd();
+
+           
+
             //WriteTestGCodeFile();
-#if !DEBUG
+//#if !DEBUG
             if (File.Exists("RunUnitTests.txt"))
-#endif
+//#endif
             {
 #if IS_WINDOWS_FORMS
                 Clipboard.SetSystemClipboardFunctions(System.Windows.Forms.Clipboard.GetText, System.Windows.Forms.Clipboard.SetText, System.Windows.Forms.Clipboard.ContainsText);
@@ -239,6 +248,8 @@ namespace MatterHackers.MatterControl
 
         private void FindAndInstantiatePlugins()
         {
+
+            /*
 #if false
             string pluginDirectory = Path.Combine("..", "..", "..", "MatterControlPlugins", "bin");
 #if DEBUG
@@ -256,22 +267,34 @@ namespace MatterHackers.MatterControl
 #else
             PluginFinder<MatterControlPlugin> pulginFinder = new PluginFinder<MatterControlPlugin>();
 #endif
+             * */
+             
+
+
+
 
             string oemName = ApplicationSettings.Instance.GetOEMName();
-            foreach (MatterControlPlugin plugin in pulginFinder.Plugins)
-            {
-                string pluginInfo = plugin.GetPluginInfoJSon();
-                Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
 
-                if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
+            // Initialize each plugin
+            foreach (var plugin in PluginManager.Instance.Plugins)
+            {
+                var pluginInfo = plugin.MetaData;
+
+
+                string oem;
+
+                
+                // If it's an oem plugin, only call Initialize if the names match
+                if (pluginInfo.Extras.TryGetValue("OEM", out oem))
                 {
-                    if (nameValuePairs["OEM"] == oemName)
+                    if (oem == oemName)
                     {
                         plugin.Initialize(this);
                     }
                 }
                 else
                 {
+                    // Otherwise, init everything
                     plugin.Initialize(this);
                 }
             }
@@ -348,6 +371,8 @@ namespace MatterHackers.MatterControl
             base.OnMouseMove(mouseEvent);
         }
 
+        public static Stopwatch elapsedTime = Stopwatch.StartNew();
+
         [STAThread]
         public static void Main()
         {
@@ -368,6 +393,9 @@ namespace MatterHackers.MatterControl
             }
 
             new MatterControlApplication(width, height);
+
+            System.Diagnostics.Debug.Write("Elapsed: {0}".FormatWith(elapsedTime.ElapsedMilliseconds));
+
         }
 
         public override void OnClosed(EventArgs e)

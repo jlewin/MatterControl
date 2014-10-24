@@ -53,8 +53,11 @@ namespace MatterHackers.MatterControl.Testing
             try { MatterHackers.MarchingSquares.MarchingSquaresByte.AssertDebugNotDefined(); }
             catch (Exception e) { DumpException(e); }
 
+            // TODO: Why is this defined on the plugin model?
+            /*
             try { MatterHackers.MatterControl.PluginSystem.MatterControlPlugin.AssertDebugNotDefined(); }
             catch (Exception e) { DumpException(e); }
+             */
 
             try { MatterHackers.MatterSlice.MatterSlice.AssertDebugNotDefined(); }
             catch (Exception e) { DumpException(e); }
