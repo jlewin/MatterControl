@@ -375,10 +375,6 @@
       <Project>{DF6845CD-64C6-4263-8357-DA8066855739}</Project>
       <Name>MarchingSquares</Name>
     </ProjectReference>
-    <ProjectReference Include="..\agg-sharp\PlatformAbstract\PlatformAbstract.csproj">
-      <Project>{3E4AABA8-D85F-4922-88C6-5C1B2D2308FB}</Project>
-      <Name>PlatformAbstract</Name>
-    </ProjectReference>
     <ProjectReference Include="..\agg-sharp\RayTracer\RayTracer.csproj">
       <Project>{1E01ABE0-B494-4FE4-B0D6-540133286887}</Project>
       <Name>RayTracer</Name>
@@ -435,9 +431,9 @@
       <Project>{670BDDFF-927B-425D-9DD1-22ACB14356EB}</Project>
       <Name>PlatformWin32</Name>
     </ProjectReference>
-    <ProjectReference Include="PluginSystem\MatterControlPluginSystem.csproj">
+    <ProjectReference Include="PluginSystem\Extensibility.csproj">
       <Project>{865172A0-A1A9-49C2-9386-F2FDB4E141B7}</Project>
-      <Name>MatterControlPluginSystem</Name>
+      <Name>Extensibility</Name>
     </ProjectReference>
     <ProjectReference Include="..\agg-sharp\Localizations\Localizations.csproj">
       <Project>{CA96058C-1A37-465D-A357-D6D695B13D25}</Project>
