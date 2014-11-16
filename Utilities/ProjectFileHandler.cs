@@ -47,6 +47,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Utilities;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl
 {
@@ -154,7 +155,7 @@ namespace MatterHackers.MatterControl
         {
             SaveFileDialogParams saveParams = new SaveFileDialogParams("Save Project|*.zip");
 
-			FileDialog.SaveFileDialog(saveParams, onSaveFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onSaveFileSelected);
         }
 
 		void onSaveFileSelected(SaveFileDialogParams saveParams)
@@ -230,7 +231,7 @@ namespace MatterHackers.MatterControl
 		public void OpenFromDialog()
         {
             OpenFileDialogParams openParams = new OpenFileDialogParams("Zip file|*.zip");
-			FileDialog.OpenFileDialog(openParams, onProjectArchiveLoad);
+			Configuration.FileDialogs.OpenFileDialog(openParams, onProjectArchiveLoad);
         }
 
 		void onProjectArchiveLoad(OpenFileDialogParams openParams)

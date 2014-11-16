@@ -36,6 +36,7 @@ using MatterHackers.Agg;
 using MatterHackers.Localizations;
 using MatterHackers.MeshVisualizer;
 using MatterHackers.PolygonMesh;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -120,7 +121,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
             if (DoAddFileAfterCreatingEditData)
             {
-                FileDialog.OpenFileDialog(
+                Configuration.FileDialogs.OpenFileDialog(
                     new OpenFileDialogParams(ApplicationSettings.OpenDesignFileParams, multiSelect: true),
                     (openParams) =>
                     {

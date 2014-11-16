@@ -31,7 +31,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
         public override bool Exists()
         {
-            if (OsInformation.OperatingSystem == OSType.Android || OsInformation.OperatingSystem == OSType.Mac || SlicingQueue.runInProcess)
+            if (Configuration.OsInformation.OperatingSystem == OSType.Android || Configuration.OsInformation.OperatingSystem == OSType.Mac || SlicingQueue.runInProcess)
             {
 				return true;
             }

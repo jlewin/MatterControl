@@ -109,7 +109,7 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 
         void InstallDriver(string fileName)
         {
-            switch (OsInformation.OperatingSystem)
+            switch (Configuration.OsInformation.OperatingSystem)
             {
                 case OSType.Windows:
                     if (File.Exists(fileName))

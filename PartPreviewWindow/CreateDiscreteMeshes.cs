@@ -163,10 +163,10 @@ namespace MatterHackers.MatterControl
                 backgroundWorker.ReportProgress(startPercent + (int)(lengthPercent * .2));
             }
 
-            //ImageIO.SaveImageData("test part plate 0.png", partPlate);
+            //Configuration.ImageIO.SaveImageData("test part plate 0.png", partPlate);
             // expand the bounds a bit so that we can collect all the vertices and polygons within each bound
             Dilate.DoDilate3x3Binary(partPlate, 1);
-            //ImageIO.SaveImageData("test part plate 1.png", partPlate);
+            //Configuration.ImageIO.SaveImageData("test part plate 1.png", partPlate);
 
             // trace all the bounds of the objects on the plate
             PolyTree polyTreeForPlate = FindDistictObjectBounds(partPlate);
@@ -202,7 +202,7 @@ namespace MatterHackers.MatterControl
             {
                 backgroundWorker.ReportProgress(startPercent + (int)(lengthPercent * .50));
             }
-            //ImageIO.SaveImageData("test part plate 2.png", partPlate);
+            //Configuration.ImageIO.SaveImageData("test part plate 2.png", partPlate);
 
             // add each of the separate bounds polygons to new meshes
             Mesh[] discreteMeshes = new Mesh[discreteAreas.Count];

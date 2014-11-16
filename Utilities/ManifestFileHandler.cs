@@ -44,6 +44,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Utilities;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl
 {
@@ -115,7 +116,7 @@ namespace MatterHackers.MatterControl
         {
             SaveFileDialogParams saveParams = new SaveFileDialogParams("Save Project|*.mcp");
 
-			FileDialog.SaveFileDialog(saveParams, onSaveFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onSaveFileSelected);
             
         }
 
@@ -149,7 +150,7 @@ namespace MatterHackers.MatterControl
         public void OpenFromDialog()
         {
             OpenFileDialogParams openParams = new OpenFileDialogParams("Select a Project file|*.mcp");
-			FileDialog.OpenFileDialog(openParams, onManifestFileLoad);
+			Configuration.FileDialogs.OpenFileDialog(openParams, onManifestFileLoad);
         }
 
 		void onManifestFileLoad(OpenFileDialogParams openParams)

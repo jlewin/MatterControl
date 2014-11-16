@@ -443,7 +443,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
                     {
                         UiThread.RunOnIdle((state) =>
                         {
-                            FileDialog.OpenFileDialog(
+                            Configuration.FileDialogs.OpenFileDialog(
                                 new OpenFileDialogParams(ApplicationSettings.OpenDesignFileParams, multiSelect: true),
                                 (openParams) =>
                                 {

@@ -167,8 +167,8 @@ namespace MatterHackers.MatterControl
             }
 
             // TODO: make this work on the mac and then delete this if
-            if (OsInformation.OperatingSystem == OSType.Windows
-                || OsInformation.OperatingSystem == OSType.X11)
+            if (Configuration.OsInformation.OperatingSystem == OSType.Windows
+                || Configuration.OsInformation.OperatingSystem == OSType.X11)
             {
                 showInFolderAfterSave = new CheckBox(LocalizedString.Get("Show file in folder after save"), ActiveTheme.Instance.PrimaryTextColor, 10);
                 showInFolderAfterSave.HAnchor = HAnchor.ParentLeft;
@@ -317,7 +317,7 @@ namespace MatterHackers.MatterControl
 			saveParams.ActionButtonLabel = "Export";
             saveParams.FileName = Path.GetFileNameWithoutExtension(printItemWrapper.Name);
 
-			FileDialog.SaveFileDialog(saveParams, onExportGcodeFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onExportGcodeFileSelected);
 
         }
 
@@ -355,7 +355,7 @@ namespace MatterHackers.MatterControl
 			saveParams.Title = "MatterControl: Export File";
 			saveParams.ActionButtonLabel = "Export";
 
-			FileDialog.SaveFileDialog(saveParams, onExportX3gFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onExportX3gFileSelected);
 		}
 
 		void onExportX3gFileSelected(SaveFileDialogParams saveParams)
@@ -436,7 +436,7 @@ namespace MatterHackers.MatterControl
 
         void ShowFileIfRequested(string filename)
         {
-            if (OsInformation.OperatingSystem == OSType.Windows) 
+            if (Configuration.OsInformation.OperatingSystem == OSType.Windows) 
 			{
 				if (showInFolderAfterSave.Checked) 
 				{
@@ -475,7 +475,7 @@ namespace MatterHackers.MatterControl
 			saveParams.ActionButtonLabel = "Export";
             saveParams.FileName = printItemWrapper.Name;
 
-            FileDialog.SaveFileDialog(saveParams, onExportStlFileSelected);
+            Configuration.FileDialogs.SaveFileDialog(saveParams, onExportStlFileSelected);
         }
 
         void exportAMF_Click(object sender, EventArgs mouseEvent)
@@ -490,7 +490,7 @@ namespace MatterHackers.MatterControl
             saveParams.ActionButtonLabel = "Export";
             saveParams.FileName = printItemWrapper.Name;
 
-            FileDialog.SaveFileDialog(saveParams, onExportAmfFileSelected);
+            Configuration.FileDialogs.SaveFileDialog(saveParams, onExportAmfFileSelected);
         }
 
         void onExportStlFileSelected(SaveFileDialogParams saveParams)
@@ -569,7 +569,7 @@ namespace MatterHackers.MatterControl
 
 		string getGpxExectutablePath()
 		{
-			switch (OsInformation.OperatingSystem)
+			switch (Configuration.OsInformation.OperatingSystem)
 			{
 				case OSType.Windows:
 					string gpxRelativePath = Path.Combine("..", "gpx.exe");

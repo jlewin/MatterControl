@@ -42,6 +42,7 @@ using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.MatterControl.SettingsManagement;
 using MatterHackers.VectorMath;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl.PrintQueue
 {
@@ -438,7 +439,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 			#if !__ANDROID__          
 			List<PrintItem> parts = QueueData.Instance.CreateReadOnlyPartList();
 
-            FileDialog.SaveFileDialog(
+            Configuration.FileDialogs.SaveFileDialog(
                 new SaveFileDialogParams("Save Parts Sheet|*.pdf"),
                 (saveParams) =>
                 {
@@ -598,7 +599,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 
         void AddItemsToQueue(object state)
         {
-            FileDialog.OpenFileDialog(
+            Configuration.FileDialogs.OpenFileDialog(
                 new OpenFileDialogParams(ApplicationSettings.OpenPrintableFileParams)
                 {
                     MultiSelect = true,

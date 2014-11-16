@@ -43,7 +43,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
         public string GetEnginePath()
         {
-            switch (OsInformation.OperatingSystem)
+            switch (Configuration.OsInformation.OperatingSystem)
             {
                 case OSType.Windows:
                     return getWindowsPath();

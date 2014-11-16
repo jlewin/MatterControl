@@ -96,9 +96,9 @@ namespace MatterHackers.MatterControl
         {
             this.PrintItem = item;
 
-            if (OsInformation.OperatingSystem == OSType.Mac
-                || OsInformation.OperatingSystem == OSType.Android 
-                || OsInformation.OperatingSystem == OSType.X11)
+            if (Configuration.OsInformation.OperatingSystem == OSType.Mac
+                || Configuration.OsInformation.OperatingSystem == OSType.Android 
+                || Configuration.OsInformation.OperatingSystem == OSType.X11)
             {
                 partExtension = ".tga";
             }
@@ -281,7 +281,7 @@ namespace MatterHackers.MatterControl
             {
                 if (partExtension == ".png")
                 {
-                    if (ImageIO.LoadImageData(imageFileName, tempImage))
+                    if (Configuration.ImageIO.LoadImageData(imageFileName, tempImage))
                     {
                         return tempImage;
                     }
@@ -365,7 +365,7 @@ namespace MatterHackers.MatterControl
                 }
                 if (partExtension == ".png")
                 {
-                    ImageIO.SaveImageData(imageFileName, tempImage);
+                    Configuration.ImageIO.SaveImageData(imageFileName, tempImage);
                 }
                 else
                 {

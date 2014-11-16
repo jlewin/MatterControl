@@ -41,6 +41,7 @@ using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.FieldValidation;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -893,7 +894,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
             openParams.ActionButtonLabel = "Load Slice Preset";
             openParams.Title = "MatterControl: Select A File";
 
-			FileDialog.OpenFileDialog(openParams, onLoadPreset);
+			Configuration.FileDialogs.OpenFileDialog(openParams, onLoadPreset);
             
         }
 
@@ -945,7 +946,8 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
             SaveFileDialogParams saveParams = new SaveFileDialogParams("Save Slice Preset|*." + configFileExtension);
             saveParams.FileName = presetNameInput.Text;
 
-			FileDialog.SaveFileDialog(saveParams, onSaveFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onSaveFileSelected);
+            
         }
 
 		void onSaveFileSelected(SaveFileDialogParams saveParams)

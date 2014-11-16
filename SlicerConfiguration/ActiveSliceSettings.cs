@@ -595,7 +595,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			openParams.ActionButtonLabel = "Load Configuration";
 			openParams.Title = "MatterControl: Select A File";
 
-			FileDialog.OpenFileDialog(openParams, onSettingsFileSelected);
+			Configuration.FileDialogs.OpenFileDialog(openParams, onSettingsFileSelected);
 
         }
 
@@ -724,7 +724,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
         {
             SaveFileDialogParams saveParams = new SaveFileDialogParams("Save Slice Configuration|*." + configFileExtension);
 			saveParams.FileName = "default_settings.ini";
-			FileDialog.SaveFileDialog(saveParams, onExportFileSelected);
+			Configuration.FileDialogs.SaveFileDialog(saveParams, onExportFileSelected);
         }
 
 		void onExportFileSelected(SaveFileDialogParams saveParams)

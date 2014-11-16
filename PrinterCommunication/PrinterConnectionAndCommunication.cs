@@ -1524,7 +1524,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
         //Windows-only function
         bool SerialPortAlreadyOpen(string portName)
         {
-            if (OsInformation.OperatingSystem == OSType.Windows)
+            if (Configuration.OsInformation.OperatingSystem == OSType.Windows)
             {
                 const int dwFlagsAndAttributes = 0x40000000;
                 const int GENERIC_READ = unchecked((int)0x80000000);

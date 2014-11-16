@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using MatterHackers.Agg;
@@ -39,7 +40,6 @@ using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.PartPreviewWindow;
-using MatterHackers.MatterControl.PluginSystem;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.MatterControl.SettingsManagement;
@@ -48,6 +48,8 @@ using MatterHackers.VectorMath;
 using MatterHackers.PolygonMesh.Processors;
 using MatterHackers.MatterControl.CreatorPlugins;
 using MatterHackers.Agg.PlatformAbstract;
+using MatterHackers.MatterControl.Extensibility;
+using System.Reflection;
 
 namespace MatterHackers.MatterControl
 {
@@ -268,15 +270,32 @@ namespace MatterHackers.MatterControl
             PluginFinder<MatterControlPlugin> pulginFinder = new PluginFinder<MatterControlPlugin>();
 #endif
              * */
-             
-
-
-
 
             string oemName = ApplicationSettings.Instance.GetOEMName();
 
+            foreach (MatterControlPlugin plugin in LoadPluginsFromDisk())
+            {
+                string pluginInfo = plugin.GetPluginInfoJSon();
+                Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
+
+                if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
+                {
+                    if (nameValuePairs["OEM"] == oemName)
+                    {
+                        plugin.Initialize(this);
+                    }
+                }
+                else
+                {
+                    plugin.Initialize(this);
+                }
+            }
+
+            /*
+
+
             // Initialize each plugin
-            foreach (var plugin in PluginManager.Instance.Plugins)
+            foreach (var plugin in allPlugins)
             {
                 var pluginInfo = plugin.MetaData;
 
@@ -298,6 +317,64 @@ namespace MatterHackers.MatterControl
                     plugin.Initialize(this);
                 }
             }
+             * 
+             */
+        }
+
+        private List<MatterControlPlugin> LoadPluginsFromDisk()
+        {
+                        // Probing path
+            var searchDirectory = Path.Combine(
+                                Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+                                "Extensions");
+
+            var plugins = new List<MatterControlPlugin>();
+            var pluginAssemblies = new List<string>(Directory.GetFiles(searchDirectory, "*.dll"));
+
+            // HACK: Drop support for exe plugins - this very questionable -  why would anyone distribute a plugin as an 
+            // executable and why would be want to support that scenario? It could be done - it's poor form and not appriopriate
+            pluginAssemblies.AddRange(Directory.GetFiles(searchDirectory, "*.exe"));
+
+            var pluginInterface = typeof(MatterControlPlugin);
+
+            foreach (string assemblyPath in pluginAssemblies)
+            {
+                try
+                {
+                    Assembly assembly = Assembly.LoadFile(assemblyPath);
+
+                    foreach (Type type in assembly.GetTypes().Where(t => pluginInterface.IsAssignableFrom(t)))
+                    {
+                        if (type == null || !type.IsClass || !type.IsPublic)
+                        {
+                            // TODO: We need to be able to log this in a usable way - consider MatterControl terminal as output target
+                            System.Diagnostics.Trace.WriteLine("IMatterControlPlugin exists but is not a Public Class: {0}", type.ToString());
+                            continue;
+                        }
+
+                        var instance = Activator.CreateInstance(type) as MatterControlPlugin;
+                        if (instance == null)
+                        {
+                            // TODO: We need to be able to log this in a usable way - consider MatterControl terminal as output target
+                            System.Diagnostics.Trace.WriteLine("Unable to create Plugin Instance: {0}", type.ToString());
+                            continue;
+                        }
+
+                        plugins.Add(instance);
+                    }
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                }
+                catch (BadImageFormatException ex)
+                {
+                }
+                catch (NotSupportedException ex)
+                {
+                }
+            }
+
+            return plugins;
         }
 
         Stopwatch totalDrawTime = new Stopwatch();

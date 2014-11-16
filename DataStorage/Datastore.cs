@@ -167,7 +167,7 @@ namespace MatterHackers.MatterControl.DataStorage
                 }
             }
 
-            OSType osType = OsInformation.OperatingSystem;
+            OSType osType = Configuration.OsInformation.OperatingSystem;
 			switch (osType)
             {
                 case OSType.Windows:

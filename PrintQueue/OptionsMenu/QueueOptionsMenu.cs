@@ -104,7 +104,7 @@ namespace MatterHackers.MatterControl.PrintQueue
             
             // The pdf export library is not working on the mac at the moment so we don't include the 
             // part sheet export option on mac.
-			if (OsInformation.OperatingSystem == OSType.Windows)
+			if (Configuration.OsInformation.OperatingSystem == OSType.Windows)
             {
                 // mac cannot export to pdf
                 menuItems.Add(new Tuple<string,Func<bool>>(LocalizedString.Get("Other"), null));
@@ -148,7 +148,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 			List<PrintItem> parts = QueueData.Instance.CreateReadOnlyPartList();
             if (parts.Count > 0)
             {
-                FileDialog.SaveFileDialog(
+                Configuration.FileDialogs.SaveFileDialog(
                     new SaveFileDialogParams("Save Parts Sheet|*.pdf")
                     {
                         ActionButtonLabel = "Save Parts Sheet".Localize(),
@@ -220,7 +220,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 			selectParams.ActionButtonLabel = LocalizedString.Get("Export");
             selectParams.Title = "MatterControl: Select A Folder";
 
-            FileDialog.SelectFolderDialog(selectParams, onSelectFolderDialog);
+            Configuration.FileDialogs.SelectFolderDialog(selectParams, onSelectFolderDialog);
         }
 
         private void onSelectFolderDialog(SelectFolderDialogParams openParams)

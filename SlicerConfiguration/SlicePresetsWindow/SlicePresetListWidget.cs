@@ -41,6 +41,7 @@ using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.FieldValidation;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -167,7 +168,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
             openParams.ActionButtonLabel = "Load Slice Preset";
             openParams.Title = "MatterControl: Select A File"; 
 
-			FileDialog.OpenFileDialog(openParams, onPresetLoad);
+			Configuration.FileDialogs.OpenFileDialog(openParams, onPresetLoad);
         }
 
 		void onPresetLoad(OpenFileDialogParams openParams)

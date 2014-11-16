@@ -36,6 +36,7 @@ using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.VectorMath;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl
 {
@@ -201,7 +202,7 @@ namespace MatterHackers.MatterControl
 			saveParams.ActionButtonLabel = "Export";
             saveParams.FileName = "print_log.txt";
 
-            FileDialog.SaveFileDialog(saveParams, onExportLogFileSelected);
+            Configuration.FileDialogs.SaveFileDialog(saveParams, onExportLogFileSelected);
         }
 
         bool firstDraw = true;
