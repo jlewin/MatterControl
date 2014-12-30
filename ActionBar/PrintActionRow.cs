@@ -11,6 +11,7 @@ using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.MatterControl.PrinterCommunication;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl.ActionBar
 {
@@ -174,7 +175,7 @@ namespace MatterHackers.MatterControl.ActionBar
 
         void AddButtonOnIdle(object state)
         {
-            FileDialog.OpenFileDialog(
+            Configuration.FileDialogs.OpenFileDialog(
                 new OpenFileDialogParams(ApplicationSettings.OpenPrintableFileParams, multiSelect: true),
                 (openParams) =>
                 {

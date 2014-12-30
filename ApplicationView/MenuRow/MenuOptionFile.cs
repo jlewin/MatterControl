@@ -10,6 +10,7 @@ using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.VectorMath;
+using MatterHackers.Agg.PlatformAbstract;
 
 namespace MatterHackers.MatterControl
 {
@@ -85,7 +86,7 @@ namespace MatterHackers.MatterControl
         {
             UiThread.RunOnIdle((state) =>
             {
-                FileDialog.OpenFileDialog(
+                Configuration.FileDialogs.OpenFileDialog(
                     new OpenFileDialogParams(ApplicationSettings.OpenPrintableFileParams)
                     {
                         MultiSelect = true,

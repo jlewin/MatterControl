@@ -188,7 +188,7 @@ namespace MatterHackers.MatterControl
 				string[] fileNames = infFileNames.Split(',');
 				foreach (string fileName in fileNames)
 				{
-					switch (OsInformation.OperatingSystem)
+					switch (Configuration.OsInformation.OperatingSystem)
 					{
 						case OSType.Windows:
 
