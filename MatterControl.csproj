@@ -447,8 +447,4 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>copy $(ProjectDir)..\agg-sharp\PlatformWin32\bin\Debug\agg_platform_win32.dll
-</PostBuildEvent>
-  </PropertyGroup>
 </Project>

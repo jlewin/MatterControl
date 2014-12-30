@@ -112,19 +112,10 @@ namespace MatterHackers.MatterControl
                 }
             }
 
-
-            //var xxx = new System.Diagnostics.Process();
-
-            ////xxx.StartInfo.RedirectStandardError
-            //xxx.StartInfo.redi
-            //xxx.StandardError.ReadToEnd();
-
-           
-
             //WriteTestGCodeFile();
-//#if !DEBUG
+#if !DEBUG
             if (File.Exists("RunUnitTests.txt"))
-//#endif
+#endif
             {
 #if IS_WINDOWS_FORMS
                 Clipboard.SetSystemClipboardFunctions(System.Windows.Forms.Clipboard.GetText, System.Windows.Forms.Clipboard.SetText, System.Windows.Forms.Clipboard.ContainsText);
