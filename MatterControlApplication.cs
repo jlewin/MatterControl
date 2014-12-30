@@ -335,8 +335,6 @@ namespace MatterHackers.MatterControl
             base.OnMouseMove(mouseEvent);
         }
 
-        public static Stopwatch elapsedTime = Stopwatch.StartNew();
-
         [STAThread]
         public static void Main()
         {
@@ -357,9 +355,6 @@ namespace MatterHackers.MatterControl
             }
 
             new MatterControlApplication(width, height);
-
-            System.Diagnostics.Debug.Write("Elapsed: {0}".FormatWith(elapsedTime.ElapsedMilliseconds));
-
         }
 
         public override void OnClosed(EventArgs e)
