@@ -236,31 +236,11 @@ namespace MatterHackers.MatterControl
             base.OnParentChanged(e);
 
             // now that we are all set up lets load our plugins and allow them their chance to set things up
-            FindAndInstantiatePlugins();
+            InitializePlugins();
         }
 
-        private void FindAndInstantiatePlugins()
+        private void InitializePlugins()
         {
-
-            /*
-#if false
-            string pluginDirectory = Path.Combine("..", "..", "..", "MatterControlPlugins", "bin");
-#if DEBUG
-            pluginDirectory = Path.Combine(pluginDirectory, "Debug");
-#else
-            pluginDirectory = Path.Combine(pluginDirectory, "Release");
-#endif
-            if (!Directory.Exists(pluginDirectory))
-            {
-                string dataPath = DataStorage.ApplicationDataStorage.Instance.ApplicationUserDataPath;
-                pluginDirectory = Path.Combine(dataPath, "Plugins");
-            }
-            // TODO: this should look in a plugin folder rather than just the application directory (we probably want it in the user folder).
-            PluginFinder<MatterControlPlugin> pulginFinder = new PluginFinder<MatterControlPlugin>(pluginDirectory);
-#else
-            PluginFinder<MatterControlPlugin> pulginFinder = new PluginFinder<MatterControlPlugin>();
-#endif
-             * */
             string oem, oemName = ApplicationSettings.Instance.GetOEMName();
 
             // Initialize each plugin previously loaded by the PluginManager
