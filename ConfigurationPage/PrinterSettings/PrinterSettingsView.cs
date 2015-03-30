@@ -112,12 +112,65 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				"Gcode Console".Localize(),
 				widgetFactories,
 				Path.Combine("PrintStatusControls", "terminal-24x24.png"),
+#if(__ANDROID__)
+				toggleSwitchConfig: new SettingsItem.ToggleSwitchConfig()
+				{
+					Checked = UserSettings.Instance.get("ConsoleVisible") == "true",  
+					ToggleAction = (itemChecked)=> {
+						bool consoleVisible = UserSettings.Instance.get("ConsoleVisible") == "true";
+
+						// Toggle the state of the option
+						UserSettings.Instance.set("ConsoleVisible", consoleVisible ? "false" : "true");
+
+						// Update the UI
+						// TODO: This is horribly fragile and mearly depicts the potential of avoiding a full control reload
+						CompactApplicationView mainView = ApplicationController.Instance.MainView as CompactApplicationView;
+						foreach(GuiWidget widget in mainView.Children[0].Children[3].Children)
+						{
+							if(widget is CompactTabView)
+							{
+								(widget as CompactTabView).SetTerminalVisibility();
+							}
+						}
+					}
+				}
+#else
 				itemClickedAction: () => {
 					UiThread.RunOnIdle((state) => TerminalWindow.Show());
 				}
+#endif
 			);
-
 			mainContainer.AddChild(terminalCommunicationsContainer);
+
+#if(__ANDROID__)
+			SettingsItem showHistoryItem = new SettingsItem(
+				"Print History".Localize(),
+				widgetFactories,
+				Path.Combine("PrintStatusControls", "terminal-24x24.png"),
+				toggleSwitchConfig: new SettingsItem.ToggleSwitchConfig()
+				{
+					Checked = UserSettings.Instance.get("HistoryVisible") == "true",  
+					ToggleAction = (itemChecked)=> {
+						bool historyVisible = UserSettings.Instance.get("HistoryVisible") == "true";
+
+						// Toggle the state of the option
+						UserSettings.Instance.set("HistoryVisible", historyVisible ? "false" : "true");
+
+						// Update the UI
+						// TODO: This is horribly fragile and mearly depicts the potential of avoiding a full control reload
+						CompactApplicationView mainView = ApplicationController.Instance.MainView as CompactApplicationView;
+						foreach(GuiWidget widget in mainView.Children[0].Children[3].Children)
+						{
+							if(widget is CompactTabView)
+							{
+								(widget as CompactTabView).SetHistoryVisibility();
+							}
+						}
+					}
+				}
+			);
+			mainContainer.AddChild(showHistoryItem);
+#endif
 
             AddChild(mainContainer);
             AddHandlers();
