@@ -24,7 +24,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
         public enum EnableLevel { Disabled, ConfigOnly, Enabled };
 
-        public void SetEnableLevel(EnableLevel enabledLevel)
+        public virtual void SetEnableLevel(EnableLevel enabledLevel)
         {
             disableOverlay.BackgroundColor = new RGBA_Bytes(ActiveTheme.Instance.TertiaryBackgroundColor, 160);
 

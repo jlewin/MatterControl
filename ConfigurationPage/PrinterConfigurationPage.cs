@@ -59,8 +59,9 @@ namespace MatterHackers.MatterControl
     {
         readonly int TallButtonHeight = 25;
 
-        TextImageButtonFactory textImageButtonFactory = new TextImageButtonFactory();
+		TextImageButtonFactory textImageButtonFactory = new TextImageButtonFactory();
 		LinkButtonFactory linkButtonFactory = new LinkButtonFactory();
+		ToggleSwitchFactory switchFactory = new ToggleSwitchFactory();
 
         public PrinterConfigurationWidget()
         {
@@ -69,15 +70,21 @@ namespace MatterHackers.MatterControl
             HAnchor = Agg.UI.HAnchor.ParentLeftRight;
             VAnchor = Agg.UI.VAnchor.FitToChildren;
 
+
+			var widgetFactories = new SettingsItem.WidgetFactory(){ 
+				ButtonFactory = textImageButtonFactory, 
+				SwitchFactory = switchFactory
+			};
+
             FlowLayoutWidget mainLayoutContainer = new FlowLayoutWidget(FlowDirection.TopToBottom);
             mainLayoutContainer.HAnchor = Agg.UI.HAnchor.ParentLeftRight;
             mainLayoutContainer.VAnchor = Agg.UI.VAnchor.FitToChildren;
             mainLayoutContainer.Padding = new BorderDouble(top: 10);
 
-            HardwareSettingsWidget hardwareGroupbox = new HardwareSettingsWidget();
+            HardwareSettingsWidget hardwareGroupbox = new HardwareSettingsWidget(widgetFactories);
             mainLayoutContainer.AddChild(hardwareGroupbox);
 
-            CloudSettingsWidget cloudGroupbox = new CloudSettingsWidget();
+            CloudSettingsWidget cloudGroupbox = new CloudSettingsWidget(widgetFactories);
             mainLayoutContainer.AddChild(cloudGroupbox);
 
             ApplicationSettingsWidget applicationGroupbox = new ApplicationSettingsWidget();

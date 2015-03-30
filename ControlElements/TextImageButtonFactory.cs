@@ -213,6 +213,17 @@ namespace MatterHackers.MatterControl
             return editButton;
         }
 
+		public Button GenerateAdditionalSettingsButton()
+		{
+			Button editButton = new Button(0, 0, new ButtonViewThreeImage(
+				LoadUpButtonImage("arrow-right-01-32-white.png"), 
+				LoadUpButtonImage("arrow-right-01-32-gray.png"), 
+				LoadUpButtonImage("arrow-right-01-32-black.png")));
+
+			editButton.Margin = new BorderDouble(2, 2, 2, 0);
+			editButton.VAnchor = Agg.UI.VAnchor.ParentTop;
+			return editButton;
+		}
 
         public GuiWidget GenerateGroupBoxLabelWithEdit(TextWidget textWidget, out Button editButton)
         {

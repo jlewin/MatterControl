@@ -21,43 +21,103 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 		Button openGcodeTerminalButton;
 		Button openCameraButton;
 
-        DisableableWidget eePromControlsContainer;
-        DisableableWidget terminalCommunicationsContainer;
-        DisableableWidget printLevelingContainer;
+		SettingsItem eePromControlsContainer;
+		DisableableWidget terminalCommunicationsContainer;
+		SettingsItem levelingSection;
+
+		static EePromMarlinWindow openEePromMarlinWidget = null;
+		static EePromRepetierWindow openEePromRepetierWidget = null;
 
         event EventHandler unregisterEvents;
 
-        public HardwareSettingsWidget()
+		public HardwareSettingsWidget(SettingsItem.WidgetFactory widgetFactories)
 			: base(LocalizedString.Get("Hardware Settings"))
         {
+            //terminalCommunicationsContainer = new DisableableWidget();
+			//terminalCommunicationsContainer.AddChild(GetGcodeTerminalControl());
 
-            eePromControlsContainer = new DisableableWidget();
-            eePromControlsContainer.AddChild(GetEEPromControl());
-            terminalCommunicationsContainer = new DisableableWidget();
-			terminalCommunicationsContainer.AddChild(GetGcodeTerminalControl());
-
-			printLevelingContainer = new DisableableWidget();
 			if (!ActiveSliceSettings.Instance.HasHardwareLeveling())
 			{
-				printLevelingContainer.AddChild(GetAutoLevelControl());
+				levelingSection = new SettingsItem(
+					"Automatic Print Leveling".Localize(),
+					widgetFactories,
+					Path.Combine("PrintStatusControls", "leveling-24x24.png"),
+					toggleSwitchConfig: new SettingsItem.ToggleSwitchConfig()
+					{
+						Checked = ActivePrinterProfile.Instance.DoPrintLeveling,  
+						ToggleAction = (itemChecked)=> {
+							ActivePrinterProfile.Instance.DoPrintLeveling = itemChecked;
+						}
+					}
+				);
+				mainContainer.AddChild(levelingSection);
 
-				mainContainer.AddChild(printLevelingContainer);
+				SettingsItem levelingWizardRow = new SettingsItem(
+					"Start Print Leveling Wizard".Localize(),
+					widgetFactories,
+					itemClickedAction: () => {
+						UiThread.RunOnIdle((state) =>
+						{
+							LevelWizardBase.ShowPrintLevelWizard(LevelWizardBase.RuningState.UserRequestedCalibration);
+						});
+					}
+				);
+
+				levelingSection.ChildSettings.Add(levelingWizardRow);
+				mainContainer.AddChild(new HorizontalLine(separatorLineColor));
+
+				SettingsItem editPositionsRow = new SettingsItem(
+					"Edit Sampled Positions".Localize(),
+					widgetFactories,
+					itemClickedAction: () => {
+						UiThread.RunOnIdle((state) =>
+						{
+							if (editLevelingSettingsWindow == null)
+							{
+								editLevelingSettingsWindow = new EditLevelingSettingsWindow();
+								editLevelingSettingsWindow.Closed += (sender, e) =>
+								{
+									editLevelingSettingsWindow = null;
+								};
+							}
+							else
+							{
+								editLevelingSettingsWindow.BringToFront();
+							}
+						});
+					}
+				);
+
+				levelingSection.ChildSettings.Add(editPositionsRow);
+				mainContainer.AddChild(new HorizontalLine(separatorLineColor));
+
+				mainContainer.AddChild(levelingWizardRow);
+				mainContainer.AddChild(new HorizontalLine(separatorLineColor));
+
+				mainContainer.AddChild(editPositionsRow);
+				mainContainer.AddChild(new HorizontalLine(separatorLineColor));
 			}
 
-            mainContainer.AddChild(new HorizontalLine(separatorLineColor));
-            mainContainer.AddChild(eePromControlsContainer);
+			eePromControlsContainer = new SettingsItem(
+				"EEProm Settings".Localize(),
+				widgetFactories,
+				Path.Combine("PrintStatusControls", "leveling-24x24.png"),
+				itemClickedAction: configureEePromButton_Click
+			);
+
+			mainContainer.AddChild(eePromControlsContainer);
 			mainContainer.AddChild(new HorizontalLine(separatorLineColor));
 
+			terminalCommunicationsContainer = new SettingsItem(
+				"Gcode Console".Localize(),
+				widgetFactories,
+				Path.Combine("PrintStatusControls", "terminal-24x24.png"),
+				itemClickedAction: () => {
+					UiThread.RunOnIdle((state) => TerminalWindow.Show());
+				}
+			);
+
 			mainContainer.AddChild(terminalCommunicationsContainer);
-
-			DisableableWidget cameraContainer = new DisableableWidget();
-			cameraContainer.AddChild(GetCameraControl());
-
-			if (ApplicationSettings.Instance.get("HardwareHasCamera") == "true")
-			{
-				mainContainer.AddChild(new HorizontalLine(separatorLineColor));
-				mainContainer.AddChild(cameraContainer);
-			}
 
             AddChild(mainContainer);
             AddHandlers();
@@ -66,99 +126,6 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
         EditLevelingSettingsWindow editLevelingSettingsWindow;
         TextWidget printLevelingStatusLabel;
-        private FlowLayoutWidget GetAutoLevelControl()
-        {
-            FlowLayoutWidget buttonRow = new FlowLayoutWidget();
-            buttonRow.HAnchor = HAnchor.ParentLeftRight;
-            buttonRow.Margin = new BorderDouble(0,4);
-
-            Button configureAutoLevelButton = textImageButtonFactory.Generate("Configure".Localize().ToUpper());
-            configureAutoLevelButton.Margin = new BorderDouble(left: 6);
-            configureAutoLevelButton.VAnchor = VAnchor.ParentCenter;
-			configureAutoLevelButton.Click += new EventHandler(configureAutoLevelButton_Click);
-
-            TextWidget notificationSettingsLabel = new TextWidget("Automatic Print Leveling");
-            notificationSettingsLabel.AutoExpandBoundsToText = true;
-            notificationSettingsLabel.TextColor = ActiveTheme.Instance.PrimaryTextColor;
-            notificationSettingsLabel.VAnchor = VAnchor.ParentCenter;
-
-            Button editButton = textImageButtonFactory.GenerateEditButton();
-            editButton.VAnchor = Agg.UI.VAnchor.ParentCenter;
-            editButton.Click += (sender, e) =>
-            {
-                UiThread.RunOnIdle((state) =>
-                {
-                    if (editLevelingSettingsWindow == null)
-                    {
-                        editLevelingSettingsWindow = new EditLevelingSettingsWindow();
-                        editLevelingSettingsWindow.Closed += (sender2, e2) =>
-                        {
-                            editLevelingSettingsWindow = null;
-                        };
-                    }
-                    else
-                    {
-                        editLevelingSettingsWindow.BringToFront();
-                    }
-                });
-            };
-
-            Button runPrintLevelingButton = textImageButtonFactory.Generate("Configure".Localize().ToUpper());
-            runPrintLevelingButton.Margin = new BorderDouble(left:6);
-            runPrintLevelingButton.VAnchor = VAnchor.ParentCenter;
-            runPrintLevelingButton.Click += (sender, e) =>
-            {
-                UiThread.RunOnIdle((state) =>
-                {
-                    LevelWizardBase.ShowPrintLevelWizard(LevelWizardBase.RuningState.UserRequestedCalibration);
-                });
-            };
-
-            Agg.Image.ImageBuffer levelingImage = StaticData.Instance.LoadIcon(Path.Combine("PrintStatusControls", "leveling-24x24.png"));
-            if (!ActiveTheme.Instance.IsDarkTheme)
-            {
-                InvertLightness.DoInvertLightness(levelingImage);
-            }
-                
-            ImageWidget levelingIcon = new ImageWidget(levelingImage);
-			levelingIcon.Margin = new BorderDouble (right: 6);
-
-			GuiWidget levelingSwitchContainer = new FlowLayoutWidget();
-			levelingSwitchContainer.VAnchor = VAnchor.ParentCenter;
-			levelingSwitchContainer.Margin = new BorderDouble(left: 16);
-
-			ToggleSwitch printLevelingSwitch = GenerateToggleSwitch(levelingSwitchContainer, PrinterSettings.Instance.get("PublishBedImage") == "true");
-			printLevelingSwitch.SwitchState = ActivePrinterProfile.Instance.DoPrintLeveling;
-			printLevelingSwitch.SwitchStateChanged += (sender, e) => 
-			{
-				ActivePrinterProfile.Instance.DoPrintLeveling = printLevelingSwitch.SwitchState;
-			};
-			levelingSwitchContainer.SetBoundsToEncloseChildren();
-
-			printLevelingStatusLabel = new TextWidget ("");
-			printLevelingStatusLabel.AutoExpandBoundsToText = true;
-			printLevelingStatusLabel.TextColor = ActiveTheme.Instance.PrimaryTextColor;
-			printLevelingStatusLabel.VAnchor = VAnchor.ParentCenter;
-
-			GuiWidget hSpacer = new GuiWidget ();
-			hSpacer.HAnchor = HAnchor.ParentLeftRight;
-
-            ActivePrinterProfile.Instance.DoPrintLevelingChanged.RegisterEvent((sender, e) =>
-            {
-                SetPrintLevelButtonVisiblity();
-
-            }, ref unregisterEvents);
-
-            buttonRow.AddChild(levelingIcon);
-            buttonRow.AddChild(printLevelingStatusLabel);
-            buttonRow.AddChild(editButton);
-            buttonRow.AddChild(new HorizontalSpacer());
-            buttonRow.AddChild(runPrintLevelingButton);
-			buttonRow.AddChild(levelingSwitchContainer);
-
-            SetPrintLevelButtonVisiblity();
-            return buttonRow;
-        }
 
         public override void OnClosed(EventArgs e)
         {
@@ -168,55 +135,6 @@ namespace MatterHackers.MatterControl.ConfigurationPage
             }
             base.OnClosed(e);
         }
-
-		private FlowLayoutWidget GetCameraControl()
-		{
-			FlowLayoutWidget buttonRow = new FlowLayoutWidget();
-			buttonRow.HAnchor = HAnchor.ParentLeftRight;
-			buttonRow.Margin = new BorderDouble(0,4);
-
-			Agg.Image.ImageBuffer cameraIconImage = StaticData.Instance.LoadIcon(Path.Combine("PrintStatusControls", "camera-24x24.png"));
-			if (!ActiveTheme.Instance.IsDarkTheme)
-			{
-				InvertLightness.DoInvertLightness(cameraIconImage);
-			}
-
-			ImageWidget cameraIcon = new ImageWidget(cameraIconImage);
-			cameraIcon.Margin = new BorderDouble(right: 6);
-
-			TextWidget cameraLabel = new TextWidget("Camera Sync");
-			cameraLabel.AutoExpandBoundsToText = true;
-			cameraLabel.TextColor = ActiveTheme.Instance.PrimaryTextColor;
-			cameraLabel.VAnchor = VAnchor.ParentCenter;
-
-			openCameraButton = textImageButtonFactory.Generate("Preview".Localize().ToUpper());
-			openCameraButton.Click += new EventHandler(openCameraPreview_Click);
-			openCameraButton.Margin = new BorderDouble(left:6);
-
-			buttonRow.AddChild(cameraIcon);
-			buttonRow.AddChild(cameraLabel);
-			buttonRow.AddChild(new HorizontalSpacer());
-			buttonRow.AddChild(openCameraButton);
-#if __ANDROID__ 
-
-			GuiWidget publishImageSwitchContainer = new FlowLayoutWidget();
-			publishImageSwitchContainer.VAnchor = VAnchor.ParentCenter;
-			publishImageSwitchContainer.Margin = new BorderDouble(left: 16);
-
-			ToggleSwitch toggleSwitch = GenerateToggleSwitch(publishImageSwitchContainer, PrinterSettings.Instance.get("PublishBedImage") == "true");
-			toggleSwitch.SwitchStateChanged += (sender, e) => 
-			{
-				ToggleSwitch thisControl = sender as ToggleSwitch;
-				PrinterSettings.Instance.set("PublishBedImage", thisControl.SwitchState ? "true" : "false");
-			};
-
-			publishImageSwitchContainer.SetBoundsToEncloseChildren();
-
-			buttonRow.AddChild(publishImageSwitchContainer);
-#endif
-
-			return buttonRow;
-		}
 
         private FlowLayoutWidget GetGcodeTerminalControl()
 		{
@@ -233,55 +151,33 @@ namespace MatterHackers.MatterControl.ConfigurationPage
             ImageWidget terminalIcon = new ImageWidget(terminalSettingsImage);
             terminalIcon.Margin = new BorderDouble(right: 6, bottom: 6);
 
-			TextWidget gcodeTerminalLabel = new TextWidget("Gcode Terminal");
+			TextWidget gcodeTerminalLabel = new TextWidget("Gcode Console");
 			gcodeTerminalLabel.AutoExpandBoundsToText = true;
 			gcodeTerminalLabel.TextColor = ActiveTheme.Instance.PrimaryTextColor;
 			gcodeTerminalLabel.VAnchor = VAnchor.ParentCenter;
 
-			openGcodeTerminalButton = textImageButtonFactory.Generate("Show Terminal".Localize().ToUpper());
-			openGcodeTerminalButton.Click += new EventHandler(openGcodeTerminalButton_Click);
+			GuiWidget consoleSwitchContainer = new FlowLayoutWidget();
+			consoleSwitchContainer.VAnchor = VAnchor.ParentCenter;
+			consoleSwitchContainer.Margin = new BorderDouble(left: 16, right: 32);
+
+			ToggleSwitch consoleSwitch = GenerateToggleSwitch(consoleSwitchContainer, true);
+			consoleSwitch.SwitchState = ActivePrinterProfile.Instance.DoPrintLeveling;
+			consoleSwitch.SwitchStateChanged += (sender, e) => 
+			{
+				ActivePrinterProfile.Instance.DoPrintLeveling = consoleSwitch.SwitchState;
+			};
+			consoleSwitchContainer.SetBoundsToEncloseChildren();
+
+			//openGcodeTerminalButton = textImageButtonFactory.Generate("Show Terminal".Localize().ToUpper());
+			//openGcodeTerminalButton.Click += new EventHandler(openGcodeTerminalButton_Click);
 
             buttonRow.AddChild(terminalIcon);
             buttonRow.AddChild(gcodeTerminalLabel);
 			buttonRow.AddChild(new HorizontalSpacer());
-			buttonRow.AddChild(openGcodeTerminalButton);
+			buttonRow.AddChild(consoleSwitchContainer);
 
 			return buttonRow;
 		}
-
-        static EePromMarlinWindow openEePromMarlinWidget = null;
-        static EePromRepetierWindow openEePromRepetierWidget = null;
-        string noEepromMappingMessage = "Oops! There is no eeprom mapping for your printer's firmware.".Localize() + "\n\n" + "You may need to wait a minute for your printer to finish initializing.".Localize();
-        string noEepromMappingTitle = "Warning - No EEProm Mapping".Localize();
-        private FlowLayoutWidget GetEEPromControl()
-        {
-            FlowLayoutWidget buttonRow = new FlowLayoutWidget();
-            buttonRow.HAnchor = HAnchor.ParentLeftRight;
-            buttonRow.Margin = new BorderDouble(0,4);
-
-            TextWidget notificationSettingsLabel = new TextWidget("EEProm Settings".Localize());
-            notificationSettingsLabel.AutoExpandBoundsToText = true;
-            notificationSettingsLabel.TextColor = ActiveTheme.Instance.PrimaryTextColor;
-            notificationSettingsLabel.VAnchor = VAnchor.ParentCenter;
-
-            Agg.Image.ImageBuffer eePromImage = StaticData.Instance.LoadIcon(Path.Combine("PrintStatusControls", "leveling-24x24.png"));
-            if (!ActiveTheme.Instance.IsDarkTheme)
-            {
-                InvertLightness.DoInvertLightness(eePromImage);
-            }
-            ImageWidget eePromIcon = new ImageWidget(eePromImage);            
-            eePromIcon.Margin = new BorderDouble(right: 6);
-
-            Button configureEePromButton = textImageButtonFactory.Generate("Configure".Localize().ToUpper());
-			configureEePromButton.Click += new EventHandler(configureEePromButton_Click);
-            
-            //buttonRow.AddChild(eePromIcon);
-            buttonRow.AddChild(notificationSettingsLabel);
-            buttonRow.AddChild(new HorizontalSpacer());
-            buttonRow.AddChild(configureEePromButton);
-
-            return buttonRow;
-        }     
 
         private void AddHandlers()
         {
@@ -289,12 +185,9 @@ namespace MatterHackers.MatterControl.ConfigurationPage
             PrinterConnectionAndCommunication.Instance.EnableChanged.RegisterEvent(onPrinterStatusChanged, ref unregisterEvents);
         }
 
-		void openCameraPreview_Click(object sender, EventArgs e)
-		{
-			MatterControlApplication.Instance.OpenCameraPreview();
-		}
-
-        void configureEePromButton_Click(object sender, EventArgs mouseEvent)
+		string noEepromMappingTitle = "Warning - No EEProm Mapping".Localize();
+		string noEepromMappingMessage = "Oops! There is no eeprom mapping for your printer's firmware.".Localize() + "\n\n" + "You may need to wait a minute for your printer to finish initializing.".Localize();
+        void configureEePromButton_Click()
         {
             UiThread.RunOnIdle((state) =>
             {
@@ -341,38 +234,10 @@ namespace MatterHackers.MatterControl.ConfigurationPage
             });
         }
 
-        void configureAutoLevelButton_Click(object sender, EventArgs mouseEvent)
-        {
-            UiThread.RunOnIdle((state) =>
-            {
-                //Do stuff
-            });
-        }
-
-		void openGcodeTerminalButton_Click(object sender, EventArgs mouseEvent)
-		{
-			UiThread.RunOnIdle((state) =>
-			{
-				TerminalWindow.Show();
-			});
-		}
-
         private void onPrinterStatusChanged(object sender, EventArgs e)
         {
             SetVisibleControls();
             this.Invalidate();
-        }
-
-        void SetPrintLevelButtonVisiblity()
-        {
-            if (ActivePrinterProfile.Instance.DoPrintLeveling)
-            {
-                printLevelingStatusLabel.Text = LocalizedString.Get("Automatic Print Leveling (enabled)");
-            }
-            else
-            {
-                printLevelingStatusLabel.Text = LocalizedString.Get("Automatic Print Leveling (disabled)");
-            }
         }
 
         private void SetVisibleControls()
@@ -382,7 +247,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
                 // no printer selected                         
                 eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
                 terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
-                printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
+                levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
                 //cloudMonitorContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
             }
             else // we at least have a printer selected
@@ -396,20 +261,20 @@ namespace MatterHackers.MatterControl.ConfigurationPage
                     case PrinterConnectionAndCommunication.CommunicationStates.AttemptingToConnect:
                     case PrinterConnectionAndCommunication.CommunicationStates.FailedToConnect:
                         eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
-                        printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
+                        levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         break;
 
                     case PrinterConnectionAndCommunication.CommunicationStates.FinishedPrint:
                     case PrinterConnectionAndCommunication.CommunicationStates.Connected:
                         eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
-                        printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
+                        levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         break;
 
                     case PrinterConnectionAndCommunication.CommunicationStates.PrintingFromSd:
                         eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
-                        printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
+                        levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
                         terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         break;
 
@@ -422,7 +287,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
                             case PrinterConnectionAndCommunication.DetailedPrintingState.HeatingExtruder:
                             case PrinterConnectionAndCommunication.DetailedPrintingState.Printing:
                                 eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
-                                printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
+                                levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
                                 terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                                 break;
 
@@ -433,7 +298,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
                     case PrinterConnectionAndCommunication.CommunicationStates.Paused:
                         eePromControlsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
-                        printLevelingContainer.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
+                        levelingSection.SetEnableLevel(DisableableWidget.EnableLevel.Disabled);
                         terminalCommunicationsContainer.SetEnableLevel(DisableableWidget.EnableLevel.Enabled);
                         break;
 
