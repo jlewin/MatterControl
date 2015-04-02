@@ -172,7 +172,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 		{
 			TextWidget toggleLabel = new TextWidget(initiallyChecked ? "On" : "Off", pointSize: 10, textColor: ActiveTheme.Instance.PrimaryTextColor);
 			toggleLabel.VAnchor = Agg.UI.VAnchor.ParentCenter;
-			toggleLabel.Margin = new BorderDouble (right: 4);
+			toggleLabel.Margin = new BorderDouble (right: 14);
 
 			ToggleSwitch toggleSwitch = factories.SwitchFactory.GenerateGivenTextWidget(toggleLabel, "On", "Off", initiallyChecked);
 			toggleSwitch.VAnchor = Agg.UI.VAnchor.ParentCenter;

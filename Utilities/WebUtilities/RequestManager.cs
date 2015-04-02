@@ -176,7 +176,7 @@ namespace MatterHackers.MatterControl
 				{
 					Console.WriteLine("Domain: {0}, String: {1}", cook.Domain, cook.ToString());
 				}
-				Stream responseStream = response.GetResponseStream();
+				//Stream responseStream = response.GetResponseStream();
 				GetResponseContent(response);
 			}
 			catch (WebException ex)

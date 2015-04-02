@@ -34,12 +34,17 @@ using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.VersionManagement
 {
-    public class WebRequestBase
+	public class ResponseEventArgs : EventArgs
+	{
+		public JsonResponseDictionary ResponseValues { get; set; }
+	}
+
+	public class WebRequestBase
     {
         protected string uri;
-        protected Dictionary<string, string> requestValues;
+		protected Dictionary<string, string> requestValues;
         public event EventHandler RequestSucceeded;
-        public event EventHandler RequestFailed;
+        public event EventHandler<ResponseEventArgs> RequestFailed;
         public event EventHandler RequestComplete;
 
         protected void OnRequestSuceeded()
@@ -59,11 +64,11 @@ namespace MatterHackers.MatterControl.VersionManagement
             }
         }
 
-        protected void OnRequestFailed()
+		protected void OnRequestFailed(JsonResponseDictionary responseValues)
         {
             if (RequestFailed != null)
             {
-                RequestFailed(this, null);
+				RequestFailed(this, new ResponseEventArgs() { ResponseValues = responseValues });
             }
         }
 
@@ -118,7 +123,6 @@ namespace MatterHackers.MatterControl.VersionManagement
         protected virtual void ProcessResponse(object sender, RunWorkerCompletedEventArgs e)
         {
             JsonResponseDictionary responseValues = e.Result as JsonResponseDictionary;
-
             if (responseValues != null)
             {
                 string requestSuccessStatus = responseValues.get("Status");
@@ -130,7 +134,7 @@ namespace MatterHackers.MatterControl.VersionManagement
                 else
                 {
                     ProcessErrorResponse(responseValues);
-                    OnRequestFailed();
+					OnRequestFailed(responseValues);
                 }
 
                 OnRequestComplete();
@@ -145,8 +149,7 @@ namespace MatterHackers.MatterControl.VersionManagement
         {
             //Do Stuff            
         }
-
-        public virtual void ProcessErrorResponse(JsonResponseDictionary responseValues)
+       public virtual void ProcessErrorResponse(JsonResponseDictionary responseValues)
         {
             string errorMessage = responseValues.get("ErrorMessage");
             if (errorMessage != null)

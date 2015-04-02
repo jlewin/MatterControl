@@ -97,8 +97,6 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
             AddChild(mainContainer);
 
-            SetCloudButtonVisiblity();
-            
             AddHandlers();
         }
 
@@ -146,15 +144,6 @@ namespace MatterHackers.MatterControl.ConfigurationPage
                     openInstructionsPageFunction(null);
                 });
             }
-        }
-
-        void SetCloudButtonVisiblity()
-        {
-            bool cloudMontitorEnabled = (PrinterSettings.Instance.get("CloudMonitorEnabled") == "true");
-            //enableCloudMonitorButton.Visible = !cloudMontitorEnabled;
-            //disableCloudMonitorButton.Visible = cloudMontitorEnabled;
-            //goCloudMonitoringWebPageButton.Visible = cloudMontitorEnabled;
-
         }
 
         public override void OnClosed(EventArgs e)

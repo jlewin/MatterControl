@@ -236,7 +236,7 @@ namespace MatterHackers.MatterControl
     {
         static ApplicationController globalInstance;
         public RootedObjectEventHandler ReloadAdvancedControlsPanelTrigger = new RootedObjectEventHandler();
-        public RootedObjectEventHandler CloudSyncStatusChanged = new RootedObjectEventHandler();
+        public RootedObjectEventHandler CloudStatusChanged = new RootedObjectEventHandler();
 		public RootedObjectEventHandler DoneReloadingAll = new RootedObjectEventHandler();
 
 		public delegate string GetSessionInfoDelegate();
@@ -342,9 +342,9 @@ namespace MatterHackers.MatterControl
             ReloadAdvancedControlsPanelTrigger.CallEvents(this, null);
         }
 
-        public void ChangeCloudSyncStatus()
+        public void ChangeCloudStatus()
         {
-            CloudSyncStatusChanged.CallEvents(this, null);            
+            CloudStatusChanged.CallEvents(this, null);
         }
     }
 }
