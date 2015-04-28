@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataConverters3D", "Submodu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatterControl.Tests", "Tests\MatterControl.Tests\MatterControl.Tests.csproj", "{E1455E5C-127C-4282-8CC5-452C300E91D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AggDesigner", "..\Tools\AggDesigner\AggDesigner.csproj", "{5B9F25E2-F7DF-4C34-9E12-107F1324A431}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agg.Tests", "Submodules\agg-sharp\Tests\Agg.Tests\Agg.Tests.csproj", "{195CBE56-E654-437B-AB05-3BE1B9452497}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatterSlice.Tests", "Submodules\MatterSlice\Tests\MatterSlice.Tests\MatterSlice.Tests.csproj", "{8CD15B23-D30F-470E-99BA-9276FB7CABD4}"
