@@ -49,6 +49,10 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 
+using System.Linq;
+using System.ServiceModel;
+using System.ServiceModel.Description;
+
 namespace MatterHackers.MatterControl
 {
 	public class MatterControlApplication : SystemWindow
@@ -70,7 +74,6 @@ namespace MatterHackers.MatterControl
 		private string unableToExitMessage = "Oops! You cannot exit while a print is active.".Localize();
 
 		private string unableToExitTitle = "Unable to Exit".Localize();
-
 
 #if true//!DEBUG
 		static RaygunClient _raygunClient = GetCorrectClient();
@@ -374,9 +377,93 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-		[STAThread]
-		public static void Main()
+
+		static EventWaitHandle s_event;
+
+		[ServiceContract]
+		public interface IService
 		{
+			[OperationContract]
+			void ShellOpenFile(string[] files);
+		}
+
+		private static string[] shellFileExtensions = new string[] { ".stl", ".amf" };
+
+		private static readonly object locker = new object();
+
+		public class LocalService : IService
+		{
+			public void ShellOpenFile(string[] files)
+			{
+				// If at least one argument is an acceptable shell file extension
+				var itemsToAdd = files.Where(f => File.Exists(f) && shellFileExtensions.Contains(Path.GetExtension(f).ToLower()));
+				if (itemsToAdd.Any())
+				{
+					lock (locker)
+					{
+						// Add each file
+						foreach (string file in itemsToAdd)
+						{
+							string fileName = Path.GetFileNameWithoutExtension(file);
+							QueueData.Instance.AddItem(new PrintItemWrapper(new PrintItem(fileName, file)), indexToInsert: 0);
+						}
+
+						// Select the last file
+						QueueData.Instance.SelectedIndex = 0;
+					}
+				}
+			}
+		}
+
+		public class ServiceProxy : ClientBase<IService>
+		{
+			public ServiceProxy()
+				: base(new ServiceEndpoint(ContractDescription.GetContract(typeof(IService)),
+					new NetNamedPipeBinding(), new EndpointAddress("net.pipe://localhost/helloservice")))
+			{
+
+			}
+			public void ShellOpenFile(string[] files)
+			{
+				Channel.ShellOpenFile(files);
+			}
+		}
+
+		[STAThread]
+		public static void Main(string[] cmdArgs)
+		{
+//#if IS_WINDOWS
+			// If an instance is already running
+			bool created;
+			s_event = new EventWaitHandle(false, EventResetMode.ManualReset, "MatterControl#Startup", out created);
+			if (!created)
+			{
+				var proxy = new ServiceProxy();
+
+				// and at least one argument is an acceptable shell file extension
+				var itemsToAdd = cmdArgs.Where(f => File.Exists(f) && shellFileExtensions.Contains(Path.GetExtension(f).ToLower()));
+				if(itemsToAdd.Any())
+				{
+					// notify the running instance of the event
+					proxy.ShellOpenFile(itemsToAdd.ToArray());
+				}
+
+				// Finally, close the process spawned by Explorer.exe
+				return;
+			}
+//#endif
+
+
+			var serviceHost = new ServiceHost(typeof(LocalService), new Uri[] { new Uri("net.pipe://localhost/") });
+			serviceHost.AddServiceEndpoint(typeof(IService), new NetNamedPipeBinding(), "helloservice");
+			serviceHost.Open();
+
+			Console.WriteLine("Service started. Available in following endpoints");
+			foreach (var serviceEndpoint in serviceHost.Description.Endpoints)
+			{
+				Console.WriteLine(serviceEndpoint.ListenUri.AbsoluteUri);
+			}
+
 			CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
