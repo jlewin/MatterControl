@@ -156,7 +156,7 @@ namespace MatterHackers.MatterControl.VersionManagement
 			OnRequestComplete();
 		}
 	}
-
+	/*
 	public class WebRequestBase
 	{
 		protected Dictionary<string, string> requestValues;
@@ -314,5 +314,5 @@ namespace MatterHackers.MatterControl.VersionManagement
 		{
 			return Newtonsoft.Json.JsonConvert.SerializeObject(requestObject);
 		}
-	}
+	} */
 }
