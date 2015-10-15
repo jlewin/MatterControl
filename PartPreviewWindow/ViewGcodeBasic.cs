@@ -698,6 +698,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				}
 			}
 
+			var externalGcodeViewer = whiteButtonFactory.Generate("External Viewer");
+			externalGcodeViewer.Click += (s, e) =>
+			{
+				// Copy the file into place
+				File.Copy(printItem.GetGCodePathAndFileName(), @"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt", true);
+
+				// Launch the browser UI
+				System.Diagnostics.Process.Start("http://localhost/gcode/");
+			};
+
+			layerInfoContainer.AddChild(externalGcodeViewer);
+
 			//layerInfoContainer.AddChild(new CheckBox("Show Retractions", textColor: ActiveTheme.Instance.PrimaryTextColor));
 
 			buttonPanel.AddChild(layerInfoContainer);
