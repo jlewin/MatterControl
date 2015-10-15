@@ -43,6 +43,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MatterHackers.MatterControl.PrintQueue
 {
@@ -727,6 +728,50 @@ namespace MatterHackers.MatterControl.PrintQueue
 
 			menuItems.Add(new Tuple<string, Func<bool>>("Send".Localize(), sendMenu_Selected));
 			menuItems.Add(new Tuple<string, Func<bool>>("Add To Library".Localize(), addToLibraryMenu_Selected));
+
+
+			//libraryProviderPlugins = new PluginFinder<LibraryProviderPlugin>();
+
+
+
+
+			menuItems.Add(new Tuple<string, Func<bool>>("Slice & View".Localize(), () =>
+			{
+				var item = queueDataView.SelectedItems.FirstOrDefault();
+				if (item != null)
+				{
+					Task.Run(() =>
+					{
+						int waitMax = 120;
+						int waitCount = 0;
+
+						var printItemWrapper = item.PrintItemWrapper;
+
+						// Add to slicing queue
+						SlicingQueue.Instance.QueuePartForSlicing(printItemWrapper);
+
+						// Wait up to 2 minutes
+						while(waitCount < waitMax && !printItemWrapper.DoneSlicing)
+						{
+							System.Threading.Thread.Sleep(1000);
+							waitCount += 1;
+						}
+
+						// Launch external viewer if sliced
+						if (printItemWrapper.DoneSlicing)
+						{
+							// Copy the file into place
+							File.Copy(printItemWrapper.GetGCodePathAndFileName(), @"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt", true);
+
+							// Launch the browser UI
+							System.Diagnostics.Process.Start("http://localhost/gcode/");
+						}
+					});
+				}
+
+				return true;
+			}));
+
 
 			BorderDouble padding = dropDownMenu.MenuItemsPadding;
 			//Add the menu items to the menu itself

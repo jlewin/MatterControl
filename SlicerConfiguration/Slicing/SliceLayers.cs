@@ -113,7 +113,7 @@ namespace MatterHackers.MatterControl.Slicing
 			int extrudeAmount = 0;
 			for (int layerIndex = 0; layerIndex < allLayers.Count; layerIndex++)
 			{
-				stream.Write("; LAYER:{0}\n".FormatWith(layerIndex));
+				stream.Write("\n; LAYER:{0}\n".FormatWith(layerIndex));
 				List<SliceLayer.Segment> unorderedSegments = allLayers[layerIndex].UnorderedSegments;
 				for (int segmentIndex = 0; segmentIndex < unorderedSegments.Count; segmentIndex++)
 				{
