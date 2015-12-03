@@ -45,7 +45,7 @@
     "SlicerConfigName": "layer_to_pause",
     "PresentationName": "Select Layer To Pause:",
     "HelpText": "If you want to select a layer to pause your print on do so here (for changing filament)",
-    "DataEditType": "STRING",
+    "DataEditType": "LAYER_TO_HEIGHT",
     "ExtraSettings": ""
   },
   {

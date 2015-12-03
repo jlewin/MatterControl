@@ -39,6 +39,7 @@ using MatterHackers.VectorMath;
 using System;
 using System.Collections.Generic;
 using MatterHackers.MatterControl.DataStorage;
+using System.Linq;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -740,6 +741,22 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
         public static int SettingsIndexBeingEdited = 0;
 #endif
 
+		private string ConvertLayersToHeights(string stuffedValues)
+		{
+			var currentLayers = stuffedValues.Split(';').Select(s => {
+				int layer;
+				int.TryParse(s.Trim(), out layer);
+
+				return layer;
+			}).Where(i => i > 0);
+
+			// Convert to z-heights
+			var heights = currentLayers.Select(i => (ActiveSliceSettings.Instance.LayerHeight * i).ToString()).ToArray();
+
+			// Return a semi-colon delimeted list of z-heights
+			return string.Join(";", heights);
+		}
+
 		private GuiWidget CreateSettingInfoUIControls(OrganizerSettingsData settingData, double minSettingNameWidth, int extruderIndex)
 		{
 			GuiWidget container = new GuiWidget();
@@ -810,6 +827,38 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 				switch (settingData.DataEditType)
 				{
+					case OrganizerSettingsData.DataEditTypes.LAYER_TO_HEIGHT:
+						{
+							var layers = ActiveSliceSettings.Instance.InterpolateHeightValuesToLayers(sliceSettingValue);
+
+							// Display a semi-colon delimeted list of layers
+							var stringEdit = new MHTextEditWidget(string.Join(";", layers.ToArray()), pixelWidth: 120, tabIndex: tabIndexForItem++);
+
+							stringEdit.ToolTipText = settingData.HelpText;
+							stringEdit.ActualTextEditWidget.EditComplete += (sender, e) =>
+							{
+								string delimitedHeights = ConvertLayersToHeights(((TextEditWidget)sender).Text);
+
+								SaveSetting(settingData.SlicerConfigName, delimitedHeights);
+								CallEventsOnSettingsChange(settingData);
+
+							};
+							leftToRightLayout.AddChild(stringEdit);
+
+							ActiveSliceSettings.Instance.SettingsChanged.RegisterEvent((sender, args) => {
+								var e = args as SettingsChangedEventArgs;
+								if (e != null && e.ChangedSettingName == "layer_height")
+								{
+									var layers2 = ActiveSliceSettings.Instance.InterpolateHeightValuesToLayers(ActiveSliceSettings.Instance.HeightsToPauseOnRaw);
+									stringEdit.Text = string.Join(";", layers2);
+								}
+							}, ref unregisterEvents);
+
+
+						}
+
+						break;
+
 					case OrganizerSettingsData.DataEditTypes.INT:
 						{
 							int currentValue = 0;
@@ -1437,7 +1486,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 		private void SaveSetting(string slicerConfigName, string value)
 		{
 			//Hacky solution prevents saves when no printer is loaded
-			if (ActivePrinterProfile.Instance.ActivePrinter != null)
+				if (ActivePrinterProfile.Instance.ActivePrinter != null)
 			{
 				SliceSettingsLayerSelector.Instance.SaveSetting(slicerConfigName, value);
 			}
@@ -1501,5 +1550,11 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			topToBottomItemList.AddChild(itemHolder, indexInChildrenList);
 		}
+	}
+
+	public class SettingsChangedEventArgs : EventArgs
+	{
+		public string ChangedSettingName { get; set; }
+
 	}
 }

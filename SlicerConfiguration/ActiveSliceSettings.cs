@@ -90,11 +90,11 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			CommitStatusChanged.CallEvents(this, null);
 		}
 
-		private void OnSettingsChanged()
+		private void OnSettingsChanged(EventArgs e = null)
 		{
 			//Set hash code back to 0
 			this.settingsHashCode = 0;
-			SettingsChanged.CallEvents(this, null);
+			SettingsChanged.CallEvents(this, e);
 		}
 
 		// private so that it can only be gotten through the Instance
@@ -301,16 +301,40 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			}
 		}
 
+		public int[] InterpolateHeightValuesToLayers(string delimitedList)
+		{
+			// Extract the z-heights from slice settings and convert to an IEnumerable<double>
+			var pauseAtHeights = delimitedList.Split(';').Select(s =>
+			{
+				double height;
+				double.TryParse(s.Trim(), out height);
+
+				return height;
+			}).Where(d => d > 0).OrderBy(d => d);
+
+			// Interpolate the heights to active layer values
+			return pauseAtHeights.Select(d => (int)Math.Floor(d / ActiveSliceSettings.Instance.LayerHeight)).ToArray();
+		}
+
 		public int[] LayerToPauseOn
 		{
 			get
 			{
-				string[] userValues = GetActiveValue("layer_to_pause").Split(';');
-
-				int temp;
-				return userValues.Where(v => int.TryParse(v, out temp)).Select(v => int.Parse(v)).ToArray();
+				return InterpolateHeightValuesToLayers(GetActiveValue("layer_to_pause"));
 			}
 		}
+
+		public string HeightsToPauseOnRaw
+		{
+			get
+			{
+				return GetActiveValue("layer_to_pause");
+			}
+		}
+
+
+
+
 
 		public double ProbePaperWidth
 		{
@@ -746,7 +770,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				layer.settingsDictionary[keyName].Value = keyValue;
 
-				OnSettingsChanged();
+				OnSettingsChanged(new SettingsChangedEventArgs() { ChangedSettingName = keyName });
 				HasUncommittedChanges = true;
 			}
 			else
@@ -758,7 +782,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 				layer.settingsDictionary[keyName] = sliceSetting;
 
-				OnSettingsChanged();
+				OnSettingsChanged(new SettingsChangedEventArgs() { ChangedSettingName = keyName });
 				HasUncommittedChanges = true;
 			}
 		}
