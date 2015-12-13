@@ -44,6 +44,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MatterHackers.GCodeVisualizer;
+using MatterHackers.MatterControl.PrinterCommunication.Io;
 
 namespace MatterHackers.MatterControl.PrintQueue
 {
@@ -763,7 +765,30 @@ namespace MatterHackers.MatterControl.PrintQueue
 						if (printItemWrapper.DoneSlicing)
 						{
 							// Copy the file into place
-							File.Copy(printItemWrapper.GetGCodePathAndFileName(), @"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt", true);
+							//File.Copy(printItemWrapper.GetGCodePathAndFileName(), @"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt", true);
+
+							var loadedGCode = GCodeFile.Load(printItemWrapper.GetGCodePathAndFileName());
+
+							var gCodeFileStream0 = new GCodeFileStream(loadedGCode);
+							var queuedCommandStream1 = new QueuedCommandsStream(gCodeFileStream0);
+							var relativeToAbsoluteStream2 = new RelativeToAbsoluteStream(queuedCommandStream1);
+							//var printLevelingStream3 = new PrintLevelingStream(relativeToAbsoluteStream2);
+							//var waitForTempStream4 = new WaitForTempStream(printLevelingStream3);
+							var babyStepsStream5 = new BabyStepsStream(relativeToAbsoluteStream2);
+							var extrusionMultiplyerStream6 = new ExtrusionMultiplyerStream(babyStepsStream5);
+							var feedrateMultiplyerStream7 = new FeedRateMultiplyerStream(extrusionMultiplyerStream6);
+							//var requestTemperaturesStream8 = new RequestTemperaturesStream(feedrateMultiplyerStream7);
+							var totalGCodeStream = feedrateMultiplyerStream7;
+
+							using (var outstream = new StreamWriter(@"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt"))
+							{
+								string line;
+								while (null != (line = totalGCodeStream.ReadLine()))
+								{
+									//Console.WriteLine(line);
+									outstream.WriteLine(line);
+								}
+							}
 
 							// Launch the browser UI
 							System.Diagnostics.Process.Start("http://localhost/gcode/");
