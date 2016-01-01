@@ -499,7 +499,10 @@ namespace MatterHackers.MatterControl
 		{
 			UiThread.RunOnIdle(() =>
 			{
-				System.Diagnostics.Process.Start(targetUri);
+				var finder = new PluginFinder<SystemWindowCreatorPlugin>();
+				var windowCreator = finder.Plugins.FirstOrDefault();
+
+				windowCreator.ShowWebStore(targetUri);
 			});
 		}
 
