@@ -52,10 +52,17 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			internalStream.SetPrinterPosition(lastDestination);
 		}
 
-		public PauseHandlingStream(GCodeStream internalStream)
-			: base(internalStream)
+		public PauseHandlingStream()
 		{
-			relativeToAbsoluteConverter = new RelativeToAbsoluteStream(internalStream);
+		}
+
+		internal override void SetParentStream(GCodeStream parentStream)
+		{
+			relativeToAbsoluteConverter = new RelativeToAbsoluteStream()
+			{
+				internalStream = parentStream
+			};
+
 			internalStream = relativeToAbsoluteConverter;
 		}
 

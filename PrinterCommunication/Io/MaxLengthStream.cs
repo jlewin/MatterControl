@@ -39,8 +39,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
         private List<PrinterMove> movesToSend = new List<PrinterMove>();
         private double maxSecondsPerSegment = 1.0/20.0; // 20 instruction per second
 
-        public MaxLengthStream(GCodeStream internalStream, double maxSegmentLength)
-            : base(internalStream)
+        public MaxLengthStream(double maxSegmentLength)
         {
             this.MaxSegmentLength = maxSegmentLength;
         }

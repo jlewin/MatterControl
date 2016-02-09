@@ -42,8 +42,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		protected PrinterMove lastDestination = new PrinterMove();
 		public PrinterMove LastDestination { get { return lastDestination; } }
 
-		public OffsetStream(GCodeStream internalStream, Vector3 offset)
-			: base(internalStream)
+		public OffsetStream(Vector3 offset)
 		{
 			this.offset = offset;
 		}

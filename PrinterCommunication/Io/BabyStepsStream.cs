@@ -63,11 +63,22 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				(moveAxis == PrinterConnectionAndCommunication.Axis.Z) ? moveAmount : 0);
 		}
 
-		public BabyStepsStream(GCodeStream internalStream)
-			: base(null)
+		public BabyStepsStream()
 		{
-			maxLengthStream = new MaxLengthStream(internalStream, 1);
-			offsetStream = new OffsetStream(maxLengthStream, new Vector3(0, 0, 0));
+		}
+
+		internal override void SetParentStream(GCodeStream parentStream)
+		{
+			maxLengthStream = new MaxLengthStream(1)
+			{
+				internalStream = parentStream
+			};
+
+			offsetStream = new OffsetStream(new Vector3(0, 0, 0))
+			{
+				internalStream = maxLengthStream
+			};
+
 			base.internalStream = offsetStream;
 		}
 

@@ -37,8 +37,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		protected PrinterMove lastDestination = new PrinterMove();
 		public PrinterMove LastDestination { get { return lastDestination; } }
 
-		public FeedRateMultiplyerStream(GCodeStream internalStream)
-			: base(internalStream)
+		public FeedRateMultiplyerStream()
 		{
 		}
 

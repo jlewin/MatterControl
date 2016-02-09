@@ -43,8 +43,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
         private Stopwatch timeHaveBeenAtTemp = new Stopwatch();
         private double waitAfterReachTempTime = 3;
 
-        public WaitForTempStream(GCodeStream internalStream)
-            : base(internalStream)
+        public WaitForTempStream()
         {
         }
 

@@ -2449,6 +2449,23 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			}
 		}
 
+		public static class GCodePipeline
+		{
+			public static GCodeStream Create(GCodeStream sourceStream, IEnumerable<GCodeStreamProxy> pipeline)
+			{
+				GCodeStream activeStream = sourceStream;
+
+				// Initialize the pipeline
+				foreach (var stream in pipeline)
+				{
+					stream.SetParentStream(activeStream);
+					activeStream = stream;
+				}
+
+				return activeStream;
+			}
+		}
+
 		private void loadGCodeWorker_DoWork(object sender, DoWorkEventArgs e)
 		{
 			totalGCodeStream?.Dispose();
@@ -2456,7 +2473,23 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			string gcodeFilename = e.Argument as string;
 			loadedGCode = GCodeFile.Load(gcodeFilename);
 
-			gCodeFileStream0 = new GCodeFileStream(loadedGCode);
+			totalGCodeStream = GCodePipeline.Create(
+				new GCodeFileStream(loadedGCode),
+				new List<GCodeStreamProxy> {
+					new PauseHandlingStream(),
+					new QueuedCommandsStream(),
+					new RelativeToAbsoluteStream(),
+					new PrintLevelingStream(),
+					new WaitForTempStream(),
+					new BabyStepsStream(),
+					new ExtrusionMultiplyerStream(),
+					new FeedRateMultiplyerStream(),
+					new RequestTemperaturesStream()
+				});
+
+			/*
+
+		gCodeFileStream0 = new GCodeFileStream(loadedGCode);
 			pauseHandlingStream1 = new PauseHandlingStream(gCodeFileStream0);
 			queuedCommandStream2 = new QueuedCommandsStream(pauseHandlingStream1);
 			relativeToAbsoluteStream3 = new RelativeToAbsoluteStream(queuedCommandStream2);
@@ -2466,7 +2499,58 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			extrusionMultiplyerStream7 = new ExtrusionMultiplyerStream(babyStepsStream6);
 			feedrateMultiplyerStream8 = new FeedRateMultiplyerStream(extrusionMultiplyerStream7);
 			requestTemperaturesStream9 = new RequestTemperaturesStream(feedrateMultiplyerStream8);
-			totalGCodeStream = requestTemperaturesStream9;
+			totalGCodeStream = requestTemperaturesStream9; */
+
+			DumpStream(gcodeFilename);
+		}
+
+		// printItemWrapper.GetGCodePathAndFileName()
+		public void DumpStream(string filePath)
+		{
+			var loadedGCode = GCodeFile.Load(filePath);
+
+			/*
+			var gCodeFileStream0 = new GCodeFileStream(loadedGCode);
+			var pauseHandlingStream1 = new PauseHandlingStream(gCodeFileStream0);
+			var queuedCommandStream2 = new QueuedCommandsStream(pauseHandlingStream1);
+			var relativeToAbsoluteStream3 = new RelativeToAbsoluteStream(queuedCommandStream2);
+			// var printLevelingStream4 = new PrintLevelingStream(relativeToAbsoluteStream3);
+			// var waitForTempStream5 = new WaitForTempStream(printLevelingStream4);
+			var babyStepsStream6 = new BabyStepsStream(relativeToAbsoluteStream3);
+			var extrusionMultiplyerStream7 = new ExtrusionMultiplyerStream(babyStepsStream6);
+			var feedrateMultiplyerStream8 = new FeedRateMultiplyerStream(extrusionMultiplyerStream7);
+			// var requestTemperaturesStream9 = new RequestTemperaturesStream(feedrateMultiplyerStream8);
+
+			var totalGCodeStream = feedrateMultiplyerStream8;
+			*/
+
+			var totalGCodeStream = GCodePipeline.Create(
+				new GCodeFileStream(loadedGCode),
+				new List<GCodeStreamProxy> {
+					new PauseHandlingStream(),
+					new QueuedCommandsStream(),
+					new RelativeToAbsoluteStream(),
+					//new PrintLevelingStream(),
+					//new WaitForTempStream(),
+					new BabyStepsStream(),
+					new ExtrusionMultiplyerStream(),
+					new FeedRateMultiplyerStream(),
+					//new RequestTemperaturesStream()
+				});
+
+
+			using (var outstream = new StreamWriter(@"C:\Data\Sources\MatterHackers\Tools\gCodeViewer\latest.txt"))
+			{
+				string line;
+				while (null != (line = totalGCodeStream.ReadLine()))
+				{
+					outstream.WriteLine(line);
+				}
+			}
+
+			// Launch the browser UI
+			System.Diagnostics.Process.Start("http://localhost/gcode/");
+
 		}
 
 		private void loadGCodeWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)

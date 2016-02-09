@@ -39,11 +39,15 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
 	public abstract class GCodeStreamProxy : GCodeStream
 	{
-		protected GCodeStream internalStream;
+		internal GCodeStream internalStream;
 
-		public GCodeStreamProxy(GCodeStream internalStream)
+		public GCodeStreamProxy()
 		{
-			this.internalStream = internalStream;
+		}
+
+		internal virtual void SetParentStream(GCodeStream parentStream)
+		{
+			this.internalStream = parentStream;
 		}
 
 		public override void Dispose()

@@ -36,8 +36,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
     {
         private long nextReadTimeMs = 0;
 
-        public RequestTemperaturesStream(GCodeStream internalStream)
-            : base(internalStream)
+        public RequestTemperaturesStream()
         {
             nextReadTimeMs = UiThread.CurrentTimerMs + 1000;
         }

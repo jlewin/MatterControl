@@ -40,8 +40,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	public class PrintLevelingStream : GCodeStreamProxy
 	{
 		protected PrinterMove lastDestination = new PrinterMove();
-		public PrintLevelingStream(GCodeStream internalStream)
-			: base(internalStream)
+		public PrintLevelingStream()
 		{
 		}
 
