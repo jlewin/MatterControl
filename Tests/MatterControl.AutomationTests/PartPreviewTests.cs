@@ -40,21 +40,21 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					//Click Edit button to make edit controls visible
 					testRunner.ClickByName("3D View Edit");
 					testRunner.Wait(1);
-					int partCountBeforeCopy = view3D.MeshGroups.Count();
+					int partCountBeforeCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountBeforeCopy == 1);
 					
 					
 					//Click Copy button and count MeshGroups 
 					testRunner.ClickByName(copyButtonName);
 					System.Threading.Thread.Sleep(2000);
-					int partCountAfterCopy = view3D.MeshGroups.Count();
+					int partCountAfterCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountAfterCopy == 2);
 					testRunner.Wait(1);
 
 					//Click Copy button a second time and count MeshGroups again
 					testRunner.ClickByName(copyButtonName);
 					System.Threading.Thread.Sleep(2000);
-					int partCountAfterSecondCopy = view3D.MeshGroups.Count();
+					int partCountAfterSecondCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountAfterSecondCopy == 3);
 
 
@@ -76,7 +76,6 @@ namespace MatterHackers.MatterControl.Tests.Automation
 			{
 				AutomationRunner testRunner = new AutomationRunner(MatterControlUtilities.DefaultTestImages);
 				{
-
 					SystemWindow systemWindow;
 
 					//Navigate to Local Library 
@@ -96,30 +95,39 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					//Click Edit button to make edit controls visible
 					testRunner.ClickByName("3D View Edit");
 					testRunner.Wait(1);
-					int partCountBeforeCopy = view3D.MeshGroups.Count();
-					resultsHarness.AddTestResult(partCountBeforeCopy == 1);
+					int partCountBeforeCopy = view3D.Scene.Children.Count;
+					resultsHarness.AddTestResult(partCountBeforeCopy == 1, "1 part exists");
 
 					for (int i = 0; i <= 4; i++)
-						{
-							testRunner.ClickByName(copyButtonName);
-							testRunner.Wait(1);
-						}
+					{
+						testRunner.ClickByName(copyButtonName);
+						testRunner.Wait(1);
+					}
 					
 					//Get MeshGroupCount before Group is clicked
 					System.Threading.Thread.Sleep(2000);
-					int partsOnBedBeforeGroup = view3D.MeshGroups.Count();
-					resultsHarness.AddTestResult(partsOnBedBeforeGroup == 6);
+					int partsOnBedBeforeGroup = view3D.Scene.Children.Count;
+					resultsHarness.AddTestResult(partsOnBedBeforeGroup == 6, "6 copies exist");
+
+					// Select all parts on the bed
+					var allObjects = view3D.Scene.Children.ToArray();
+					view3D.Scene.ClearSelection();
+
+					foreach(var item in allObjects)
+					{
+						view3D.Scene.AddToSelection(item);
+					}
 
 					//Click Group Button and get MeshGroup count after Group button is clicked
 					testRunner.ClickByName("3D View Group");
 					System.Threading.Thread.Sleep(2000);
-					int partsOnBedAfterGroup = view3D.MeshGroups.Count();
-					resultsHarness.AddTestResult(partsOnBedAfterGroup == 1);
+					int partsOnBedAfterGroup = view3D.Scene.Children.Count;
+					resultsHarness.AddTestResult(partsOnBedAfterGroup == 1, "After group count equals 1");
 
 					testRunner.ClickByName("3D View Ungroup");
 					System.Threading.Thread.Sleep(2000);
-					int partsOnBedAfterUngroup = view3D.MeshGroups.Count();
-					resultsHarness.AddTestResult(partsOnBedAfterUngroup == 6);
+					int partsOnBedAfterUngroup = view3D.Scene.Children.Count;
+					resultsHarness.AddTestResult(partsOnBedAfterUngroup == 6, "After ungroup count equals 6, actual: " + partsOnBedAfterUngroup);
 
 					MatterControlUtilities.CloseMatterControl(testRunner);
 				}
@@ -159,7 +167,7 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					//Click Edit button to make edit controls visible
 					testRunner.ClickByName("3D View Edit");
 					testRunner.Wait(1);
-					int partCountBeforeCopy = view3D.MeshGroups.Count();
+					int partCountBeforeCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountBeforeCopy == 1);
 
 					for (int i = 0; i <= 4; i++)
@@ -170,13 +178,13 @@ namespace MatterHackers.MatterControl.Tests.Automation
 
 					//Get MeshGroupCount before Group is clicked
 					System.Threading.Thread.Sleep(2000);
-					int partsOnBedBeforeRemove= view3D.MeshGroups.Count();
+					int partsOnBedBeforeRemove= view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partsOnBedBeforeRemove == 6);
 
 					//Check that MeshCount decreases by 1 
 					testRunner.ClickByName("3D View Remove");
 					System.Threading.Thread.Sleep(2000);
-					int meshCountAfterRemove = view3D.MeshGroups.Count();
+					int meshCountAfterRemove = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(meshCountAfterRemove == 5);
 
 					MatterControlUtilities.CloseMatterControl(testRunner);
@@ -217,7 +225,7 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					//Click Edit button to make edit controls visible
 					testRunner.ClickByName("3D View Edit");
 					testRunner.Wait(1);
-					int partCountBeforeCopy = view3D.MeshGroups.Count();
+					int partCountBeforeCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountBeforeCopy == 1);
 
 					for (int i = 0; i <= 4; i++)
@@ -231,10 +239,10 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					for(int x = 0; x <= 4; x++)
 					{
 
-						int meshCountBeforeUndo = view3D.MeshGroups.Count();
+						int meshCountBeforeUndo = view3D.Scene.Children.Count;
 						testRunner.ClickByName("3D View Undo");
 						System.Threading.Thread.Sleep(2000);
-						int meshCountAfterUndo = view3D.MeshGroups.Count();
+						int meshCountAfterUndo = view3D.Scene.Children.Count;
 						resultsHarness.AddTestResult(meshCountAfterUndo == meshCountBeforeUndo - 1);
 						
 					}
@@ -243,10 +251,10 @@ namespace MatterHackers.MatterControl.Tests.Automation
 
 					for(int z = 0; z <= 4; z++)
 					{
-						int meshCountBeforeRedo = view3D.MeshGroups.Count();
+						int meshCountBeforeRedo = view3D.Scene.Children.Count;
 						testRunner.ClickByName("3D View Redo");
 						System.Threading.Thread.Sleep(2000);
-						int meshCountAfterRedo = view3D.MeshGroups.Count();
+						int meshCountAfterRedo = view3D.Scene.Children.Count;
 						resultsHarness.AddTestResult(meshCountAfterRedo == meshCountBeforeRedo + 1);
 
 					}
@@ -291,7 +299,7 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					//Click Edit button to make edit controls visible
 					testRunner.ClickByName("3D View Edit");
 					testRunner.Wait(1);
-					int partCountBeforeCopy = view3D.MeshGroups.Count();
+					int partCountBeforeCopy = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(partCountBeforeCopy == 1);
 
 					for (int i = 0; i <= 4; i++)
@@ -302,21 +310,21 @@ namespace MatterHackers.MatterControl.Tests.Automation
 
 					testRunner.Wait(1);
 
-					int meshCountAfterCopy = view3D.MeshGroups.Count();
+					int meshCountAfterCopy = view3D.Scene.Children.Count;
 					testRunner.ClickByName("3D View Remove");
 					System.Threading.Thread.Sleep(2000);
-					int meshCountAfterRemove = view3D.MeshGroups.Count();
+					int meshCountAfterRemove = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(meshCountAfterRemove == 5);
 
 
 					testRunner.ClickByName("3D View Undo");
 					System.Threading.Thread.Sleep(2000);
-					int meshCountAfterUndo = view3D.MeshGroups.Count();
+					int meshCountAfterUndo = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(meshCountAfterUndo == 6);
 
 					testRunner.ClickByName("3D View Redo");
 					System.Threading.Thread.Sleep(2000);
-					int meshCountAfterRedo = view3D.MeshGroups.Count();
+					int meshCountAfterRedo = view3D.Scene.Children.Count;
 					resultsHarness.AddTestResult(meshCountAfterRedo == 5);
 					
 					MatterControlUtilities.CloseMatterControl(testRunner);
@@ -444,12 +452,21 @@ namespace MatterHackers.MatterControl.Tests.Automation
 		[Test, RequiresSTA, RunInApplicationDomain]
 		public void SaveAsToDownloads()
 		{
+			string outputFilename = "Save As Downloads";
+			string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+			string downloadsPath = Path.Combine(userProfilePath, "Downloads");
+			string pathToMcx = Path.Combine(downloadsPath, outputFilename + ".mcx");
+
+			if (File.Exists(pathToMcx))
+			{
+				File.Delete(pathToMcx);
+			}
+
 			// Run a copy of MatterControl
 			Action<AutomationTesterHarness> testToRun = (AutomationTesterHarness resultsHarness) =>
 			{
 				AutomationRunner testRunner = new AutomationRunner(MatterControlUtilities.DefaultTestImages);
 				{
-
 					//Navigate to Downloads
 					testRunner.ClickByName("Library Tab");
 					MatterControlUtilities.NavigateToFolder(testRunner, "Local Library Row Item Collection");
@@ -468,7 +485,6 @@ namespace MatterHackers.MatterControl.Tests.Automation
 						testRunner.Wait(1);
 					}
 
-
 					//Click Save As button to save changes to the part
 					testRunner.ClickByName("Save As Menu");
 					testRunner.Wait(1);
@@ -476,25 +492,25 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					testRunner.Wait(1);
 
 					//Type in name of new part and then save to Downloads
-					testRunner.Type("Save As Downloads");
+					testRunner.Type(outputFilename);
 					MatterControlUtilities.NavigateToFolder(testRunner, "Downloads Row Item Collection");
 					testRunner.Wait(1);
 					testRunner.ClickByName("Save As Save Button");
 
-					//Make sure there is a new Downloads item with a name that matches the new opart
+					//Make sure there is a new Downloads item with a name that matches the new part
 					testRunner.Wait(1);
 					testRunner.ClickByName("Library Tab");
 					testRunner.ClickByName("Bread Crumb Button Home");
 					testRunner.Wait(1);
 					MatterControlUtilities.NavigateToFolder(testRunner, "Downloads Row Item Collection");
-					resultsHarness.AddTestResult(testRunner.WaitForName("Row Item Save As Downloads", 5));
+					resultsHarness.AddTestResult(testRunner.WaitForName("Row Item " + outputFilename, 5));
 
 					//Do clean up for Downloads
-					testRunner.ClickByName("Row Item Save As Downloads", 2);
-					testRunner.ClickByName("Library Edit Button");
-					testRunner.ClickByName("Library Remove Item Button");
+					//testRunner.ClickByName("Row Item " + outputFilename, 2);
+					//testRunner.ClickByName("Library Edit Button");
+					//testRunner.ClickByName("Library Remove Item Button");
 
-					MatterControlUtilities.CloseMatterControl(testRunner);
+					//MatterControlUtilities.CloseMatterControl(testRunner);
 				}
 			};
 

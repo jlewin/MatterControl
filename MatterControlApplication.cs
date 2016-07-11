@@ -51,10 +51,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterHackers.GCodeVisualizer;
-using Gaming.Game;
-using MatterHackers.GuiAutomation;
 using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
-using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.MatterControl.PartPreviewWindow;
+using MatterHackers.DataConverters3D;
+using MatterHackers.GuiAutomation;
+using Gaming.Game;
 using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl
@@ -62,7 +63,6 @@ namespace MatterHackers.MatterControl
     public class MatterControlApplication : SystemWindow
 	{
 		public static bool CameraPreviewActive = false;
-		public static Action AfterFirstDraw = null;
 		public bool RestartOnClose = false;
 		private static readonly Vector2 minSize = new Vector2(600, 600);
 		private static MatterControlApplication instance;
@@ -70,9 +70,8 @@ namespace MatterHackers.MatterControl
 		private string confirmExit = "Confirm Exit".Localize();
 		private bool DoCGCollectEveryDraw = false;
 		private int drawCount = 0;
-		private bool firstDraw = true;
 		private AverageMillisecondTimer millisecondTimer = new AverageMillisecondTimer();
-		private DataViewGraph msGraph;
+		private DataViewGraph msGraph = new DataViewGraph(50, 50, 0, 200);
 		private string savePartsSheetExitAnywayMessage = "You are currently saving a parts sheet, are you sure you want to exit?".Localize();
 		private bool ShowMemoryUsed = false;
 
@@ -259,7 +258,7 @@ namespace MatterHackers.MatterControl
 						break;
 
 					case "SLICE_AND_EXPORT_GCODE":
-						if (currentCommandIndex + 1 <= commandLineArgs.Length)
+						if (currentCommandIndex + 1 <= commandLineArgs.Length) 
 						{
 							currentCommandIndex++;
 							string fullPath = commandLineArgs[currentCommandIndex];
@@ -456,6 +455,8 @@ namespace MatterHackers.MatterControl
 #else
 		public static string MCWSBaseUri { get;} = "https://mattercontrol.appspot.com";
 #endif
+
+		public View3DWidget ActiveView3DWidget { get; internal set; }
 
 		public static void LoadUITheme()
 		{
@@ -657,42 +658,19 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-        public override void OnDraw(Graphics2D graphics2D)
+		public override void OnLoad(EventArgs args)
 		{
-			totalDrawTime.Restart();
-			GuiWidget.DrawCount = 0;
-			using (new PerformanceTimer("Draw Timer", "MC Draw"))
+			foreach (string arg in commandLineArgs)
 			{
-				base.OnDraw(graphics2D);
-			}
-			totalDrawTime.Stop();
-
-			millisecondTimer.Update((int)totalDrawTime.ElapsedMilliseconds);
-
-			if (ShowMemoryUsed)
-			{
-				long memory = GC.GetTotalMemory(false);
-				this.Title = "Allocated = {0:n0} : {1:000}ms, d{2} Size = {3}x{4}, onIdle = {5:00}:{6:00}, widgetsDrawn = {7}".FormatWith(memory, millisecondTimer.GetAverage(), drawCount++, this.Width, this.Height, UiThread.CountExpired, UiThread.Count, GuiWidget.DrawCount);
-				if (DoCGCollectEveryDraw)
+				string argExtension = Path.GetExtension(arg).ToUpper();
+				if (argExtension.Length > 1
+					&& MeshFileIo.ValidFileExtensions().Contains(argExtension))
 				{
-					GC.Collect();
+					QueueData.Instance.AddItem(new PrintItemWrapper(new PrintItem(Path.GetFileName(arg), Path.GetFullPath(arg))));
 				}
 			}
 
-			if (firstDraw)
-			{
-				firstDraw = false;
-				foreach (string arg in commandLineArgs)
-				{
-					string argExtension = Path.GetExtension(arg).ToUpper();
-					if (argExtension.Length > 1
-						&& MeshFileIo.ValidFileExtensions().Contains(argExtension))
-					{
-						QueueData.Instance.AddItem(new PrintItemWrapper(new PrintItem(Path.GetFileName(arg), Path.GetFullPath(arg))));
-					}
-				}
-
-				TerminalWindow.ShowIfLeftOpen();
+			TerminalWindow.ShowIfLeftOpen();
 
 #if false
 			{
@@ -711,18 +689,96 @@ namespace MatterHackers.MatterControl
 				}, 1);
 			}
 #endif
+#if DEBUG
+			AfterDraw += ShowNamesUnderMouse;
+			MouseMove += MatterControlApplication_MouseMove;
+#endif
+			base.OnLoad(args);
 
-				AfterFirstDraw?.Invoke();
 
-				if (false && UserSettings.Instance.get("SoftwareLicenseAccepted") != "true")
+			if (false && UserSettings.Instance.get("SoftwareLicenseAccepted") != "true")
+			{
+				UiThread.RunOnIdle(() => WizardWindow.Show<LicenseAgreementPage>("SoftwareLicense", "Software License Agreement"));
+			}
+
+			if (!ProfileManager.Instance.ActiveProfiles.Any())
+			{
+				// Start the setup wizard if no profiles exist
+				UiThread.RunOnIdle(() => WizardWindow.Show());
+			}
+		}
+
+		private void MatterControlApplication_MouseMove(object sender, MouseEventArgs e)
+		{
+			mousePosition = e.Position;
+        }
+
+#if DEBUG
+		Vector2 mousePosition;
+		private void ShowNamesUnderMouse(GuiWidget drawingWidget, DrawEventArgs e)
+		{
+			if (showNamesUnderMouse)
+			{
+				List<WidgetAndPosition> namedChildren = new List<WidgetAndPosition>();
+				this.FindNamedChildrenRecursive("", namedChildren, new RectangleDouble(mousePosition.x, mousePosition.y, mousePosition.x + 1 , mousePosition.y + 1), SearchType.Partial);
+				int offset = 0;
+				foreach(var child in namedChildren)
 				{
-					UiThread.RunOnIdle(() => WizardWindow.Show<LicenseAgreementPage>("SoftwareLicense", "Software License Agreement"));
+					if (child.name != null)
+					{
+						e.graphics2D.DrawString(child.name, 10, 50 + offset, backgroundColor: RGBA_Bytes.White, drawFromHintedCach: true);
+						offset += 20;
+                    }
 				}
+			}
+		}
 
-				if (!ProfileManager.Instance.ActiveProfiles.Any())
+		public override void OnKeyDown(KeyEventArgs keyEvent)
+		{
+			if (keyEvent.KeyCode == Keys.F2)
+			{
+				Task.Run((Action)AutomationTest);
+			}
+			else if(keyEvent.KeyCode == Keys.F1)
+			{
+				showNamesUnderMouse = !showNamesUnderMouse;
+			}
+
+			base.OnKeyDown(keyEvent);
+		}
+#endif
+
+		private void AutomationTest()
+		{
+			AutomationRunner test = new AutomationRunner();
+			test.ClickByName("Library Tab", 5);
+			test.ClickByName("Queue Tab", 5);
+			test.ClickByName("Queue Item SkeletonArm_Med", 5);
+			test.ClickByName("3D View Edit", 5);
+			test.Wait(.2);
+			test.DragByName("SkeletonArm_Med_IObject3D", 5);
+			test.DropByName("SkeletonArm_Med_IObject3D", 5, offset: new Point2D(0, -40));
+		}
+
+		public override void OnDraw(Graphics2D graphics2D)
+		{
+			totalDrawTime.Restart();
+			GuiWidget.DrawCount = 0;
+			using (new PerformanceTimer("Draw Timer", "MC Draw"))
+			{
+				base.OnDraw(graphics2D);
+			}
+			totalDrawTime.Stop();
+
+			millisecondTimer.Update((int)totalDrawTime.ElapsedMilliseconds);
+
+			if (ShowMemoryUsed)
+			{
+				long memory = GC.GetTotalMemory(false);
+				this.Title = "Allocated = {0:n0} : {1:000}ms, d{2} Size = {3}x{4}, onIdle = {5:00}:{6:00}, widgetsDrawn = {7}".FormatWith(memory, millisecondTimer.GetAverage(), drawCount++, this.Width, this.Height, UiThread.CountExpired, UiThread.Count, GuiWidget.DrawCount);
+				if (DoCGCollectEveryDraw)
 				{
-					// Start the setup wizard if no profiles exist
-					UiThread.RunOnIdle(() => WizardWindow.Show());
+					GC.Collect();
 				}
 			}
 
@@ -860,31 +916,7 @@ namespace MatterHackers.MatterControl
 		}
 
 		bool showNamesUnderMouse = false;
-		public override void OnKeyDown(KeyEventArgs keyEvent)
-		{
-			if (keyEvent.KeyCode == Keys.F2)
-			{
-				Task.Run((Action)AutomationTest);
-			}
-			else if (keyEvent.KeyCode == Keys.F1)
-			{
-				showNamesUnderMouse = !showNamesUnderMouse;
-			}
 
-			base.OnKeyDown(keyEvent);
-		}
-
-		private void AutomationTest()
-		{
-			AutomationRunner test = new AutomationRunner();
-			test.ClickByName("Library Tab", 5);
-			test.ClickByName("Queue Tab", 5);
-			test.ClickByName("Queue Item SkeletonArm_Med", 5);
-			test.ClickByName("3D View Edit", 5);
-			test.Wait(.2);
-			test.DragByName("SkeletonArm_Med_IObject3D", 5);
-			test.DropByName("SkeletonArm_Med_IObject3D", 5, offset: new Point2D(0, -40));
-		}
 		public static void CheckKnownAssemblyConditionalCompSymbols()
 		{
 			MatterControlApplication.AssertDebugNotDefined();

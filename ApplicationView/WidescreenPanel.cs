@@ -68,7 +68,6 @@ namespace MatterHackers.MatterControl
 			BackgroundColor = ActiveTheme.Instance.PrimaryBackgroundColor;
 			Padding = new BorderDouble(4);
 
-			PrinterConnectionAndCommunication.Instance.ActivePrintItemChanged.RegisterEvent(onActivePrintItemChanged, ref unregisterEvents);
 			ApplicationController.Instance.ReloadAdvancedControlsPanelTrigger.RegisterEvent((s, e) => UiThread.RunOnIdle(ReloadAdvancedControlsPanel), ref unregisterEvents);
 			this.BoundsChanged += onBoundsChanges;
 		}
@@ -94,14 +93,6 @@ namespace MatterHackers.MatterControl
 			base.OnClosed(e);
 		}
 
-		private void onActivePrintItemChanged(object sender, EventArgs e)
-		{
-			if (NumberOfVisiblePanels() > 1)
-			{
-				UiThread.RunOnIdle(LoadColumnTwo);
-			}
-		}
-
 		private CompactSlidePanel compactSlidePanel;
 
 		private void LoadCompactView()
@@ -121,7 +112,7 @@ namespace MatterHackers.MatterControl
 			ColumnTwo.CloseAllChildren();
 			PopOutManager.SaveIfClosed = true;
 
-			PartPreviewContent partViewContent = new PartPreviewContent(PrinterConnectionAndCommunication.Instance.ActivePrintItem, View3DWidget.WindowMode.Embeded, View3DWidget.AutoRotate.Enabled);
+			PartPreviewContent partViewContent = new PartPreviewContent(PrinterConnectionAndCommunication.Instance.ActivePrintItem, View3DWidget.WindowMode.Embeded, View3DWidget.AutoRotate.Disabled);
 			partViewContent.AnchorAll();
 
 			ColumnTwo.AddChild(partViewContent);
@@ -208,7 +199,7 @@ namespace MatterHackers.MatterControl
 			AddChild(ColumnOne);
 			leftBorderLine = new GuiWidget(vAnchor: VAnchor.ParentBottomTop);
 			leftBorderLine.Width = 15;
-			leftBorderLine.DrawBefore += (widget, graphics2D) =>
+			leftBorderLine.BeforeDraw += (widget, graphics2D) =>
 			{
 				RectangleDouble bounds = widget.LocalBounds;
 				bounds.Left += 3;

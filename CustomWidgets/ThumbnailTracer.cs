@@ -43,6 +43,7 @@ namespace MatterHackers.RayTracer
 	using MatterHackers.Agg.RasterizerScanline;
 	using MatterHackers.Agg.VertexSource;
 	using MatterHackers.RayTracer.Light;
+	using System.Linq;
 
 	public class ThumbnailTracer
 	{
@@ -54,6 +55,8 @@ namespace MatterHackers.RayTracer
 
 		private List<MeshGroup> loadedMeshGroups;
 
+		private bool hasOneOrMoreMesh;
+
 		//RayTracer rayTracer = new RayTracer(AntiAliasing.None, true, true, true, true, true);
 		//RayTracer rayTracer = new RayTracer(AntiAliasing.Low, true, true, true, true, true);
 		//RayTracer rayTracer = new RayTracer(AntiAliasing.Medium, true, true, true, true, true);
@@ -64,21 +67,32 @@ namespace MatterHackers.RayTracer
 		private Scene scene;
 		private Point2D size;
 		public TrackballTumbleWidget trackballTumbleWidget;
-		public ThumbnailTracer(List<MeshGroup> meshGroups, int width, int height)
+
+		public ThumbnailTracer(IObject3D item, int width, int height)
 		{
 			size = new Point2D(width, height);
 			trackballTumbleWidget = new TrackballTumbleWidget();
 			trackballTumbleWidget.DoOpenGlDrawing = false;
 			trackballTumbleWidget.LocalBounds = new RectangleDouble(0, 0, width, height);
 
-			loadedMeshGroups = meshGroups;
-			SetRenderPosition(loadedMeshGroups);
+			loadedMeshGroups = item.ToMeshGroupList();
 
-			trackballTumbleWidget.AnchorCenter();
+			hasOneOrMoreMesh = loadedMeshGroups.SelectMany(mg => mg.Meshes).Where(mesh => mesh != null).Any();
+			if (hasOneOrMoreMesh)
+			{
+				SetRenderPosition(loadedMeshGroups);
+				trackballTumbleWidget.AnchorCenter();
+			}
 		}
 
 		public void DoTrace()
 		{
+			if (!hasOneOrMoreMesh)
+			{
+				destImage = null;
+				return;
+			}
+
 			CreateScene();
 			RectangleInt rect = new RectangleInt(0, 0, size.x, size.y);
 			if (destImage == null || destImage.Width != rect.Width || destImage.Height != rect.Height)
@@ -93,7 +107,7 @@ namespace MatterHackers.RayTracer
 		public void SetRenderPosition(List<MeshGroup> loadedMeshGroups)
 		{
 			trackballTumbleWidget.TrackBallController.Reset();
-            trackballTumbleWidget.TrackBallController.Scale = .03;
+			trackballTumbleWidget.TrackBallController.Scale = .03;
 
 			trackballTumbleWidget.TrackBallController.Rotate(Quaternion.FromEulerAngles(new Vector3(0, 0, MathHelper.Tau / 16)));
 			trackballTumbleWidget.TrackBallController.Rotate(Quaternion.FromEulerAngles(new Vector3(-MathHelper.Tau * .19, 0, 0)));
@@ -429,7 +443,7 @@ namespace MatterHackers.RayTracer
 
 			public Ray GetRay(double screenX, double screenY)
 			{
-				return trackballTumbleWidget.GetRayFromScreen(new Vector2(screenX, screenY));
+				return trackballTumbleWidget.GetRayForLocalBounds(new Vector2(screenX, screenY));
 			}
 		}
 	}

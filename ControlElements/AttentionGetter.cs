@@ -115,7 +115,7 @@ namespace MatterHackers.MatterControl
 		private AttentionGetter(GuiWidget widgetToHighlight)
 		{
 			this.widgetToHighlight = widgetToHighlight;
-			widgetToHighlight.DrawAfter += ConnectToWidget;
+			widgetToHighlight.AfterDraw += ConnectToWidget;
 		}
 
 		public static AttentionGetter GetAttention(GuiWidget widgetToHighlight)
@@ -150,7 +150,7 @@ namespace MatterHackers.MatterControl
 				if (widgetToHighlight.HasBeenClosed || timeSinceStart.Elapsed.TotalSeconds > cycles * pulseTime)
 				{
 					widgetToHighlight.BackgroundColor = startColor;
-					widgetToHighlight.DrawAfter -= ConnectToWidget;
+					widgetToHighlight.AfterDraw -= ConnectToWidget;
 					runingAttentons.Remove(widgetToHighlight);
 					widgetToHighlight = null;
 					return;
@@ -179,7 +179,7 @@ namespace MatterHackers.MatterControl
 			}
 			startColor = parent.BackgroundColor;
 			timeSinceStart = Stopwatch.StartNew();
-			widgetToHighlight.DrawAfter -= ConnectToWidget;
+			widgetToHighlight.AfterDraw -= ConnectToWidget;
 			UiThread.RunOnIdle(ChangeBackgroundColor, animationDelay);
 		}
 	}

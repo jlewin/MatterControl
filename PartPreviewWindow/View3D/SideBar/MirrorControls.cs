@@ -82,10 +82,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			mirrorControls.Add(mirrorXButton);
 			mirrorXButton.Click += (object sender, EventArgs mouseEvent) =>
 			{
-				if (view3DWidget.SelectedMeshGroupIndex != -1)
+				if (view3DWidget.Scene.HasSelection)
 				{
-					view3DWidget.SelectedMeshGroup.ReverseFaceEdges();
-					view3DWidget.SelectedMeshGroupTransform = PlatingHelper.ApplyAtCenter(view3DWidget.SelectedMeshGroup, view3DWidget.SelectedMeshGroupTransform, Matrix4X4.CreateScale(-1, 1, 1));
+					var selectedItem = view3DWidget.Scene.SelectedItem;
+					selectedItem.Mesh.ReverseFaceEdges();
+					selectedItem.Matrix = PlatingHelper.ApplyAtCenter(selectedItem, Matrix4X4.CreateScale(-1, 1, 1));
 					view3DWidget.PartHasBeenChanged();
 					Invalidate();
 				}
@@ -96,10 +97,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			mirrorControls.Add(mirrorYButton);
 			mirrorYButton.Click += (object sender, EventArgs mouseEvent) =>
 			{
-				if (view3DWidget.SelectedMeshGroupIndex != -1)
+				if (view3DWidget.Scene.HasSelection)
 				{
-					view3DWidget.SelectedMeshGroup.ReverseFaceEdges();
-					view3DWidget.SelectedMeshGroupTransform = PlatingHelper.ApplyAtCenter(view3DWidget.SelectedMeshGroup, view3DWidget.SelectedMeshGroupTransform, Matrix4X4.CreateScale(1, -1, 1));
+					var selectedItem = view3DWidget.Scene.SelectedItem;
+					selectedItem.Mesh.ReverseFaceEdges();
+					selectedItem.Matrix = PlatingHelper.ApplyAtCenter(selectedItem, Matrix4X4.CreateScale(1, -1, 1));
 					view3DWidget.PartHasBeenChanged();
 					Invalidate();
 				}
@@ -110,10 +112,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			mirrorControls.Add(mirrorZButton);
 			mirrorZButton.Click += (object sender, EventArgs mouseEvent) =>
 			{
-				if (view3DWidget.SelectedMeshGroupIndex != -1)
+				if (view3DWidget.Scene.HasSelection)
 				{
-					view3DWidget.SelectedMeshGroup.ReverseFaceEdges();
-					view3DWidget.SelectedMeshGroupTransform = PlatingHelper.ApplyAtCenter(view3DWidget.SelectedMeshGroup, view3DWidget.SelectedMeshGroupTransform, Matrix4X4.CreateScale(1, 1, -1));
+					var selectedItem = view3DWidget.Scene.SelectedItem;
+					selectedItem.Mesh.ReverseFaceEdges();
+					selectedItem.Matrix = PlatingHelper.ApplyAtCenter(selectedItem, Matrix4X4.CreateScale(1, 1, -1));
 					view3DWidget.PartHasBeenChanged();
 					Invalidate();
 				}
