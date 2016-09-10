@@ -1,4 +1,4 @@
 {"BuildVersion": "Test Build", 
-"ProjectToken": "ahRzfm1hdHRlcmNvbnRyb2wtdGVzdHIUCxIHUHJvamVjdBiAgICA3s-NCgw", 
+"ProjectToken": "ahRzfm1hdHRlcmNvbnRyb2wtdGVzdHIUCxIHUHJvamVjdBiAgIDA0KyTCgw", 
 "ReleaseVersion": "0.0.0", 
 "BuildToken": "no-key"}

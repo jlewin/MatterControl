@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MatterHackers.CloudServices;
 
 namespace MatterHackers.MatterControl.SetupWizard
 {
@@ -46,7 +47,7 @@ namespace MatterHackers.MatterControl.SetupWizard
 					var activeProfile = ProfileManager.Instance.ActiveProfile;
 
 					// Download the specified json profile
-					var jsonProfile = await ApplicationController.GetPrinterProfileAsync(activeProfile, profileToken);
+					var jsonProfile = await ApplicationController.WebServices.Devices.GetPrinterProfileAsync(activeProfile, profileToken);
 					if (jsonProfile != null)
 					{
 						// Persist downloaded profile

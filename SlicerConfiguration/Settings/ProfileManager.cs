@@ -27,23 +27,22 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg.UI;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using MatterHackers.Agg.UI;
+using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
-	using Agg;
-	using Localizations;
-	using DataStorage;
-	using SettingsManagement;
 	using System.Collections.ObjectModel;
-	using System.Net;
-	using VersionManagement;
 	using System.Threading.Tasks;
+	using Agg;
+	using DataStorage;
+	using Localizations;
+	using MatterHackers.CloudServices;
+	using SettingsManagement;
 
 	public class ProfileManager
 	{
@@ -291,10 +290,10 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				return printerSettings;
 			}
-			else if (ApplicationController.GetPrinterProfileAsync != null)
+			else
 			{
 				// Attempt to load from MCWS if missing on disk
-				printerSettings = await ApplicationController.GetPrinterProfileAsync(printerInfo, null);
+				printerSettings = await ApplicationController.WebServices.Devices.GetPrinterProfileAsync(printerInfo);
 				if (printerSettings != null)
 				{
 					// If successful, persist downloaded profile and return
@@ -472,10 +471,11 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 		public async static Task<PrinterSettings> LoadOemProfileAsync(PublicDevice publicDevice, string make, string model)
 		{
 			string cacheScope = Path.Combine("public-profiles", make);
-			string cachePath = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey);
+			string cacheKey = publicDevice.CacheKey();
+			string cachePath = ApplicationController.CacheablePath(cacheScope, cacheKey);
 
 			return await ApplicationController.LoadCacheableAsync<PrinterSettings>(
-				publicDevice.CacheKey,
+				cacheKey,
 				cacheScope,
 				async () =>
 				{
@@ -490,7 +490,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					{
 						// If the cache file for the current deviceToken does not exist, attempt to download it.
 						// An http 304 results in a null value and LoadCacheable will then load from the cache
-						return await ApplicationController.DownloadPublicProfileAsync(publicDevice.ProfileToken);
+						return await ApplicationController.WebServices.Devices.DownloadPublicProfileAsync(publicDevice.ProfileToken);
 					}
 				},
 				Path.Combine("Profiles", make, model + ProfileManager.ProfileExtension));

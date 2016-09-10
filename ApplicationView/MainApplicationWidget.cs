@@ -50,19 +50,8 @@ namespace MatterHackers.MatterControl
 {
 	using Agg.Font;
 	using System.Reflection;
-
-	public class OemProfileDictionary : Dictionary<string, Dictionary<string, PublicDevice>>
-	{
-	}
-
-	public class PublicDevice
-	{
-		public string DeviceToken { get; set; }
-		public string ProfileToken { get; set; }
-		public string ShortProfileID { get; set; }
-		public string CacheKey => this.ShortProfileID + ProfileManager.ProfileExtension;
-	}
-
+	using MatterHackers.CloudServices;
+	using System.Net.Http;
 	public abstract class ApplicationView : GuiWidget
 	{
 		public abstract void AddElements();
@@ -192,10 +181,8 @@ namespace MatterHackers.MatterControl
 		public static event EventHandler Load;
 
 		public static Func<string, Task<Dictionary<string, string>>> GetProfileHistory;
-		public static Func<PrinterInfo,string, Task<PrinterSettings>> GetPrinterProfileAsync;
 		public static Func<IProgress<SyncReportType>,Task> SyncPrinterProfiles;
 		public static Func<Task<OemProfileDictionary>> GetPublicProfileList;
-		public static Func<string, Task<PrinterSettings>> DownloadPublicProfileAsync;
 
 		public SlicePresetsWindow EditMaterialPresetsWindow { get; set; }
 
@@ -208,6 +195,35 @@ namespace MatterHackers.MatterControl
 		private event EventHandler unregisterEvents;
 
 		public bool WidescreenMode { get; set; }
+
+		private static MHWebServices servicesContext;
+
+		//public static MHWebServices WebServices { get; set; } = servicesContext = MHWebServices.CreateSession("", ApplicationSettings.Instance.GetClientToken());
+
+		public static MHWebServices WebServices
+		{
+			get
+			{
+				if (MatterControlApplication.IsLoading)
+				{
+					Debugger.Break();
+				}
+
+				if (servicesContext == null)
+				{
+					// TODO: We need to ensure a ClientToken exists then persist it via
+					// ApplicationSettings.Instance.SetClientToken(clientToken);
+
+					servicesContext = MHWebServices.CreateSession("", ApplicationSettings.Instance.GetClientToken());
+				}
+
+				return servicesContext;
+			}
+			set
+			{
+				servicesContext = value;
+			}
+		} 
 
 		static int applicationInstanceCount = 0;
 		public static int ApplicationInstanceCount
@@ -545,7 +561,9 @@ namespace MatterHackers.MatterControl
 
 		public void OnLoadActions()
 		{
-			Load?.Invoke(this, null);
+			UiThread.RunOnIdle(() => {
+				Load?.Invoke(this, null);
+			}, 1);
 
 			// Pushing this after load fixes that empty printer list
 			UiThread.RunOnIdle(ApplicationController.Instance.UserChanged);
@@ -653,4 +671,65 @@ namespace MatterHackers.MatterControl
 		public string actionLabel;
 		public double percComplete;
 	}
+
+	public static class ExtensionMethods
+	{
+		public static string CacheKey(this PublicDevice item)
+		{
+			return item.ShortProfileID + ProfileManager.ProfileExtension;
+		}
+
+		public static async Task<ServiceResponse> UploadPrinterProfile(this MHWebServices.DeviceService service, PrinterInfo printerInfo)
+		{
+			var printerSettings = await ProfileManager.LoadProfileAsync(printerInfo.ID);
+
+			return await service.UploadPrinterProfile(
+				printerInfo.Name,
+				printerInfo.DeviceToken,
+				printerInfo.SHA1,
+				printerSettings.GetValue(SettingsKey.oem_profile_token),
+				new StringContent(File.ReadAllText(printerInfo.ProfilePath)));
+		}
+
+		public static async Task<PrinterSettings> DownloadPublicProfileAsync(this MHWebServices.DeviceService service, string deviceToken)
+		{
+			try
+			{
+				string json = await service.DownloadPublicProfileContentAsync(deviceToken);
+				var profile = JsonConvert.DeserializeObject<PrinterSettings>(json);
+				profile.OemLayer[SettingsKey.oem_profile_token] = deviceToken;
+				return profile;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		public static async Task<PrinterSettings> GetPrinterProfileAsync(this MHWebServices.DeviceService service, PrinterInfo printerInfo, string printerProfileToken = null)
+		{
+			string json = await service.GetPrinterProfileContentAsync(printerInfo.DeviceToken, printerProfileToken);
+
+			PrinterSettings printerSettings = null;
+			try
+			{
+				printerSettings = JsonConvert.DeserializeObject<PrinterSettings>(json);
+			}
+			catch { }
+
+			// Enforce printerID
+			if (printerSettings != null && printerSettings.ID != printerInfo.ID)
+			{
+				printerSettings.ID = printerInfo.ID;
+			}
+
+			return printerSettings;
+		}
+
+		public static async Task<PublicProfilesResponse> GetPublicProfileList(this MHWebServices.DeviceService service)
+		{
+			return await service.GetPublicProfileList(UserSettings.Instance.get("PublicProfilesSha"));
+		}
+	}
+
 }
