@@ -27,14 +27,13 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System;
+using System.Collections.Generic;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.FieldValidation;
-using MatterHackers.MatterControl.VersionManagement;
 using MatterHackers.VectorMath;
-using System;
-using System.Collections.Generic;
 
 namespace MatterHackers.MatterControl.ContactForm
 {
@@ -235,12 +234,10 @@ namespace MatterHackers.MatterControl.ContactForm
 			submitButton.Click += new EventHandler(SubmitContactForm);
 		}
 
-		private void SubmitContactForm(object sender, EventArgs mouseEvent)
+		private async void SubmitContactForm(object sender, EventArgs mouseEvent)
 		{
 			if (ValidateContactForm())
 			{
-				ContactFormRequest postRequest = new ContactFormRequest(questionInput.Text, detailInput.Text, emailInput.Text, nameInput.Text, "");
-
 				formContainer.Visible = false;
 				messageContainer.Visible = true;
 
@@ -250,22 +247,18 @@ namespace MatterHackers.MatterControl.ContactForm
 				cancelButton.Visible = false;
 				submitButton.Visible = false;
 
-				postRequest.RequestSucceeded += new EventHandler(onPostRequestSucceeded);
-				postRequest.RequestFailed += onPostRequestFailed;
-				postRequest.Request();
+				var response = await ApplicationController.WebServices.SubmitFeedbackAsync(questionInput.Text, detailInput.Text, emailInput.Text, nameInput.Text, "");
+				if (response?.Success == true)
+				{
+					submissionStatus.Text = "Thank you!  Your information has been submitted.".Localize();
+				}
+				else
+				{
+					submissionStatus.Text = "Sorry!  We weren't able to submit your request.".Localize();
+				}
+
+				doneButton.Visible = true;
 			}
-		}
-
-		private void onPostRequestSucceeded(object sender, EventArgs e)
-		{
-			submissionStatus.Text = LocalizedString.Get("Thank you!  Your information has been submitted.");
-			doneButton.Visible = true;
-		}
-
-		private void onPostRequestFailed(object sender, ResponseErrorEventArgs e)
-		{
-			submissionStatus.Text = LocalizedString.Get("Sorry!  We weren't able to submit your request.");
-			doneButton.Visible = true;
 		}
 
 		private FlowLayoutWidget GetButtonButtonPanel()

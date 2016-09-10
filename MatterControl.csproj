@@ -369,10 +369,6 @@
     <Compile Include="SlicerConfiguration\SliceSettingsOrganizer.cs" />
     <Compile Include="SlicerConfiguration\SlicingQueue.cs" />
     <Compile Include="Utilities\TupleList.cs" />
-    <Compile Include="VersionManagement\ContactFormRequest.cs" />
-    <Compile Include="VersionManagement\LatestVersionRequest.cs" />
-    <Compile Include="VersionManagement\ClientTokenRequest.cs" />
-    <Compile Include="VersionManagement\WebRequestHandler.cs" />
     <Compile Include="VersionManagement\VersionFileHandler.cs" />
     <Compile Include="AboutPage\AboutWidget.cs" />
     <Compile Include="CustomWidgets\ThemeColorSelectorWidget.cs" />
@@ -461,6 +457,10 @@
     <Folder Include="SlicerConfiguration\SettingsEditors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Plugins\WebServices\WebServices.csproj">
+      <Project>{7e8ed592-f07b-4ea5-aca4-dda67a726c6c}</Project>
+      <Name>WebServices</Name>
+    </ProjectReference>
     <ProjectReference Include="Submodules\agg-sharp\clipper_library\clipper_library.csproj">
       <Project>{9B062971-A88E-4A3D-B3C9-12B78D15FA66}</Project>
       <Name>clipper_library</Name>

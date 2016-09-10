@@ -47,6 +47,7 @@ using MatterHackers.VectorMath;
 using MatterHackers.MeshVisualizer;
 using MatterHackers.Agg.PlatformAbstract;
 using System.Threading.Tasks;
+using MatterHackers.CloudServices;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -333,7 +334,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				var publicDevice = OemSettings.Instance.OemProfiles[profile.Make][profile.Model];
 				string cacheScope = Path.Combine("public-profiles", profile.Make);
 
-				string publicProfileToLoad = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey);
+				string publicProfileToLoad = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey());
 
 				oemProfile = JsonConvert.DeserializeObject<PrinterSettings>(File.ReadAllText(publicProfileToLoad));
 				oemProfile.ID = profile.ID;
@@ -350,7 +351,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 		private static async Task<PrinterSettings> GetFirstValidHistoryItem(PrinterInfo printerInfo)
 		{
-			var recentProfileHistoryItems = await ApplicationController.GetProfileHistory(printerInfo.DeviceToken);
+			var recentProfileHistoryItems = await ApplicationController.WebServices.Devices.GetPrinterProfileHistory(printerInfo.DeviceToken);
 			if (recentProfileHistoryItems != null)
 			{
 				// Iterate history, skipping the first item, limiting to the next five, attempt to load and return the first success
@@ -359,7 +360,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					// Attempt to download and parse each profile, returning if successful
 					try
 					{
-						var printerSettings = await ApplicationController.GetPrinterProfileAsync(printerInfo, keyValue.Value);
+						var printerSettings = await ApplicationController.WebServices.Devices.GetPrinterProfileAsync(printerInfo, keyValue.Value);
 						if (printerSettings != null)
 						{
 							return printerSettings;

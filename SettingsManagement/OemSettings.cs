@@ -27,25 +27,19 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg.PlatformAbstract;
-using MatterHackers.MatterControl.DataStorage;
-using MatterHackers.MatterControl.SlicerConfiguration;
-using MatterHackers.MatterControl.VersionManagement;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
+using MatterHackers.Agg.PlatformAbstract;
+using MatterHackers.CloudServices;
+using MatterHackers.MatterControl.SlicerConfiguration;
+using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.SettingsManagement
 {
-	using Agg.UI;
-
 	public class OemSettings
 	{
 		private static OemSettings instance = null;
@@ -158,18 +152,12 @@ namespace MatterHackers.MatterControl.SettingsManagement
 
 		public async Task ReloadOemProfiles(IProgress<SyncReportType> syncReport = null)
 		{
-			// In public builds this won't be assigned to and we should abort and exit early
-			if (ApplicationController.GetPublicProfileList == null)
-			{
-				return;
-			}
-
 			var oemProfilesDict = await ApplicationController.LoadCacheableAsync<OemProfileDictionary>(
 				"oemprofiles.json",
 				"public-profiles",
 				async () =>
 				{
-					var result = await ApplicationController.GetPublicProfileList();
+					var result = await ApplicationController.WebServices.Devices.GetPublicProfileList(); ;
 					if (result != null)
 					{
 						OemProfiles = result;
@@ -177,8 +165,10 @@ namespace MatterHackers.MatterControl.SettingsManagement
 						var manufactures = result.Keys.ToDictionary(oem => oem);
 						SetManufacturers(manufactures);
 					}
+
 					return result;
 				});
+
 			if (oemProfilesDict != null)
 			{
 				await DownloadMissingProfiles(syncReport);
@@ -197,7 +187,7 @@ namespace MatterHackers.MatterControl.SettingsManagement
 				foreach (var model in OemProfiles[oem].Keys)
 				{
 					var publicDevice = OemProfiles[oem][model];
-					string cachePath = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey);
+					string cachePath = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey());
 					if (!File.Exists(cachePath))
 					{
 						await ProfileManager.LoadOemProfileAsync(publicDevice, oem, model);
