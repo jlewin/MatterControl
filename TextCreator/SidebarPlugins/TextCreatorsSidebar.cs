@@ -68,7 +68,7 @@ namespace MatterHackers.MatterControl.Plugins.TextCreator
 
 			FlowLayoutWidget buttonRow = new FlowLayoutWidget(FlowDirection.LeftToRight);
 			buttonRow.AddChild(
-				view3DWidget.Sidebar.CreateAddButton("Text".Localize(), "textcreator.png", () =>
+				view3DWidget.Sidebar.CreateAddButton("Text".Localize(), () =>
 				{
 					if(textItem == null)
 					{
@@ -85,7 +85,7 @@ namespace MatterHackers.MatterControl.Plugins.TextCreator
 				}));
 
 			buttonRow.AddChild(
-				view3DWidget.Sidebar.CreateAddButton("Braille".Localize(), "braillecreator.png", () =>
+				view3DWidget.Sidebar.CreateAddButton("Braille".Localize(), () =>
 				{
 					if (brailleItem == null)
 					{
