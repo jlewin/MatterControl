@@ -456,7 +456,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			return addItemButton;
 		}
 
-		private static FlowLayoutWidget CreateButtonState(string buttonLable, ImageBuffer buttonImage, RGBA_Bytes color, RGBA_Bytes textColor)
+		private static FlowLayoutWidget CreateButtonState(string buttonLabel, ImageBuffer buttonImage, RGBA_Bytes color, RGBA_Bytes textColor)
 		{
 			FlowLayoutWidget flowLayout = new FlowLayoutWidget(FlowDirection.TopToBottom)
 			{
@@ -469,7 +469,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				HAnchor = HAnchor.ParentCenter,
 				Selectable = false,
 			});
-			flowLayout.AddChild(new TextWidget(buttonLable, 0, 0, 9, Agg.Font.Justification.Center, textColor)
+			flowLayout.AddChild(new TextWidget(buttonLabel, 0, 0, 9, Agg.Font.Justification.Center, textColor)
 			{
 				HAnchor = HAnchor.ParentCenter,
 				Selectable = false,
