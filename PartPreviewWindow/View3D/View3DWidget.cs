@@ -60,6 +60,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using LibraryProviders;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -604,20 +605,24 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			meshViewerWidget.TrackballTumbleWidget.DrawGlContent += TrackballTumbleWidget_DrawGlContent;
 		}
 
-		private IObject3D dragDropSource; 
-		public IObject3D DragDropSource
+		public ILibraryPrintItem DragSourceModel { get; set; }
+
+		private IObject3D dragDropItem; 
+		public IObject3D DragDropItem
 		{
 			get
 			{
-				return dragDropSource;
+				return dragDropItem;
 			}
 
 			set
 			{
-				dragDropSource = value;
+				dragDropItem = value;
+
+				DragSourceModel = null;
 
 				// Suppress ui volumes when dragDropSource is not null
-				meshViewerWidget.SuppressUiVolumes = (dragDropSource != null);
+				meshViewerWidget.SuppressUiVolumes = (dragDropItem != null);
 			}
 		}
 
@@ -852,7 +857,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			if (AllowDragDrop() && fileDropArgs.DroppedFiles.Count == 1)
 			{
 				// Item is already in the scene
-				DragDropSource = null;
+				DragDropItem = null;
 			}
 			else if (AllowDragDrop())
 			{
@@ -892,7 +897,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 				if(fileDropArgs.AcceptDrop)
 				{
-					DragDropSource = new Object3D
+					DragDropItem = new Object3D
 					{
 						ItemType = Object3DTypes.Model,
 						Mesh = PlatonicSolids.CreateCube(10, 10, 10)
@@ -912,7 +917,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				// the "loading" mesh with the actual file contents
 				if (AltDragOver(screenSpaceMousePosition))
 				{
-					DragDropSource.MeshPath = fileDropArgs.DroppedFiles.First();
+					DragDropItem.MeshPath = fileDropArgs.DroppedFiles.First();
 
 					// Run the rest of the OnDragOver pipeline since we're starting a new thread and won't finish for an unknown time
 					base.OnDragOver(fileDropArgs);
@@ -925,7 +930,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 
 			// AcceptDrop anytime a DropSource has been queued
-			fileDropArgs.AcceptDrop = DragDropSource != null;
+			fileDropArgs.AcceptDrop = DragDropItem != null;
 
 			base.OnDragOver(fileDropArgs);
 		}
@@ -950,12 +955,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			var meshViewerPosition = this.meshViewerWidget.TransformToScreenSpace(meshViewerWidget.LocalBounds);
 
-			if (meshViewerPosition.Contains(screenSpaceMousePosition) && DragDropSource != null)
+			if (meshViewerPosition.Contains(screenSpaceMousePosition) && DragDropItem != null)
 			{
 				var localPosition = this.TransformFromParentSpace(topMostParent, screenSpaceMousePosition);
 
 				// Inject the DragDropSource if it's missing from the scene, using the default "loading" mesh
-				if (!Scene.Children.Contains(DragDropSource))
+				if (!Scene.Children.Contains(DragDropItem))
 				{
 					// Set the hitplane to the bed plane
 					CurrentSelectInfo.HitPlane = bedPlane;
@@ -968,11 +973,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					}
 
 					// Set the initial transform on the inject part to the current transform mouse position
-					var sourceItemBounds = DragDropSource.GetAxisAlignedBoundingBox(Matrix4X4.Identity);
+					var sourceItemBounds = DragDropItem.GetAxisAlignedBoundingBox(Matrix4X4.Identity);
 					var center = sourceItemBounds.Center;
 
-					DragDropSource.Matrix *= Matrix4X4.CreateTranslation(-center.x, -center.y, -sourceItemBounds.minXYZ.z);
-					DragDropSource.Matrix *= Matrix4X4.CreateTranslation(new Vector3(intersectInfo.hitPosition));
+					DragDropItem.Matrix *= Matrix4X4.CreateTranslation(-center.x, -center.y, -sourceItemBounds.minXYZ.z);
+					DragDropItem.Matrix *= Matrix4X4.CreateTranslation(new Vector3(intersectInfo.hitPosition));
 
 					CurrentSelectInfo.PlaneDownHitPos = intersectInfo.hitPosition;
 					CurrentSelectInfo.LastMoveDelta = Vector3.Zero;
@@ -980,9 +985,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					// Add item to scene and select it
 					Scene.ModifyChildren(children =>
 					{
-						children.Add(DragDropSource);
+						children.Add(DragDropItem);
 					});
-					Scene.Select(DragDropSource);
+					Scene.Select(DragDropItem);
 
 					itemAddedToScene = true;
 				}
@@ -1015,17 +1020,20 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		/// <returns></returns>
 		public async Task LoadDragSource()
 		{
-			// The drag source at the original time of invocation.
-			IObject3D dragSource = DragDropSource;
-			if (dragSource == null)
+			// Hold on to initial reference
+			IObject3D dragDropItem = DragDropItem;
+			if (dragDropItem == null || DragSourceModel == null)
 			{
 				return;
 			}
 
+			/* Old code simply set the mesh path to load from disk... new code should check cache and call collector if missing
 			IObject3D loadedItem = await Task.Run(() =>
 			{
 				return Object3D.Load(dragSource.MeshPath, progress: new DragDropLoadProgress(this, dragSource).UpdateLoadProgress);
-			});
+			}); */
+
+			IObject3D loadedItem = await DragSourceModel.GetContent();
 
 			if (loadedItem != null)
 			{
@@ -1033,9 +1041,15 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				// a proof of concept but needs to take the more difficult route of managing state and swapping the dragging instance with 
 				// the new loaded item data
 				Vector3 meshGroupCenter = loadedItem.GetAxisAlignedBoundingBox(Matrix4X4.Identity).Center;
-				dragSource.Mesh = loadedItem.Mesh;
-				dragSource.Children.AddRange(loadedItem.Children);
-				dragSource.Matrix *= Matrix4X4.CreateTranslation(-meshGroupCenter.x, -meshGroupCenter.y, -dragSource.GetAxisAlignedBoundingBox(Matrix4X4.Identity).minXYZ.z);
+
+				dragDropItem.Mesh = loadedItem.Mesh;
+				dragDropItem.Children = loadedItem.Children;
+
+				// TODO: jlewin - also need to apply the translation to the scale/rotation from the source (loadedItem.Matrix)
+				dragDropItem.Matrix = loadedItem.Matrix * dragDropItem.Matrix;
+
+
+				dragDropItem.Matrix *= Matrix4X4.CreateTranslation(-meshGroupCenter.x, -meshGroupCenter.y, -dragDropItem.GetAxisAlignedBoundingBox(Matrix4X4.Identity).minXYZ.z);
 			}
 		}
 

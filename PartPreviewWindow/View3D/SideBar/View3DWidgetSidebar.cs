@@ -349,7 +349,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			addItemButton.MouseDown += (sender, e) =>
 			{
-				view3DWidget.DragDropSource = itemCreator();
+				view3DWidget.DragDropItem = itemCreator();
 			};
 
 			addItemButton.MouseMove += (sender, mouseArgs) =>
@@ -360,13 +360,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			addItemButton.MouseUp += (sender, mouseArgs) =>
 			{
-				if (addItemButton.LocalBounds.Contains(mouseArgs.Position) && view3DWidget.DragDropSource != null)
+				if (addItemButton.LocalBounds.Contains(mouseArgs.Position) && view3DWidget.DragDropItem != null)
 				{
 					// Button click within the bounds of this control - Insert item at the best open position
-					PlatingHelper.MoveToOpenPosition(view3DWidget.DragDropSource, view3DWidget.Scene);
-					view3DWidget.InsertNewItem(view3DWidget.DragDropSource);
+					PlatingHelper.MoveToOpenPosition(view3DWidget.DragDropItem, view3DWidget.Scene);
+					view3DWidget.InsertNewItem(view3DWidget.DragDropItem);
 				}
-				else if (view3DWidget.DragDropSource != null && view3DWidget.Scene.Children.Contains(view3DWidget.DragDropSource))
+				else if (view3DWidget.DragDropItem != null && view3DWidget.Scene.Children.Contains(view3DWidget.DragDropItem))
 				{
 					// Drag release outside the bounds of this control and not within the scene - Remove inserted item
 					//
@@ -377,18 +377,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					// If the mouse is not within the meshViewer, remove the inserted drag item
 					if (!meshViewerPosition.Contains(screenSpaceMousePosition))
 					{
-						view3DWidget.Scene.ModifyChildren(children => children.Remove(view3DWidget.DragDropSource));
+						view3DWidget.Scene.ModifyChildren(children => children.Remove(view3DWidget.DragDropItem));
 						view3DWidget.Scene.ClearSelection();
 					}
 					else
 					{
 						// Create and push the undo operation
 						view3DWidget.AddUndoOperation(
-							new InsertCommand(view3DWidget, view3DWidget.DragDropSource));
+							new InsertCommand(view3DWidget, view3DWidget.DragDropItem));
 					}
 				}
 
-				view3DWidget.DragDropSource = null;
+				view3DWidget.DragDropItem = null;
 			};
 
 			return addItemButton;

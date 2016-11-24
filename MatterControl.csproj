@@ -172,6 +172,8 @@
     <Compile Include="CustomWidgets\SolidSlider.cs" />
     <Compile Include="CustomWidgets\ThumbnailTracer.cs" />
     <Compile Include="DataStorage\Models.cs" />
+    <Compile Include="Queue\ListView.cs" />
+    <Compile Include="Queue\ListViewItem.cs" />
     <Compile Include="SetupWizard\CopyGuestProfilesToUser.cs" />
     <Compile Include="Library\RenameItemWindow.cs" />
     <Compile Include="Library\Provider\LibraryProviderHistory.cs" />
@@ -452,6 +454,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="ClassDiagram1.cd" />
     <None Include="SlicerConfiguration\Settings\SettingsDiagram.cd" />
     <None Include="packages.config" />
     <None Include="StaticData\PrinterSettings\config.ini" />
@@ -461,6 +464,10 @@
     <Folder Include="SlicerConfiguration\SettingsEditors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Users\John\Desktop\LibraryProviders\LibraryProviders\LibraryProviders.csproj">
+      <Project>{f6ac7107-453f-4b70-99c7-300e5bbd61e1}</Project>
+      <Name>LibraryProviders</Name>
+    </ProjectReference>
     <ProjectReference Include="Submodules\agg-sharp\clipper_library\clipper_library.csproj">
       <Project>{9B062971-A88E-4A3D-B3C9-12B78D15FA66}</Project>
       <Name>clipper_library</Name>

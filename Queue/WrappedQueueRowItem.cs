@@ -73,7 +73,6 @@ namespace MatterHackers.MatterControl.PrintQueue
 			base.OnMouseLeaveBounds(mouseEvent);
 		}
 
-
 		Vector2 mouseDownAt;
 		public override void OnMouseDown(MouseEventArgs mouseEvent)
 		{
@@ -88,7 +87,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 			if (mouseDownInBounds && delta.Length > 50)
 			{
 				// Set the QueueRowItem child as the DragSourceRowItem for use in drag/drop
-				queueDataView.DragSourceRowItem = queueRowItem;
+				//queueDataView.DragSourceRowItem = queueRowItem;
 			}
 
 			base.OnMouseMove(mouseEvent);

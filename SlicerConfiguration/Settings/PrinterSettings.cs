@@ -989,9 +989,9 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			Save();
 		}
 
-		public string ToJson(Formatting formatting = Formatting.Indented)
+		public string ToJson()
 		{
-			return JsonConvert.SerializeObject(this, formatting);
+			return JsonConvert.SerializeObject(this, Formatting.Indented);
 		}
 
 		internal void ClearValue(string sliceSetting, PrinterSettingsLayer layer = null)

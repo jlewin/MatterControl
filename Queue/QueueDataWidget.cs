@@ -50,6 +50,7 @@ using MatterHackers.Agg.VertexSource;
 using MatterHackers.DataConverters3D;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using System.Threading.Tasks;
+using LibraryProviders;
 
 namespace MatterHackers.MatterControl.PrintQueue
 {
@@ -539,23 +540,23 @@ namespace MatterHackers.MatterControl.PrintQueue
 
 		public override void OnMouseDown(MouseEventArgs mouseEvent)
 		{
-			view3DWidget = MatterControlApplication.Instance.ActiveView3DWidget;
-			if (view3DWidget == null)
-			{
-				return;
-			}
+				view3DWidget = MatterControlApplication.Instance.ActiveView3DWidget;
+				if (view3DWidget == null)
+				{
+					return;
+				}
 
-			var screenSpaceMousePosition = this.TransformToScreenSpace(mouseEvent.Position);
-			var topToBottomItemListBounds = queueDataView.topToBottomItemList.TransformToScreenSpace(queueDataView.topToBottomItemList.LocalBounds);
+				var screenSpaceMousePosition = this.TransformToScreenSpace(mouseEvent.Position);
+				var topToBottomItemListBounds = queueDataView.topToBottomItemList.TransformToScreenSpace(queueDataView.topToBottomItemList.LocalBounds);
 
-			bool mouseInQueueItemList = topToBottomItemListBounds.Contains(screenSpaceMousePosition);
+				bool mouseInQueueItemList = topToBottomItemListBounds.Contains(screenSpaceMousePosition);
 
-			// Clear or assign a drag source
-			view3DWidget.DragDropSource = (!mouseInQueueItemList) ? null : new Object3D
-			{
-				ItemType = Object3DTypes.Model,
-				Mesh = PlatonicSolids.CreateCube(10, 10, 10)
-			};
+				// Clear or assign a drag source
+				view3DWidget.DragDropItem = (!mouseInQueueItemList) ? null : new Object3D
+				{
+					ItemType = Object3DTypes.Model,
+					Mesh = PlatonicSolids.CreateCube(10, 10, 10)
+				};
 
 			base.OnMouseDown(mouseEvent);
 		}
@@ -563,21 +564,23 @@ namespace MatterHackers.MatterControl.PrintQueue
 		public override void OnMouseMove(MouseEventArgs mouseArgs)
 		{
 			if (!this.HasBeenClosed &&
-				view3DWidget?.DragDropSource != null &&
+				view3DWidget?.DragDropItem != null &&
 				queueDataView.DragSourceRowItem != null)
 			{
 				var screenSpaceMousePosition = this.TransformToScreenSpace(mouseArgs.Position);
 
-				if(!File.Exists(queueDataView.DragSourceRowItem.PrintItemWrapper.FileLocation))
+				var listItemModel = this.queueDataView.DragSourceRowItem.ListItemModel as ILibraryPrintItem;
+				if (listItemModel == null)
 				{
-					view3DWidget.DragDropSource = null;
+					view3DWidget.DragDropItem = null;
 					queueDataView.DragSourceRowItem = null;
 					return;
 				}
 
-				if(view3DWidget.AltDragOver(screenSpaceMousePosition))
+				if (view3DWidget.AltDragOver(screenSpaceMousePosition))
 				{
-					view3DWidget.DragDropSource.MeshPath = queueDataView.DragSourceRowItem.PrintItemWrapper.FileLocation;
+					view3DWidget.DragSourceModel = listItemModel;
+					//view3DWidget.DragDropSource.MeshPath = queueDataView.DragSourceRowItem.PrintItemWrapper.FileLocation;
 
 					base.OnMouseMove(mouseArgs);
 
@@ -590,27 +593,27 @@ namespace MatterHackers.MatterControl.PrintQueue
 
 		public override void OnMouseUp(MouseEventArgs mouseArgs)
 		{
-			if (view3DWidget.DragDropSource != null && view3DWidget.Scene.Children.Contains(view3DWidget.DragDropSource))
-			{
-				// Mouse and widget positions
-				var screenSpaceMousePosition = this.TransformToScreenSpace(mouseArgs.Position);
-				var meshViewerPosition = this.view3DWidget.meshViewerWidget.TransformToScreenSpace(view3DWidget.meshViewerWidget.LocalBounds);
-
-				// If the mouse is not within the meshViewer, remove the inserted drag item
-				if (!meshViewerPosition.Contains(screenSpaceMousePosition))
+				if (view3DWidget.DragDropItem != null && view3DWidget.Scene.Children.Contains(view3DWidget.DragDropItem))
 				{
-					view3DWidget.Scene.ModifyChildren(children => children.Remove(view3DWidget.DragDropSource));
-					view3DWidget.Scene.ClearSelection();
-				}
-				else
-				{
-					// Create and push the undo operation
-					view3DWidget.AddUndoOperation(
-						new InsertCommand(view3DWidget, view3DWidget.DragDropSource));
-				}
-			}
+					// Mouse and widget positions
+					var screenSpaceMousePosition = this.TransformToScreenSpace(mouseArgs.Position);
+					var meshViewerPosition = this.view3DWidget.meshViewerWidget.TransformToScreenSpace(view3DWidget.meshViewerWidget.LocalBounds);
 
-			view3DWidget.DragDropSource = null;
+					// If the mouse is not within the meshViewer, remove the inserted drag item
+					if (!meshViewerPosition.Contains(screenSpaceMousePosition))
+					{
+						view3DWidget.Scene.ModifyChildren(children => children.Remove(view3DWidget.DragDropItem));
+						view3DWidget.Scene.ClearSelection();
+					}
+					else
+					{
+						// Create and push the undo operation
+						view3DWidget.AddUndoOperation(
+							new InsertCommand(view3DWidget, view3DWidget.DragDropItem));
+					}
+				}
+
+				view3DWidget.DragDropItem = null;
 
 			base.OnMouseUp(mouseArgs);
 		}

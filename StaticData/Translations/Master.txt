@@ -5554,12 +5554,6 @@ Translated:Layers & Infill
 English:Raft & Support
 Translated:Raft & Support
 
-English:Redeem Code
-Translated:Redeem Code
-
-English:Library - Enter Share Code
-Translated:Library - Enter Share Code
-
 English:Overhang
 Translated:Overhang
 
@@ -5571,6 +5565,9 @@ Translated:Text
 
 English:Braille
 Translated:Braille
+
+English:Color
+Translated:Color
 
 English:Rotation Count:
 Translated:Rotation Count:
@@ -5584,12 +5581,9 @@ Translated:Radius
 English:Update
 Translated:Update
 
-English:Color
-Translated:Color
+English:OpenSCAD1
+Translated:OpenSCAD1
 
 English:Depth
 Translated:Depth
-
-English:XOffset
-Translated:XOffset
 

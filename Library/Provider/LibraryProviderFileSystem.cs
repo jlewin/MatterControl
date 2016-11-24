@@ -38,6 +38,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MatterHackers.MatterControl.PrintLibrary.Provider
 {
@@ -71,7 +72,6 @@ namespace MatterHackers.MatterControl.PrintLibrary.Provider
 
 	public class LibraryProviderFileSystem : LibraryProvider
 	{
-		private string currentDirectory = ".";
 		private List<string> currentDirectoryDirectories = new List<string>();
 		private List<string> currentDirectoryFiles = new List<string>();
 		private FileSystemWatcher directoryWatcher;
@@ -185,7 +185,7 @@ namespace MatterHackers.MatterControl.PrintLibrary.Provider
 
 		public override void AddCollectionToLibrary(string collectionName)
 		{
-			string directoryPath = Path.Combine(rootPath, currentDirectory, collectionName);
+			string directoryPath = Path.Combine(rootPath, collectionName);
 			if (!Directory.Exists(directoryPath))
 			{
 				Directory.CreateDirectory(directoryPath);
@@ -351,66 +351,39 @@ namespace MatterHackers.MatterControl.PrintLibrary.Provider
 
 		private async void GetFilesAndCollectionsInCurrentDirectory(bool recursive = false)
 		{
-			List<string> newReadDirectoryDirectories = new List<string>();
+			List<string> newReadDirectoryDirectories = null;
 			List<string> newReadDirectoryFiles = new List<string>();
+
+			SearchOption searchDepth = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
 			await Task.Run(() =>
 			{
 				try
 				{
-					string[] directories = null;
-					if (recursive)
-					{
-						directories = Directory.GetDirectories(Path.Combine(rootPath, currentDirectory), "*.*", SearchOption.AllDirectories);
-					}
-					else
-					{
-						directories = Directory.GetDirectories(Path.Combine(rootPath, currentDirectory));
-					}
-					foreach (string directoryName in directories)
-					{
-						string subPath = directoryName.Substring(rootPath.Length + 1);
-						newReadDirectoryDirectories.Add(subPath);
-					}
+					newReadDirectoryDirectories = Directory.GetDirectories(rootPath, "*.*", searchDepth).Select(d => d.Substring(rootPath.Length + 1)).ToList();
 				}
 				catch (Exception)
 				{
+					newReadDirectoryDirectories = new List<string>();
 					GuiWidget.BreakInDebugger();
 				}
 
 				try
 				{
 					string upperFilter = keywordFilter.ToUpper();
-					string[] files = Directory.GetFiles(Path.Combine(rootPath, currentDirectory));
-					foreach (string filename in files)
+
+					foreach (string filePath in Directory.GetFiles(rootPath, "*.*", searchDepth))
 					{
-						string fileExtensionLower = Path.GetExtension(filename).ToLower();
+						string fileName = Path.GetFileName(filePath);
+						string fileExtensionLower = Path.GetExtension(fileName).ToLower();
+
 						if (!string.IsNullOrEmpty(fileExtensionLower) 
 							&& ApplicationSettings.LibraryFilterFileExtensions.Contains(fileExtensionLower))
 						{
 							if (upperFilter.Trim() == string.Empty
-								|| FileNameContainsFilter(filename, upperFilter))
+								|| FileNameContainsFilter(filePath, upperFilter))
 							{
-								newReadDirectoryFiles.Add(filename);
-							}
-						}
-					}
-					if (recursive)
-					{
-						foreach (string directory in newReadDirectoryDirectories)
-						{
-							string subDirectory = Path.Combine(rootPath, directory);
-							string[] subDirectoryFiles = Directory.GetFiles(subDirectory);
-							foreach (string filename in subDirectoryFiles)
-							{
-								if (ApplicationSettings.LibraryFilterFileExtensions.Contains(Path.GetExtension(filename).ToLower()))
-								{
-									if (keywordFilter.Trim() == string.Empty
-										|| FileNameContainsFilter(filename, upperFilter) )
-									{
-										newReadDirectoryFiles.Add(filename);
-									}
-								}
+								newReadDirectoryFiles.Add(filePath);
 							}
 						}
 					}
@@ -421,25 +394,19 @@ namespace MatterHackers.MatterControl.PrintLibrary.Provider
 				}
 			});
 
-			if (recursive)
-			{
-				currentDirectoryDirectories.Clear();
-			}
-			else
-			{
-				currentDirectoryDirectories = newReadDirectoryDirectories;
-			}
+			currentDirectoryDirectories = newReadDirectoryDirectories;
 			currentDirectoryFiles = newReadDirectoryFiles;
 
 			OnDataReloaded(null);
 		}
 
-		private bool FileNameContainsFilter(string filename, string upperFilter)
+		private bool FileNameContainsFilter(string filename, string filter)
 		{
-			string[] mustContains = upperFilter.Split(' ');
-			foreach (string check in mustContains)
+			string formattedName = Path.GetFileNameWithoutExtension(filename.ToUpper().Replace('_', ' '));
+
+			foreach (string token in filter.Split(' '))
 			{
-				if(!Path.GetFileNameWithoutExtension(filename.ToUpper().Replace('_', ' ')).Contains(check))
+				if(formattedName.IndexOf(token, StringComparison.OrdinalIgnoreCase) == -1)
 				{
 					return false;
 				}

@@ -39,6 +39,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibraryProviders;
+using MatterHackers.Agg.ImageProcessing;
+using MatterHackers.DataConverters3D;
 
 namespace MatterHackers.MatterControl.PrintQueue
 {
@@ -258,10 +261,19 @@ namespace MatterHackers.MatterControl.PrintQueue
 			topToBottomItemList.HAnchor = HAnchor.ParentLeftRight;
 			base.AddChild(topToBottomItemList);
 
+			/*
+
 			for (int i = 0; i < QueueData.Instance.Count; i++)
 			{
-				topToBottomItemList.AddChild(new WrappedQueueRowItem(this, QueueData.Instance.GetPrintItemWrapper(i)));
-			}
+				//topToBottomItemList.AddChild(new WrappedQueueRowItem(this, QueueData.Instance.GetPrintItemWrapper(i)));
+
+				var printItem = QueueData.Instance.GetPrintItemWrapper(i);
+				var item = new DummyItem() { Name = printItem.Name };
+
+				topToBottomItemList.AddChild(new ListViewItem(item));
+			} */
+
+			LoadCollection(new RootLibraryContainer());
 
 			this.MouseLeaveBounds += (sender, e) =>
 			{
@@ -283,6 +295,113 @@ namespace MatterHackers.MatterControl.PrintQueue
 			SelectedIndex = selectedQueueItemIndex;
 		}
 
+		ILibraryContainer activeCollection = null;
+		
+		public void LoadCollection(ILibraryContainer collection)
+		{
+			topToBottomItemList.RemoveAllChildren();
+
+			activeCollection = collection;
+
+			var folderIcon = LoadIcon("FileDialog", "folder.png");
+
+			if (collection.Parent != null)
+			{
+				// Up folder item
+				var item = new CloudLibraryItem() { Name = ".." };
+
+				var listViewItem = new ListViewItem(item, this);
+				listViewItem.Text = "..";
+				listViewItem.IsViewHelper = true;
+				listViewItem.Thumbnail.Image = folderIcon;
+				topToBottomItemList.AddChild(listViewItem);
+				listViewItem.DoubleClick += listViewItem_Click;
+			}
+
+			foreach (var container in collection.ChildContainers)
+			{
+				// Folder items
+				var listViewItem = new ListViewItem(container, this);
+				listViewItem.Thumbnail.Image = folderIcon;
+				listViewItem.Tag = container;
+				topToBottomItemList.AddChild(listViewItem);
+				listViewItem.DoubleClick += listViewItem_Click;
+			}
+
+			foreach (var containerItem in collection.Items)
+			{
+				// List items
+				var listViewItem = new ListViewItem(containerItem, this);
+				//listViewItem.Thumbnail.Image = imageBuffer;
+				listViewItem.Tag = containerItem;
+				topToBottomItemList.AddChild(listViewItem);
+				listViewItem.DoubleClick += listViewItem_Click;
+			}
+		}
+
+		private static ImageBuffer LoadIcon(params string[] pathSegments)
+		{
+			var imageBuffer = StaticData.Instance.LoadIcon(Path.Combine(pathSegments)).InvertLightness();
+			var expectedSize = new Vector2((int)(50 * GuiWidget.DeviceScale), (int)(50 * GuiWidget.DeviceScale));
+
+			if (imageBuffer.Width != expectedSize.x)
+			{
+				var scaledImageBuffer = new ImageBuffer((int)expectedSize.x, (int)expectedSize.y);
+				scaledImageBuffer.NewGraphics2D().Render(imageBuffer, 0, 0, scaledImageBuffer.Width, scaledImageBuffer.Height);
+				imageBuffer = scaledImageBuffer;
+			}
+
+			return imageBuffer;
+		}
+
+		private async void listViewItem_Click(object sender, MouseEventArgs e)
+		{
+			UiThread.RunOnIdle(async () =>
+			{
+				var listViewItem = sender as ListViewItem;
+
+				if (listViewItem.Tag is ILibraryContainerItem)
+				{
+					var container = listViewItem.Tag as ILibraryContainerItem;
+					if (container != null)
+					{
+						// Folder items
+						var temp = await container.GetContent();
+						temp.Parent = activeCollection;
+
+						LoadCollection(temp);
+					}
+				}
+				else if (listViewItem.Tag is ILibraryPrintItem)
+				{
+					// List items
+					var item = listViewItem.Tag as ILibraryPrintItem;
+
+
+					var object3D = await item.GetContent();
+					if (object3D != null)
+					{
+						var scene = MatterControlApplication.Instance.ActiveView3DWidget.Scene;
+
+						scene.ModifyChildren(children =>
+						{
+							children.Add(object3D);
+						});
+
+					}
+				}
+				else if (listViewItem?.Text == "..")
+				{
+					// Up folder tiem
+					if (activeCollection.Parent != null)
+					{
+						LoadCollection(activeCollection.Parent);
+					}
+				}
+
+			});
+		}
+
 		private void SaveCurrentlySelctedItemIndex(object sender, EventArgs e)
 		{
 			selectedQueueItemIndex = SelectedIndex;
@@ -298,7 +417,11 @@ namespace MatterHackers.MatterControl.PrintQueue
 			for (int index = 0; index < topToBottomItemList.Children.Count; index++)
 			{
 				GuiWidget child = topToBottomItemList.Children[index];
-				var queueRowItem = (QueueRowItem)child.Children[0];
+				var queueRowItem = child.Children[0] as QueueRowItem;
+				if (queueRowItem == null)
+				{
+					continue;
+				}
 
 				if (index == SelectedIndex)
 				{
@@ -425,7 +548,7 @@ namespace MatterHackers.MatterControl.PrintQueue
 			}
 		}
 
-		public QueueRowItem DragSourceRowItem { get; internal set; }
+		public ListViewItem DragSourceRowItem { get; internal set; }
 
 		public void ClearSelected()
 		{
