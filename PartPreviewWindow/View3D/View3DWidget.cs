@@ -448,8 +448,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 
 			meshViewerWidget.AfterDraw += AfterDraw3DContent;
-
-			this.TrackballTumbleWidget.DrawGlContent += TrackballTumbleWidget_DrawGlContent;
 		}
 
 		private void ViewControls3D_TransformStateChanged(object sender, TransformStateChangedEventArgs e)
@@ -720,8 +718,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				meshViewerWidget.AfterDraw -= AfterDraw3DContent;
 			}
-
-			this.TrackballTumbleWidget.DrawGlContent -= TrackballTumbleWidget_DrawGlContent;
 			
 			unregisterEvents?.Invoke(this, null);
 			base.OnClosed(e);
