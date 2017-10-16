@@ -55,14 +55,13 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.Agg.Platform;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
+	using MatterHackers.MatterControl.Extensibility;
 	using MatterHackers.MatterControl.Library;
 	using MatterHackers.MatterControl.PartPreviewWindow;
 	using MatterHackers.MatterControl.PartPreviewWindow.View3D;
 	using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 	using MatterHackers.MatterControl.SimplePartScripting;
-	using MatterHackers.MeshVisualizer;
 	using MatterHackers.SerialPortCommunication;
-	using MatterHackers.VectorMath;
 	using SettingsManagement;
 
 	public class ApplicationController
@@ -1153,6 +1152,22 @@ namespace MatterHackers.MatterControl
 			}
 			catch (Exception)
 			{
+			}
+		}
+
+		private static PluginManager pluginManager = null;
+		public static PluginManager Plugins
+		{
+			get
+			{
+				// PluginManager initialization must occur late, after the config is loaded and after localization libraries
+				// have occurred, which currently is driven by MatterControlApplication init
+				if (pluginManager == null)
+				{
+					pluginManager = new PluginManager();
+				}
+
+				return pluginManager;
 			}
 		}
 

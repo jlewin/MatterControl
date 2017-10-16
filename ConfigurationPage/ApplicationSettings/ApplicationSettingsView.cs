@@ -101,6 +101,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
 			this.AddSettingsRow(
 				new SettingsItem(
+					"Plugins".Localize(),
+					GetPluginsRow()));
+
+			this.AddSettingsRow(
+				new SettingsItem(
 					"Notifications".Localize(),
 					new SettingsItem.ToggleSwitchConfig()
 					{
@@ -429,6 +434,28 @@ namespace MatterHackers.MatterControl.ConfigurationPage
                 app.AnchorAll();
 #endif
 			});
+		}
+
+		private FlowLayoutWidget GetPluginsRow()
+		{
+			FlowLayoutWidget buttonRow = new FlowLayoutWidget()
+			{
+				HAnchor = HAnchor.Stretch,
+				Margin = new BorderDouble(0, 4)
+			};
+
+			Button configureButton = buttonFactory.Generate("Configure".Localize().ToUpper());
+			configureButton.Margin = 0;
+			configureButton.Click += (s, e) =>
+			{
+				UiThread.RunOnIdle(() =>
+				{
+					WizardWindow.Show<PluginsPage>();
+				});
+			};
+			buttonRow.AddChild(configureButton);
+
+			return buttonRow;
 		}
 
 		[Conditional("DEBUG")]

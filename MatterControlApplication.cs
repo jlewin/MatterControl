@@ -28,31 +28,22 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
-using MatterHackers.ImageProcessing;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.DataStorage;
-using MatterHackers.MatterControl.PartPreviewWindow;
-using MatterHackers.MatterControl.PluginSystem;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.MatterControl.SettingsManagement;
-using MatterHackers.MatterControl.SlicerConfiguration;
-using MatterHackers.PolygonMesh.Processors;
 using MatterHackers.RenderOpenGl.OpenGl;
 using MatterHackers.VectorMath;
-using Mindscape.Raygun4Net;
 
 namespace MatterHackers.MatterControl
 {
@@ -547,7 +538,7 @@ namespace MatterHackers.MatterControl
 			}
 
 			// now that we are all set up lets load our plugins and allow them their chance to set things up
-			FindAndInstantiatePlugins();
+			InitializePlugins();
 
 			if (ApplicationController.Instance.PluginsLoaded != null)
 			{
@@ -645,6 +636,7 @@ namespace MatterHackers.MatterControl
 			UiThread.RunOnIdle(CheckOnPrinter);
 		}
 
+		/*
 		private void FindAndInstantiatePlugins()
 		{
 #if false
@@ -666,19 +658,39 @@ namespace MatterHackers.MatterControl
 			string oemName = ApplicationSettings.Instance.GetOEMName();
 			foreach (MatterControlPlugin plugin in PluginFinder.CreateInstancesOf<MatterControlPlugin>())
 			{
-				string pluginInfo = plugin.GetPluginInfoJSon();
-				Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
-
-				if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
+				// If it's an oem plugin, only call Initialize if the names match
+				if (widgetPlugin.MetaData.Extras.TryGetValue("OEM", out pluginOemName))
 				{
-					if (nameValuePairs["OEM"] == oemName)
+					if (pluginOemName == activeOemName)
 					{
-						plugin.Initialize(this);
+						widgetPlugin.Initialize(this);
 					}
 				}
 				else
 				{
-					plugin.Initialize(this);
+					widgetPlugin.Initialize(this);
+				}
+			}
+		}*/
+
+		private void InitializePlugins()
+		{
+			string pluginOemName, activeOemName = ApplicationSettings.Instance.GetOEMName();
+
+			// Call Initialize on each plugin previously loaded by the PluginManager
+			foreach (var widgetPlugin in ApplicationController.Plugins.FromType<IWidgetPlugin>())
+			{
+				// If it's an oem plugin, only call Initialize if the names match
+				if (widgetPlugin.MetaData.Extras.TryGetValue("OEM", out pluginOemName))
+				{
+					if (pluginOemName == activeOemName)
+					{
+						widgetPlugin.Initialize(this);
+					}
+				}
+				else
+				{
+					widgetPlugin.Initialize(this);
 				}
 			}
 		}
@@ -699,7 +711,6 @@ namespace MatterHackers.MatterControl
 			MatterHackers.Agg.ImageProcessing.InvertLightness.AssertDebugNotDefined();
 			MatterHackers.Localizations.TranslationMap.AssertDebugNotDefined();
 			MatterHackers.MarchingSquares.MarchingSquaresByte.AssertDebugNotDefined();
-			MatterHackers.MatterControl.PluginSystem.MatterControlPlugin.AssertDebugNotDefined();
 			MatterHackers.MatterSlice.MatterSlice.AssertDebugNotDefined();
 			MatterHackers.MeshVisualizer.MeshViewerWidget.AssertDebugNotDefined();
 			MatterHackers.RenderOpenGl.GLMeshTrianglePlugin.AssertDebugNotDefined();

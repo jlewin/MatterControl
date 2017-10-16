@@ -1,0 +1,20 @@
+[
+	{
+		"Name": "Test1",
+		"Url": "http://something/1",
+		"Version": "1.2.3",
+		"ReleaseDate": "2001-12-01T00:00:00"
+	},
+	{
+		"Name": "Test2",
+		"Url": "http://something/4",
+		"Version": "1.2.3",
+		"ReleaseDate": "2001-12-02T00:00:00"
+	},
+	{
+		"Name": "Test3",
+		"Url": "http://something/2",
+		"Version": "1.0.0",
+		"ReleaseDate": "2001-12-03T00:00:00"
+	}
+]

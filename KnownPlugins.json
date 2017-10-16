@@ -1,0 +1,30 @@
+[
+  {
+    "Name": "Braille Builder",
+    "TypeName": "MatterHackers.MatterControl.Plugins.BrailleBuilder.BrailleBuilderPlugin"
+  },
+  {
+    "Name": "MatterControl Cloud Services",
+    "TypeName": "MatterHackers.MatterControl.Plugins.CloudServices.CloudServicesPlugin"
+  },
+  {
+    "Name": "Firmware Updater",
+    "TypeName": "MatterHackers.MatterControl.Plugins.MarlinFirmwareUpdatePlugin.MarlinFirmwareUpdatePlugin"
+  },
+  {
+    "Name": "MatterControl Authentication",
+    "TypeName": "MatterHackers.MatterControl.Plugins.AuthenticationPlugin.AuthenticationPlugin"
+  },
+  {
+    "Name": "Image Converter",
+    "TypeName": "MatterHackers.MatterControl.Plugins.PictureCreator.PictureCreatorPlugin"
+  },
+  {
+    "Name": "Print Notifications",
+    "TypeName": "MatterHackers.MatterControl.Plugins.PrintNotifications.PrintNotificationPlugin"
+  },
+  {
+    "Name": "Text Creator",
+    "TypeName": "MatterHackers.MatterControl.Plugins.TextCreator.TextCreatorPlugin"
+  }
+]

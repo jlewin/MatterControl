@@ -62,6 +62,10 @@
     <Compile Include="Text\TextEditor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MatterControl.Common\MatterControl.Common.csproj">
+      <Project>{2AF30557-FC50-4DE3-AD1C-7EB57131A9C5}</Project>
+      <Name>MatterControl.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\agg-sharp\agg\Agg.csproj">
       <Project>{657DBC6D-C3EA-4398-A3FA-DDB73C14F71B}</Project>
       <Name>Agg</Name>
@@ -117,10 +121,6 @@
     <ProjectReference Include="..\MatterControl.csproj">
       <Project>{0B8D6F56-BD7F-4426-B858-D9292B084656}</Project>
       <Name>MatterControl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PluginSystem\MatterControlPluginSystem.csproj">
-      <Project>{865172A0-A1A9-49C2-9386-F2FDB4E141B7}</Project>
-      <Name>MatterControlPluginSystem</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

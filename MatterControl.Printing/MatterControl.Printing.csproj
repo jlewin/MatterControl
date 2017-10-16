@@ -21,6 +21,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,6 +46,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Communication\FoundStringCallBacks.cs" />
+    <Compile Include="Communication\FrostedSerial\CSharpSerialPortWrapper.cs" />
+    <Compile Include="Communication\FrostedSerial\FrostedSerialPort.cs" />
+    <Compile Include="Communication\FrostedSerial\FrostedSerialPortFactory.cs" />
+    <Compile Include="Communication\FrostedSerial\FrostedSerialStream.cs" />
+    <Compile Include="Communication\FrostedSerial\IFrostedSerialPort.cs" />
+    <Compile Include="Communication\FrostedSerial\IFrostedSerialPortFactory.cs" />
+    <Compile Include="Communication\FrostedSerial\IFrostedSerialStream.cs" />
+    <Compile Include="Communication\SerialPortFixer.cs" />
+    <Compile Include="Communication\TermiosH.cs" />
     <Compile Include="GCode\GCodeFile.cs" />
     <Compile Include="GCode\GCodeMemoryFile.cs" />
     <Compile Include="GCode\GCodeFileStreamed.cs" />
@@ -52,6 +63,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MatterControl.Common\MatterControl.Common.csproj">
+      <Project>{2af30557-fc50-4de3-ad1c-7eb57131a9c5}</Project>
+      <Name>MatterControl.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Submodules\agg-sharp\agg\Agg.csproj">
       <Project>{657dbc6d-c3ea-4398-a3fa-ddb73c14f71b}</Project>
       <Name>Agg</Name>

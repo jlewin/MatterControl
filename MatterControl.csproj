@@ -134,6 +134,7 @@
     <Compile Include="Library\ContentProviders\GCodeContentProvider.cs" />
     <Compile Include="Library\ContentProviders\IContentProvider.cs" />
     <Compile Include="ConfigurationPage\ApplicationSettings\ApplicationSettingsView.cs" />
+    <Compile Include="ConfigurationPage\ApplicationSettings\PluginsWindow.cs" />
     <Compile Include="ConfigurationPage\LanguageSelector.cs" />
     <Compile Include="ConfigurationPage\CalibrationSettings\CalibrationSettingsView.cs" />
     <Compile Include="ConfigurationPage\PrintLeveling\InstructionsPage.cs" />
@@ -477,6 +478,9 @@
       <DependentUpon>InspectForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="KnownPlugins.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Library\LibraryProviders.cd" />
     <None Include="Library\Widgets\ListView\ListView.cd" />
     <None Include="SlicerConfiguration\Settings\SettingsDiagram.cd" />
@@ -488,6 +492,10 @@
     <Folder Include="SlicerConfiguration\SettingsEditors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="MatterControl.Common\MatterControl.Common.csproj">
+      <Project>{2af30557-fc50-4de3-ad1c-7eb57131a9c5}</Project>
+      <Name>MatterControl.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="MatterControl.OpenGL\MatterControl.OpenGL.csproj">
       <Project>{CBDEEC31-D688-417B-9BF2-F0DB2E4FB268}</Project>
       <Name>MatterControl.OpenGL</Name>
@@ -540,10 +548,6 @@
       <Project>{D3E41B4E-BFBB-44CA-94C8-95C00F754FDD}</Project>
       <Name>VectorMath</Name>
     </ProjectReference>
-    <ProjectReference Include="Submodules\agg-sharp\SerialPortCommunication\SerialPortCommunication.csproj">
-      <Project>{D3ABF72C-64C2-4E51-A119-E077210FA990}</Project>
-      <Name>SerialPortCommunication</Name>
-    </ProjectReference>
     <ProjectReference Include="Submodules\MatterSlice\MatterSlice.csproj">
       <Project>{C46CA728-DD2F-4DD1-971A-AAA89D9DFF95}</Project>
       <Name>MatterSlice</Name>
@@ -575,10 +579,6 @@
     <ProjectReference Include="Submodules\agg-sharp\PlatformWin32\PlatformWin32.csproj">
       <Project>{670BDDFF-927B-425D-9DD1-22ACB14356EB}</Project>
       <Name>PlatformWin32</Name>
-    </ProjectReference>
-    <ProjectReference Include="PluginSystem\MatterControlPluginSystem.csproj">
-      <Project>{865172A0-A1A9-49C2-9386-F2FDB4E141B7}</Project>
-      <Name>MatterControlPluginSystem</Name>
     </ProjectReference>
     <ProjectReference Include="Submodules\agg-sharp\Localizations\Localizations.csproj">
       <Project>{CA96058C-1A37-465D-A357-D6D695B13D25}</Project>
