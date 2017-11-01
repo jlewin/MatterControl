@@ -224,11 +224,10 @@ namespace MatterHackers.MatterControl.DataStorage
 	{
 		bool wasExited = false;
 		public bool ConnectionError = false;
-		public ISQLite dbSQLite;
+		public SQLite.SQLiteConnection dbSQLite;
 		private string datastoreLocation = ApplicationDataStorage.Instance.DatastorePath;
 		private static Datastore globalInstance;
 		private ApplicationSession activeSession;
-		private bool TEST_FLAG = false;
 
 		private List<Type> dataStoreTables = new List<Type>
 		{
@@ -252,44 +251,7 @@ namespace MatterHackers.MatterControl.DataStorage
 				ApplicationDataStorage.Instance.FirstRun = true;
 			}
 
-			OSType osType = AggContext.OperatingSystem;
-			switch (osType)
-			{
-				case OSType.Windows:
-					dbSQLite = new SQLiteWin32.SQLiteConnection(datastoreLocation);
-					break;
-
-				case OSType.Mac:
-					dbSQLite = new SQLiteUnix.SQLiteConnection(datastoreLocation);
-					break;
-
-				case OSType.X11:
-					dbSQLite = new SQLiteUnix.SQLiteConnection(datastoreLocation);
-					break;
-
-				case OSType.Android:
-					dbSQLite = new SQLiteAndroid.SQLiteConnection(datastoreLocation);
-					break;
-
-				default:
-					throw new NotImplementedException();
-			}
-
-			if (TEST_FLAG)
-			{
-				//In test mode - attempt to drop all tables (in case db was locked when we tried to delete it)
-				foreach (Type table in dataStoreTables)
-				{
-					try
-					{
-						this.dbSQLite.DropTable(table);
-					}
-					catch
-					{
-						GuiWidget.BreakInDebugger();
-					}
-				}
-			}
+			dbSQLite = new SQLite.SQLiteConnection(datastoreLocation);
 		}
 
 		public static Datastore Instance
@@ -321,7 +283,7 @@ namespace MatterHackers.MatterControl.DataStorage
 			if (this.activeSession != null)
 			{
 				this.activeSession.SessionEnd = DateTime.Now;
-				this.activeSession.Commit();
+				//this.activeSession.Commit();
 			}
 
 			// lets wait a bit to make sure the commit has resolved.
@@ -349,15 +311,7 @@ namespace MatterHackers.MatterControl.DataStorage
 		//Run initial checks and operations on sqlite datastore
 		public void Initialize()
 		{
-			if (TEST_FLAG)
-			{
-				ValidateSchema();
-				GenerateSampleData();
-			}
-			else
-			{
-				ValidateSchema();
-			}
+			ValidateSchema();
 
 			// Contruct the root library collection if missing
 			var rootLibraryCollection = Datastore.Instance.dbSQLite.Table<PrintItemCollection>().Where(v => v.Name == "_library").Take(1).FirstOrDefault();

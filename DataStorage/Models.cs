@@ -38,10 +38,12 @@ using MatterHackers.Agg.UI;
 
 namespace MatterHackers.MatterControl.DataStorage
 {
-	public class ApplicationSession : Entity
+	public class ApplicationSession 
 	{
+		[PrimaryKey, AutoIncrement]
+		public int Id { get; set; }
+
 		public ApplicationSession()
-			: base()
 		{
 			SessionStart = DateTime.Now;
 			PrintCount = 0;
