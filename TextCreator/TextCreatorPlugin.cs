@@ -37,7 +37,7 @@ using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Plugins.BrailleBuilder;
 using MatterHackers.MatterControl.Plugins.TextCreator;
 
-namespace MatterHackers.Plugins.EditorTools
+namespace MatterHackers.Plugins.TextCreator
 {
 	public class TextCreatorPlugin : IWidgetPlugin
 	{

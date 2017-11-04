@@ -47,14 +47,10 @@ namespace MatterHackers.MatterControl.Extensibility
 
 			// Probing path
 			string searchDirectory = Path.Combine(
-								Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location),
+								Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
 								"Extensions");
 
 			var pluginAssemblies = new List<string>(Directory.GetFiles(searchDirectory, "*.dll"));
-
-			// HACK: Drop support for exe plugins - this very questionable -  why would anyone distribute a plugin as an 
-			// executable and why would be want to support that scenario? It could be done - it's poor form and not appropriate
-			pluginAssemblies.AddRange(Directory.GetFiles(searchDirectory, "*.exe"));
 
 			Type pluginInterface = typeof(IApplicationPlugin);
 
@@ -73,7 +69,7 @@ namespace MatterHackers.MatterControl.Extensibility
 							continue;
 						}
 
-						if (Disabled != null && Disabled.Contains(type.FullName))
+						if (Disabled?.Contains(type.FullName) == true)
 						{
 							continue;
 						}
