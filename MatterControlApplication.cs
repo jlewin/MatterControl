@@ -680,18 +680,7 @@ namespace MatterHackers.MatterControl
 			// Call Initialize on each plugin previously loaded by the PluginManager
 			foreach (var widgetPlugin in ApplicationController.Plugins.FromType<IWidgetPlugin>())
 			{
-				// If it's an oem plugin, only call Initialize if the names match
-				if (widgetPlugin.MetaData.Extras.TryGetValue("OEM", out pluginOemName))
-				{
-					if (pluginOemName == activeOemName)
-					{
-						widgetPlugin.Initialize(this);
-					}
-				}
-				else
-				{
-					widgetPlugin.Initialize(this);
-				}
+				widgetPlugin.Initialize(this);
 			}
 		}
 

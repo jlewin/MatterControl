@@ -43,24 +43,34 @@ namespace MatterHackers.MatterControl.Extensibility
 				}
 			}
 
-			var plugins = new List<IApplicationPlugin>();
+			var plugins = new List<ILoadable>();
 
 			// Probing path
 			string searchDirectory = Path.Combine(
 								Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
 								"Extensions");
 
-			var pluginAssemblies = new List<string>(Directory.GetFiles(searchDirectory, "*.dll"));
+			var pluginAssemblies = Directory.GetFiles(searchDirectory, "*.dll").Select(s => Assembly.LoadFile(s)).ToList();
 
-			Type pluginInterface = typeof(IApplicationPlugin);
+			var currentAssembly = Assembly.GetExecutingAssembly();
 
-			foreach (string assemblyPath in pluginAssemblies)
+			// Add the current assembly
+			//pluginAssemblies.Add(currentAssembly);
+
+			//// Add referenced assemblies
+			//pluginAssemblies.AddRange(currentAssembly.GetReferencedAssemblies().Select(assemblyName => Assembly.Load(assemblyName)));
+
+			pluginAssemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+
+			Type loadable = typeof(ILoadable);
+
+			foreach (var assembly in pluginAssemblies)
 			{
 				try
 				{
-					Assembly assembly = Assembly.LoadFile(assemblyPath);
-
-					foreach (Type type in assembly.GetTypes().Where(t => t != null && t.IsClass && pluginInterface.IsAssignableFrom(t)))
+					foreach (Type type in assembly.GetTypes().Where(t => t != null 
+						&& t.IsClass 
+						&& loadable.IsAssignableFrom(t)))
 					{
 						if (!type.IsPublic)
 						{
@@ -76,7 +86,7 @@ namespace MatterHackers.MatterControl.Extensibility
 
 						Console.WriteLine("Loading Plugin: " + type.FullName);
 
-						var instance = Activator.CreateInstance(type) as IApplicationPlugin;
+						var instance = Activator.CreateInstance(type) as ILoadable;
 						if (instance == null)
 						{
 							// TODO: We need to be able to log this in a usable way - consider MatterControl terminal as output target?
@@ -89,22 +99,23 @@ namespace MatterHackers.MatterControl.Extensibility
 				}
 				catch (Exception ex)
 				{
-					Trace.WriteLine(string.Format("An unexpected exception occurred while loading plugins: {0}\r\n{1}", assemblyPath, ex.Message));
+					Trace.WriteLine(string.Format("An unexpected exception occurred while loading plugins: {0}\r\n{1}", assembly.FullName, ex.Message));
 				}
 			}
 
 			this.Plugins = plugins;
 
-			/* Generated new knownPlugins.json file
+			/* 
+			// Uncomment to generate new KnownPlugins.json file 
 			KnownPlugins = plugins.Where(p => p.MetaData != null).Select(p => new PluginState { TypeName = p.GetType().FullName, Name = p.MetaData.Name }).ToList();
 
 			File.WriteAllText(
-				"knownPlugins.json",
-				JsonConvert.SerializeObject(KnownPlugins, Newtonsoft.Json.Formatting.Indented));
-				*/
+				Path.Combine("..", "..", "knownPlugins.json"),
+				JsonConvert.SerializeObject(KnownPlugins, Formatting.Indented)); */
+				
 		}
 
-		public List<IApplicationPlugin> Plugins { get; }
+		public List<ILoadable> Plugins { get; }
 
 		//public Dictionary<string, PluginState> KnownPlugins { get; }
 		public List<PluginState> KnownPlugins { get; }
@@ -130,7 +141,7 @@ namespace MatterHackers.MatterControl.Extensibility
 				JsonConvert.SerializeObject(Disabled, Formatting.Indented));
 		}
 
-		public IEnumerable<T> FromType<T>() where T : class, IApplicationPlugin
+		public IEnumerable<T> FromType<T>() where T : class, ILoadable
 		{
 			return Plugins.Where(p => p is T).Select(p => p as T);
 		}

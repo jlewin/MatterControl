@@ -46,6 +46,7 @@ using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.DataStorage;
+using MatterHackers.MatterControl.Extensibility;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrintLibrary;
@@ -485,10 +486,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			interactionVolumes.Add(new SelectionShadow(this.InteractionLayer));
 			interactionVolumes.Add(new SnappingIndicators(this.InteractionLayer, this.CurrentSelectInfo));
 
-			var interactionVolumePlugins = PluginFinder.CreateInstancesOf<InteractionVolumePlugin>();
-			foreach (InteractionVolumePlugin plugin in interactionVolumePlugins)
+			foreach (var ivProvider in ApplicationController.Plugins.FromType<IInteractionVolumeProvider>())
 			{
-				interactionVolumes.Add(plugin.CreateInteractionVolume(this.InteractionLayer));
+				interactionVolumes.AddRange(ivProvider.Create(this.InteractionLayer));
 			}
 
 			if (DoBooleanTest)

@@ -17,8 +17,11 @@ namespace MatterHackers.MatterControl.Extensibility
 		public Dictionary<string, string> Extras { get; private set; }
 	}
 
-	public interface IApplicationPlugin
+	public interface IApplicationPlugin : ILoadable
 	{
 		PluginInfo MetaData { get; }
 	}
+
+	public interface ILoadable { }
+
 }
