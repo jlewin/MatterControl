@@ -131,6 +131,7 @@
     <Compile Include="PartPreviewWindow\SectionWidget.cs" />
     <Compile Include="PartPreviewWindow\SliceLayerSelector.cs" />
     <Compile Include="PartPreviewWindow\Toolbar.cs" />
+    <Compile Include="PartPreviewWindow\VertexStorageObject3D.cs" />
     <Compile Include="PartPreviewWindow\View3D\Actions\IntersectionEditor.cs" />
     <Compile Include="PartPreviewWindow\View3D\Actions\MeshWrapper.cs" />
     <Compile Include="PartPreviewWindow\View3D\Actions\MeshWrapperOperation.cs" />

@@ -251,12 +251,15 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			activeEditorWidget?.Close();
 
 			var newEditor = editor.Create(scene.SelectedItem, view3DWidget, theme);
-			newEditor.HAnchor = HAnchor.Stretch;
-			newEditor.VAnchor = VAnchor.Fit;
+			if (newEditor != null)
+			{
+				newEditor.HAnchor = HAnchor.Stretch;
+				newEditor.VAnchor = VAnchor.Fit;
 
-			editorPanel.AddChild(newEditor);
+				editorPanel.AddChild(newEditor);
 
-			activeEditorWidget = newEditor;
+				activeEditorWidget = newEditor;
+			}
 		}
 
 		public void Save(ILibraryItem item, IObject3D content)

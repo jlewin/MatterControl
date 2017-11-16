@@ -1383,6 +1383,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					Matrix4X4 totalTransform = Matrix4X4.CreateTranslation(new Vector3(delta));
 
 					Scene.SelectedItem.Matrix *= totalTransform;
+					Scene.SelectedItem.Invalidate();
 
 					CurrentSelectInfo.LastMoveDelta = delta;
 				}
