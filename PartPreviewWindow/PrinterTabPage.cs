@@ -172,7 +172,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				SetSliderSizes();
 			};
 
-			var printerActionsBar = new PrinterActionsBar(printer, this, theme)
+			printerActionsBar = new PrinterActionsBar(printer, this, theme)
 			{
 				Padding = new BorderDouble(0, theme.ToolbarPadding.Top, theme.ToolbarPadding.Right, theme.ToolbarPadding.Top)
 			};
@@ -202,6 +202,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private GCodeFile loadedGCode => sceneContext.LoadedGCode;
 
 		private bool showSliceLayers;
+
+		internal PrinterActionsBar printerActionsBar;
+
 		private bool ShowSliceLayers
 		{
 			get => showSliceLayers;

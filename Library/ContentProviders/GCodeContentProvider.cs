@@ -66,8 +66,7 @@ namespace MatterHackers.MatterControl
 
 		public Task<IObject3D> CreateItem(ILibraryItem item, Action<double, string> reporter)
 		{
-			System.Diagnostics.Debugger.Break();
-			return null;
+			return Task.FromResult<IObject3D>(new GCodeFileItem());
 		}
 
 		public Task GetThumbnail(ILibraryItem item, int width, int height, Action<ImageBuffer> imageCallback)
@@ -76,5 +75,9 @@ namespace MatterHackers.MatterControl
 
 			return Task.CompletedTask;
 		}
+	}
+
+	public class GCodeFileItem : Object3D
+	{
 	}
 }

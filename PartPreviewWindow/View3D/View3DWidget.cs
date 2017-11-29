@@ -507,10 +507,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.InteractionLayer.DrawGlOpaqueContent += Draw_GlOpaqueContent;
 
 			this.sceneContext.SceneLoaded += SceneContext_SceneLoaded;
+
+			this.viewControls3D.modelViewButton.Enabled = sceneContext.EditableScene;
 		}
 
 		private void SceneContext_SceneLoaded(object sender, EventArgs e)
 		{
+			this.printerTabPage.printerActionsBar.sliceButton.Enabled = sceneContext.EditableScene;
+			this.viewControls3D.modelViewButton.Enabled = sceneContext.EditableScene;
 			this.Invalidate();
 		}
 
@@ -814,6 +818,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		public bool DragOperationActive { get; private set; }
 
 		public InsertionGroup DragDropObject { get; private set; }
+		public ILibraryContentStream SceneReplacement { get; private set; }
 
 		/// <summary>
 		/// Provides a View3DWidget specific drag implementation
@@ -864,6 +869,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		{
 			this.DragOperationActive = true;
 
+			if (items.FirstOrDefault() is ILibraryContentStream contentStream
+				&& contentStream.ContentType == "gcode")
+			{
+				DragDropObject = null;
+				this.SceneReplacement = contentStream;
+
+				// TODO: Figure out a mechanism to disable View3DWidget with dark overlay, displaying something like "Switch to xxx.gcode", make disappear on mouseLeaveBounds and dragfinish
+				this.InteractionLayer.BackgroundColor = new Color(Color.Black, 200);
+
+				return;
+			}
+
 			// Set the hitplane to the bed plane
 			CurrentSelectInfo.HitPlane = bedPlane;
 
@@ -905,12 +922,29 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		{
 			if (this.DragOperationActive)
 			{
+				this.InteractionLayer.BackgroundColor = Color.Transparent;
 				this.DragOperationActive = false;
 
 				if (mouseUpInBounds)
 				{
-					if (this.DragDropObject.ContentAcquired)
+					if (this.DragDropObject == null
+						&& this.SceneReplacement != null)
 					{
+						// Drop handler for special case of GCode or similar (change loaded scene to new context)
+						sceneContext.LoadContent(
+							new EditContext()
+							{
+								SourceItem = this.SceneReplacement,
+								ContentStore = null
+							}).ConfigureAwait(false);
+
+						this.SceneReplacement = null;
+					}
+					else if (this.DragDropObject.ContentAcquired)
+					{
+
+						// Drop handler for InsertionGroup - all normal content
+						this.viewControls3D.modelViewButton.Enabled = true;
 						this.DragDropObject.Collapse();
 					}
 				}
