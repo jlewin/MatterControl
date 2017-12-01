@@ -67,7 +67,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 					var item = new Object3D()
 					{
-						Mesh = CreateCylinder(1, 3),
+						Mesh = CreateCylinder(1, 1),
 						Matrix = Matrix4X4.CreateTranslation(v.position.X, v.position.Y, 0),
 						Color = Color.Green
 					};
