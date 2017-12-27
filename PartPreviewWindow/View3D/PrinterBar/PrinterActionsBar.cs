@@ -34,6 +34,7 @@ using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
+using MatterHackers.MatterControl.AboutPage;
 using MatterHackers.MatterControl.ActionBar;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.EeProm;
@@ -176,6 +177,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 										printer.Settings.SetValue(SettingsKey.printer_name, newName);
 									}
 								}));
+					}
+				},
+				new NamedAction()
+				{
+					Title = "Configure Printer".Localize(),
+					Action = () =>
+					{
+						DialogWindow.Show<ConfigurePrinterPage>();
 					}
 				},
 				new NamedAction() { Title = "----" },
