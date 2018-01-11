@@ -90,7 +90,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private Button CreateZMoveButton(PrinterConfig printer, double moveAmount, bool smallScreen)
 		{
-			var button = buttonFactory.GenerateMoveButton(printer, $"{Math.Abs(moveAmount):0.00} mm", PrinterConnection.Axis.Z, printer.Settings.ZSpeed());
+			var button = buttonFactory.GenerateMoveButton(printer, $"{Math.Abs(moveAmount):0.00} mm", PrinterConnection.Axis.Z, printer.Settings.ZSpeed(), ApplicationController.Instance.Theme);
 			button.MoveAmount = moveAmount;
 			button.HAnchor = HAnchor.MaxFitOrStretch;
 			button.VAnchor = VAnchor.Fit;
