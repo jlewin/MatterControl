@@ -32,16 +32,16 @@ using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl;
+using MatterHackers.MatterControl.Extensibility;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Plugins.BrailleBuilder;
 using MatterHackers.MatterControl.Plugins.TextCreator;
-using MatterHackers.MatterControl.PluginSystem;
 
-namespace MatterHackers.Plugins.EditorTools
+namespace MatterHackers.Plugins.TextCreator
 {
-	public class TextCreatorPlugin : MatterControlPlugin
+	public class TextCreatorPlugin : IWidgetPlugin
 	{
-		public override void Initialize(GuiWidget application)
+		public void Initialize(GuiWidget application)
 		{
 			string category = "Text Tools".Localize();
 			var library = ApplicationController.Instance.Library;
@@ -79,7 +79,17 @@ namespace MatterHackers.Plugins.EditorTools
 					Category = category
 				});
 
-			base.Initialize(application);
+			ApplicationController.Instance.IObject3DEditorProviders.Add(new TextEditor());
+			ApplicationController.Instance.IObject3DEditorProviders.Add(new BrailleEditor());
 		}
+
+		public PluginInfo MetaData { get; } = new PluginInfo()
+		{
+			Name = "Text Creator",
+			UUID = "fbd06000-66c3-11e3-949a-0800200c9a66",
+			About = "A Creator that allows you to type in text and have it turned into printable extrusions.",
+			Developer = "MatterHackers, Inc.",
+			Url = "https://www.matterhackers.com"
+		};
 	}
 }

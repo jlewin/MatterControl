@@ -1,5 +1,5 @@
-/*
-Copyright (c) 2016, Lars Brubaker, Kevin Pope
+﻿/*
+Copyright (c) 2017, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,13 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using System;
-using MatterControl.Printing;
+using MatterHackers.Agg.UI;
 
 namespace MatterHackers.MatterControl
 {
-	public static class MatterControlApplication
+	using MatterHackers.MatterControl.Extensibility;
+	public interface IWidgetPlugin : IApplicationPlugin
 	{
-
-#if DEBUG
-
-		//public static string MCWSBaseUri { get; } = "http://192.168.2.129:9206";
-		public static string MCWSBaseUri { get; } = "https://mattercontrol-test.appspot.com";
-#else
-		public static string MCWSBaseUri { get; } = "https://mattercontrol.appspot.com";
-#endif
-
-
-		private static void AssertDebugNotDefined()
-		{
-#if DEBUG
-			throw new Exception("DEBUG is defined and should not be!");
-#endif
-		}
-
-		public static void CheckKnownAssemblyConditionalCompSymbols()
-		{
-			MatterControlApplication.AssertDebugNotDefined();
-			GCodeFile.AssertDebugNotDefined();
-			MatterHackers.Agg.Graphics2D.AssertDebugNotDefined();
-			MatterHackers.Agg.UI.SystemWindow.AssertDebugNotDefined();
-			MatterHackers.Agg.ImageProcessing.InvertLightness.AssertDebugNotDefined();
-			MatterHackers.Localizations.TranslationMap.AssertDebugNotDefined();
-			MatterHackers.MarchingSquares.MarchingSquaresByte.AssertDebugNotDefined();
-			MatterHackers.MatterSlice.MatterSlice.AssertDebugNotDefined();
-			MatterHackers.MeshVisualizer.MeshViewerWidget.AssertDebugNotDefined();
-			MatterHackers.RenderOpenGl.GLMeshTrianglePlugin.AssertDebugNotDefined();
-		}
+		void Initialize(GuiWidget application);
 	}
 }

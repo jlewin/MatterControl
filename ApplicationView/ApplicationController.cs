@@ -59,6 +59,7 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.Agg.Platform;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
+	using MatterHackers.MatterControl.Extensibility;
 	using MatterHackers.MatterControl.Library;
 	using MatterHackers.MatterControl.PartPreviewWindow;
 	using MatterHackers.MatterControl.PartPreviewWindow.View3D;
@@ -66,7 +67,6 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.SimplePartScripting;
 	using MatterHackers.MeshVisualizer;
 	using MatterHackers.SerialPortCommunication;
-	using MatterHackers.VectorMath;
 	using SettingsManagement;
 
 	public class AppContext
@@ -295,6 +295,15 @@ namespace MatterHackers.MatterControl
 		public GuiWidget MainView;
 
 		private EventHandler unregisterEvents;
+
+		public List<IInteractionVolumeProvider> _registeredIAVolumeProviders { get; } = new List<IInteractionVolumeProvider>();
+
+		public IEnumerable<IInteractionVolumeProvider> RegisteredIAVolumeProviders => _registeredIAVolumeProviders;
+
+		public void RegisterIAVolumeProvider(IInteractionVolumeProvider iaVolumeProvider)
+		{
+			_registeredIAVolumeProviders.Add(iaVolumeProvider);
+		}
 
 		private Dictionary<string, List<PrintItemAction>> registeredLibraryActions = new Dictionary<string, List<PrintItemAction>>();
 
@@ -1318,6 +1327,29 @@ namespace MatterHackers.MatterControl
 			{
 			}
 		}
+
+		private static PluginManager pluginManager = null;
+		public static PluginManager Plugins
+		{
+			get
+			{
+				// PluginManager initialization must occur late, after the config is loaded and after localization libraries
+				// have occurred, which currently is driven by MatterControlApplication init
+				if (pluginManager == null)
+				{
+					pluginManager = new PluginManager();
+				}
+
+				return pluginManager;
+			}
+		}
+
+		public List<IObject3DEditor> IObject3DEditorProviders { get; } = new List<IObject3DEditor>()
+		{
+			new IntersectionEditor(),
+			new SubtractEditor(),
+			new SubtractAndReplace()
+		};
 
 		private void partToPrint_SliceDone(string partFilePath, string gcodeFilePath)
 		{

@@ -42,6 +42,7 @@ using MatterHackers.Agg.VertexSource;
 using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.MatterControl.Extensibility;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.MeshVisualizer;
@@ -184,10 +185,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			interactionVolumes.Add(new SelectionShadow(this.InteractionLayer));
 			interactionVolumes.Add(new SnappingIndicators(this.InteractionLayer, this.CurrentSelectInfo));
 
-			var interactionVolumePlugins = PluginFinder.CreateInstancesOf<InteractionVolumePlugin>();
-			foreach (InteractionVolumePlugin plugin in interactionVolumePlugins)
+			// Add IAVolumeProviderPlugins
+			foreach (var ivProvider in ApplicationController.Instance.RegisteredIAVolumeProviders)
 			{
-				interactionVolumes.Add(plugin.CreateInteractionVolume(this.InteractionLayer));
+				interactionVolumes.AddRange(ivProvider.Create(this.InteractionLayer));
 			}
 
 			if (DoBooleanTest)

@@ -39,7 +39,6 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.Agg.Platform;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.MatterControl.DataStorage;
-	using MatterHackers.MatterControl.PluginSystem;
 	using MatterHackers.MatterControl.PrintQueue;
 	using MatterHackers.RenderOpenGl.OpenGl;
 
@@ -94,26 +93,51 @@ namespace MatterHackers.MatterControl
 		{
 		}
 
+		// TODO: Rename to InitializePlugins
 		public void FindAndInstantiatePlugins(SystemWindow systemWindow)
 		{
-			string oemName = ApplicationSettings.Instance.GetOEMName();
-			foreach (MatterControlPlugin plugin in PluginFinder.CreateInstancesOf<MatterControlPlugin>())
-			{
-				string pluginInfo = plugin.GetPluginInfoJSon();
-				Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
+			string pluginOemName, activeOemName = ApplicationSettings.Instance.GetOEMName();
 
-				if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
+			// INTIALIZE WIDGET PLUGINS
+			// Call Initialize on each plugin previously loaded by the PluginManager
+			foreach (var widgetPlugin in ApplicationController.Plugins.FromType<IWidgetPlugin>())
+			{
+				// If it's an oem plugin, only call Initialize if the names match
+				if (widgetPlugin.MetaData.Extras.TryGetValue("OEM", out pluginOemName))
 				{
-					if (nameValuePairs["OEM"] == oemName)
+					if (pluginOemName == activeOemName)
 					{
-						plugin.Initialize(systemWindow);
+						widgetPlugin.Initialize(systemWindow);
 					}
 				}
 				else
 				{
-					plugin.Initialize(systemWindow);
+					widgetPlugin.Initialize(systemWindow);
 				}
 			}
+
+			// INTIALIZE non-WIDGET PLUGINS
+
+
+			//string oemName = ApplicationSettings.Instance.GetOEMName();
+			//foreach (MatterControlPlugin plugin in PluginFinder.CreateInstancesOf<MatterControlPlugin>())
+			//{
+			//	string pluginInfo = plugin.GetPluginInfoJSon();
+			//	Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
+
+			//	if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
+			//	{
+			//		if (nameValuePairs["OEM"] == oemName)
+			//		{
+			//			plugin.Initialize(this);
+			//		}
+			//	}
+			//	else
+			//	{
+			//		plugin.Initialize(this);
+			//	}
+			//}
+
 		}
 
 		public void ProcessCommandline()

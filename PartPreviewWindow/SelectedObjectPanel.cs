@@ -206,8 +206,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			objectEditorsByType = new Dictionary<Type, HashSet<IObject3DEditor>>();
 
 			// TODO: Consider only loading once into a static
-			var objectEditors = PluginFinder.CreateInstancesOf<IObject3DEditor>();
-			foreach (IObject3DEditor editor in objectEditors)
+			foreach (IObject3DEditor editor in ApplicationController.Instance.IObject3DEditorProviders)
 			{
 				foreach (Type type in editor.SupportedTypes())
 				{
