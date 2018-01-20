@@ -327,7 +327,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		internal GuiWidget ShowGCodeOverflowMenu()
 		{
 			var popupMenu = new PopupMenu(theme);
-
+			
 			popupMenu.CreateBoolMenuItem(
 				"Show Print Bed".Localize(),
 				() => gcodeOptions.RenderBed,

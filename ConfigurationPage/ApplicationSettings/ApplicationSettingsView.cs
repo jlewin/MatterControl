@@ -65,7 +65,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			// Camera Monitoring
 			bool hasCamera = true || ApplicationSettings.Instance.get(ApplicationSettingsKey.HardwareHasCamera) == "true";
 
-			var previewButton = buttonFactory.Generate("Preview".Localize().ToUpper());
+			var configureIcon = AggContext.StaticData.LoadIcon("fa-cog_16.png", IconColor.Raw);
+
+			var previewButton = new IconButton(configureIcon, theme)
+			{
+				ToolTipText = "Preview".Localize()
+			};
 			previewButton.Click += (s, e) =>
 			{
 				AppContext.Platform.OpenCameraPreview();
@@ -87,10 +92,13 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			);
 
 			// Print Notifications
-			var configureNotificationsButton = buttonFactory.Generate("Configure".Localize().ToUpper());
-			configureNotificationsButton.Name = "Configure Notification Settings Button";
-			configureNotificationsButton.Margin = new BorderDouble(left: 6);
-			configureNotificationsButton.VAnchor = VAnchor.Center;
+			var configureNotificationsButton = new IconButton(configureIcon, theme)
+			{
+				Name = "Configure Notification Settings Button",
+				ToolTipText = "Configure Notifications".Localize(),
+				Margin = new BorderDouble(left: 6),
+				VAnchor = VAnchor.Center
+			};
 			configureNotificationsButton.Click += (s, e) =>
 			{
 				if (OpenPrintNotification != null)
@@ -309,6 +317,27 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			{
 				Margin = new BorderDouble(left: 30),
 			});
+
+
+#if DEBUG
+			var configurePluginsButton = new IconButton(configureIcon, theme)
+			{
+				ToolTipText = "Configure Plugins".Localize(),
+				Margin = 0
+			};
+			configurePluginsButton.Click += (s, e) =>
+			{
+				UiThread.RunOnIdle(() =>
+				{
+					DialogWindow.Show<PluginsPage>();
+				});
+			};
+
+			this.AddSettingsRow(
+				new SettingsItem(
+					"Plugins".Localize(),
+					configurePluginsButton));
+#endif
 
 			var aboutMatterControl = new SettingsItem("About".Localize() + " " + ApplicationController.Instance.ProductName);
 			if (IntPtr.Size == 8)

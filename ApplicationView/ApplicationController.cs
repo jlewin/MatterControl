@@ -59,6 +59,7 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.Agg.Platform;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
+	using MatterHackers.MatterControl.Extensibility;
 	using MatterHackers.MatterControl.Library;
 	using MatterHackers.MatterControl.PartPreviewWindow;
 	using MatterHackers.MatterControl.PartPreviewWindow.View3D;
@@ -66,7 +67,6 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.SimplePartScripting;
 	using MatterHackers.MeshVisualizer;
 	using MatterHackers.SerialPortCommunication;
-	using MatterHackers.VectorMath;
 	using SettingsManagement;
 
 	public class AppContext
@@ -296,6 +296,42 @@ namespace MatterHackers.MatterControl
 
 		private EventHandler unregisterEvents;
 
+		public class ExtensionsConfig
+		{
+			private List<IInteractionVolumeProvider> _iaVolumeProviders = new List<IInteractionVolumeProvider>();
+
+			private LibraryConfig libraryConfig;
+
+			private List<IObject3DEditor> _IObject3DEditorProviders = new List<IObject3DEditor>()
+			{
+				new IntersectionEditor(),
+				new SubtractEditor(),
+				new SubtractAndReplace()
+			};
+
+			public ExtensionsConfig(LibraryConfig libraryConfig)
+			{
+				this.libraryConfig = libraryConfig;
+			}
+
+			public IEnumerable<IInteractionVolumeProvider> IAVolumeProviders => _iaVolumeProviders;
+
+			public IEnumerable<IObject3DEditor> IObject3DEditorProviders => _IObject3DEditorProviders;
+
+			public void Register(IInteractionVolumeProvider volumeProvider)
+			{
+				_iaVolumeProviders.Add(volumeProvider);
+			}
+
+			public void Register(IObject3DEditor object3DEditor)
+			{
+				_IObject3DEditorProviders.Add(object3DEditor);
+			}
+
+		}
+
+		public ExtensionsConfig Extensions { get; }
+		
 		private Dictionary<string, List<PrintItemAction>> registeredLibraryActions = new Dictionary<string, List<PrintItemAction>>();
 
 		private List<SceneSelectionOperation> registeredSceneOperations = new List<SceneSelectionOperation>()
@@ -572,6 +608,8 @@ namespace MatterHackers.MatterControl
 			this.Library = new LibraryConfig();
 			this.Library.ContentProviders.Add(new[] { "stl", "obj", "amf", "mcx" }, new MeshContentProvider());
 			this.Library.ContentProviders.Add("gcode", new GCodeContentProvider());
+
+			this.Extensions = new ExtensionsConfig(this.Library);
 
 			// Name = "MainSlidePanel";
 			ActiveTheme.ThemeChanged.RegisterEvent((s, e) =>
@@ -1316,6 +1354,22 @@ namespace MatterHackers.MatterControl
 			}
 			catch (Exception)
 			{
+			}
+		}
+
+		private static PluginManager pluginManager = null;
+		public static PluginManager Plugins
+		{
+			get
+			{
+				// PluginManager initialization must occur late, after the config is loaded and after localization libraries
+				// have occurred, which currently is driven by MatterControlApplication init
+				if (pluginManager == null)
+				{
+					pluginManager = new PluginManager();
+				}
+
+				return pluginManager;
 			}
 		}
 

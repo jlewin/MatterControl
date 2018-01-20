@@ -39,7 +39,6 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.Agg.Platform;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.MatterControl.DataStorage;
-	using MatterHackers.MatterControl.PluginSystem;
 	using MatterHackers.MatterControl.PrintQueue;
 	using MatterHackers.RenderOpenGl.OpenGl;
 
@@ -94,26 +93,12 @@ namespace MatterHackers.MatterControl
 		{
 		}
 
+		// TODO: Rename to InitializePlugins
 		public void FindAndInstantiatePlugins(SystemWindow systemWindow)
 		{
-			string oemName = ApplicationSettings.Instance.GetOEMName();
-			foreach (MatterControlPlugin plugin in PluginFinder.CreateInstancesOf<MatterControlPlugin>())
-			{
-				string pluginInfo = plugin.GetPluginInfoJSon();
-				Dictionary<string, string> nameValuePairs = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(pluginInfo);
+			string pluginOemName, activeOemName = ApplicationSettings.Instance.GetOEMName();
 
-				if (nameValuePairs != null && nameValuePairs.ContainsKey("OEM"))
-				{
-					if (nameValuePairs["OEM"] == oemName)
-					{
-						plugin.Initialize(systemWindow);
-					}
-				}
-				else
-				{
-					plugin.Initialize(systemWindow);
-				}
-			}
+			ApplicationController.Plugins.InitializePlugins(systemWindow);
 		}
 
 		public void ProcessCommandline()
