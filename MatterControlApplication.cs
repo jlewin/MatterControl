@@ -43,7 +43,7 @@ namespace MatterHackers.MatterControl
 		public static string MCWSBaseUri { get; } = "https://mattercontrol.appspot.com";
 #endif
 
-	
+
 		private static void AssertDebugNotDefined()
 		{
 #if DEBUG
@@ -60,7 +60,6 @@ namespace MatterHackers.MatterControl
 			MatterHackers.Agg.ImageProcessing.InvertLightness.AssertDebugNotDefined();
 			MatterHackers.Localizations.TranslationMap.AssertDebugNotDefined();
 			MatterHackers.MarchingSquares.MarchingSquaresByte.AssertDebugNotDefined();
-			MatterHackers.MatterControl.PluginSystem.MatterControlPlugin.AssertDebugNotDefined();
 			MatterHackers.MatterSlice.MatterSlice.AssertDebugNotDefined();
 			MatterHackers.MeshVisualizer.MeshViewerWidget.AssertDebugNotDefined();
 			MatterHackers.RenderOpenGl.GLMeshTrianglePlugin.AssertDebugNotDefined();

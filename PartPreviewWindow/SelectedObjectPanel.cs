@@ -307,7 +307,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			editorSectionWidget.Text = selectedItem.Name ?? selectedItemType.Name;
 
-			HashSet<IObject3DEditor> mappedEditors = ApplicationController.Instance.GetEditorsForType(selectedItemType);
+			HashSet<IObject3DEditor> mappedEditors = ApplicationController.Instance.Extensions.GetEditorsForType(selectedItemType);
 
 			var undoBuffer = sceneContext.Scene.UndoBuffer;
 
@@ -331,7 +331,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					{
 						if (instance is IObject3D object3D)
 						{
-							if (ApplicationController.Instance.GetEditorsForType(object3D.GetType())?.FirstOrDefault() is IObject3DEditor editor)
+							if (ApplicationController.Instance.Extensions.GetEditorsForType(object3D.GetType())?.FirstOrDefault() is IObject3DEditor editor)
 							{
 								ShowObjectEditor((editor, object3D, object3D.Name), selectedItem, allowOperations: allowOperations);
 							}
@@ -362,7 +362,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 			else
 			{
-				if (ApplicationController.Instance.GetEditorsForType(item.GetType())?.FirstOrDefault() is IObject3DEditor editor)
+				if (ApplicationController.Instance.Extensions.GetEditorsForType(item.GetType())?.FirstOrDefault() is IObject3DEditor editor)
 				{
 					ShowObjectEditor((editor, item, item.Name), selectedItem, allowOperations: allowOperations);
 				}

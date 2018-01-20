@@ -73,6 +73,7 @@
     <Compile Include="AboutPage\AboutPage.cs" />
     <Compile Include="AboutPage\CacheDirectory.cs" />
     <Compile Include="AboutPage\CheckForUpdatesPage.cs" />
+	<Compile Include="ConfigurationPage\ApplicationSettings\PluginsPage.cs" />
     <Compile Include="AboutPage\ContactFormPage.cs" />
     <Compile Include="ApplicationView\LogoSpinner.cs" />
     <Compile Include="ApplicationView\ThumbnailsConfig.cs" />
@@ -626,6 +627,9 @@
       <DependentUpon>InspectForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="App.config" />
+    <None Include="KnownPlugins.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Library\LibraryProviders.cd" />
     <None Include="Library\Widgets\ListView\ListView.cd" />
     <None Include="SlicerConfiguration\Settings\SettingsDiagram.cd" />
@@ -637,6 +641,10 @@
     <Folder Include="SlicerConfiguration\SettingsEditors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="MatterControl.Common\MatterControl.Common.csproj">
+      <Project>{2af30557-fc50-4de3-ad1c-7eb57131a9c5}</Project>
+      <Name>MatterControl.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="MatterControl.OpenGL\MatterControl.OpenGL.csproj">
       <Project>{CBDEEC31-D688-417B-9BF2-F0DB2E4FB268}</Project>
       <Name>MatterControl.OpenGL</Name>
@@ -712,10 +720,6 @@
     <ProjectReference Include="Submodules\agg-sharp\PlatformWin32\PlatformWin32.csproj">
       <Project>{670BDDFF-927B-425D-9DD1-22ACB14356EB}</Project>
       <Name>PlatformWin32</Name>
-    </ProjectReference>
-    <ProjectReference Include="PluginSystem\MatterControlPluginSystem.csproj">
-      <Project>{865172A0-A1A9-49C2-9386-F2FDB4E141B7}</Project>
-      <Name>MatterControlPluginSystem</Name>
     </ProjectReference>
     <ProjectReference Include="Submodules\agg-sharp\Localizations\Localizations.csproj">
       <Project>{CA96058C-1A37-465D-A357-D6D695B13D25}</Project>

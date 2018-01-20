@@ -56,8 +56,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "clipper_library", "Submodul
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarchingSquares", "Submodules\agg-sharp\MarchingSquares\MarchingSquares.csproj", "{DF6845CD-64C6-4263-8357-DA8066855739}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatterControlPluginSystem", "PluginSystem\MatterControlPluginSystem.csproj", "{865172A0-A1A9-49C2-9386-F2FDB4E141B7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatterSlice", "Submodules\MatterSlice\MatterSlice.csproj", "{C46CA728-DD2F-4DD1-971A-AAA89D9DFF95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Launcher", "Launcher\Launcher.csproj", "{3DF4CB3D-9A03-4256-9A81-70523AAD828B}"

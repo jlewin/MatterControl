@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{97D5ADE3-C1B4-4B46-8A3E-718A4F7F079F}</ProjectGuid>
+    <ProjectGuid>{2AF30557-FC50-4DE3-AD1C-7EB57131A9C5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MatterControl.Printing</RootNamespace>
-    <AssemblyName>MatterControl.Printing</AssemblyName>
+    <RootNamespace>MatterControl.Common</RootNamespace>
+    <AssemblyName>MatterControl.Common</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -18,11 +18,9 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,10 +29,11 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,33 +44,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Communication\FoundStringCallBacks.cs" />
-    <Compile Include="Communication\FrostedSerial\CSharpSerialPortWrapper.cs" />
-    <Compile Include="Communication\FrostedSerial\FrostedSerialPort.cs" />
-    <Compile Include="Communication\FrostedSerial\FrostedSerialPortFactory.cs" />
-    <Compile Include="Communication\FrostedSerial\FrostedSerialStream.cs" />
-    <Compile Include="Communication\FrostedSerial\IFrostedSerialPort.cs" />
-    <Compile Include="Communication\FrostedSerial\IFrostedSerialStream.cs" />
-    <Compile Include="Communication\SerialPortFixer.cs" />
-    <Compile Include="Communication\TermiosH.cs" />
-    <Compile Include="GCode\GCodeFile.cs" />
-    <Compile Include="GCode\GCodeMemoryFile.cs" />
-    <Compile Include="GCode\GCodeFileStreamed.cs" />
-    <Compile Include="GCode\PrinterMachineInstruction.cs" />
+    <Compile Include="Extensibility\IApplicationPlugin.cs" />
+    <Compile Include="Extensibility\PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MatterControl.Common\MatterControl.Common.csproj">
-      <Project>{2af30557-fc50-4de3-ad1c-7eb57131a9c5}</Project>
-      <Name>MatterControl.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Submodules\agg-sharp\agg\Agg.csproj">
-      <Project>{657dbc6d-c3ea-4398-a3fa-ddb73c14f71b}</Project>
-      <Name>Agg</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Submodules\agg-sharp\VectorMath\VectorMath.csproj">
-      <Project>{d3e41b4e-bfbb-44ca-94c8-95c00f754fdd}</Project>
-      <Name>VectorMath</Name>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Submodules\agg-sharp\Gui\Gui.csproj">
+      <Project>{74F6BB6C-9D02-4512-A59A-21940E35C532}</Project>
+      <Name>Gui</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

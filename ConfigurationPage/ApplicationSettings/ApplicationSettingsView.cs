@@ -61,9 +61,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			// Camera Monitoring
 			bool hasCamera = true || ApplicationSettings.Instance.get(ApplicationSettingsKey.HardwareHasCamera) == "true";
 
+			var configureIcon = AggContext.StaticData.LoadIcon("fa-cog_16.png", IconColor.Raw);
+
 			var previewButton = new IconButton(configureIcon, theme)
 			{
-				ToolTipText = "Configure Camera View".Localize()
+				ToolTipText = "Preview".Localize()
 			};
 			previewButton.Click += (s, e) =>
 			{
@@ -313,6 +315,28 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
 			this.AddChild(new SettingsItem("Theme".Localize(), new GuiWidget(), theme));
 			this.AddChild(this.GetThemeControl());
+
+
+#if DEBUG
+			var configurePluginsButton = new IconButton(configureIcon, theme)
+			{
+				ToolTipText = "Configure Plugins".Localize(),
+				Margin = 0
+			};
+			configurePluginsButton.Click += (s, e) =>
+			{
+				UiThread.RunOnIdle(() =>
+				{
+					DialogWindow.Show<PluginsPage>();
+				});
+			};
+
+			this.AddSettingsRow(
+				new SettingsItem(
+					"Plugins".Localize(),
+					configurePluginsButton,
+					theme));
+#endif
 
 			var aboutMatterControl = new SettingsItem("About".Localize() + " " + ApplicationController.Instance.ProductName, theme);
 			if (IntPtr.Size == 8)
