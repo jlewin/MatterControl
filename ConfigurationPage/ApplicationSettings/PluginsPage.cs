@@ -33,6 +33,7 @@ using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.MatterControl.ConfigurationPage;
 
 namespace MatterHackers.MatterControl
 {
@@ -41,9 +42,6 @@ namespace MatterHackers.MatterControl
 		public PluginsPage()
 		{
 			this.AnchorAll();
-
-			var mainContainer = new FlowLayoutWidget(FlowDirection.TopToBottom);
-			mainContainer.AnchorAll();
 
 			this.WindowTitle = "MatterControl Plugins".Localize();
 
@@ -62,48 +60,36 @@ namespace MatterHackers.MatterControl
 
 			foreach (var plugin in plugins.KnownPlugins)
 			{
-				var rowContainer = new FlowLayoutWidget(FlowDirection.TopToBottom)
-				{
-					HAnchor = HAnchor.Stretch
-				};
+				// Touch Screen Mode
+				formContainer.AddChild(
+					new SettingsItem(
+						plugin.Name,
+						ApplicationController.Instance.Theme.Colors.PrimaryTextColor,
+						new SettingsItem.ToggleSwitchConfig()
+						{
+							Checked = !plugins.Disabled.Contains(plugin.TypeName),
+							ToggleAction = (itemChecked) =>
+							{
+								if (itemChecked)
+								{
+									plugins.Enable(plugin.TypeName);
+								}
+								else
+								{
+									plugins.Disable(plugin.TypeName);
+								}
+							}
+						}));
 
-				var checkbox = new CheckBox(plugin.Name, textColor: ActiveTheme.Instance.PrimaryTextColor, textSize: 12 * TextWidget.DeviceScale)
+				formContainer.AddChild(new HorizontalLine(70)
 				{
-					Margin = new BorderDouble(0, 2, 0, 16),
-					HAnchor = Agg.UI.HAnchor.Stretch,
-					TextColor = ActiveTheme.Instance.PrimaryTextColor,
-					Checked = !plugins.Disabled.Contains(plugin.TypeName),
-					Cursor = Cursors.Hand
-				};
-
-				// TODO: The closure here seems excessive. Consider a better long term approach possibly with a custom checkbox type
-				checkbox.CheckedStateChanged += (s, e) =>
-				{
-					if (checkbox.Checked)
-					{
-						plugins.Enable(plugin.TypeName);
-					}
-					else
-					{
-						plugins.Disable(plugin.TypeName);
-					}
-				};
-
-				rowContainer.AddChild(checkbox);
-				formContainer.AddChild(rowContainer);
-				formContainer.AddChild(new HorizontalSpacer());
+					Margin = new BorderDouble(left: 30),
+				});
 			}
 
 			contentScroll.AddChild(formContainer);
 
 			contentRow.AddChild(contentScroll);
-
-			var buttonBottomPanel = new FlowLayoutWidget(FlowDirection.LeftToRight)
-			{
-				HAnchor = HAnchor.Stretch,
-				Padding = new BorderDouble(10, 3, 10, 3),
-				BackgroundColor = ActiveTheme.Instance.PrimaryBackgroundColor
-			};
 
 			var buttonFactory = ApplicationController.Instance.Theme.ButtonFactory;
 
