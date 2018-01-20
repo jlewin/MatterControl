@@ -51,7 +51,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public PopupButton(GuiWidget buttonView)
 		{
-			this.Margin = 3;
 			this.HAnchor = HAnchor.Fit;
 			this.VAnchor = VAnchor.Fit;
 			this.buttonView = buttonView;
