@@ -68,11 +68,13 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 	using MatterHackers.MatterControl.DesignTools;
 	using MatterHackers.MatterControl.DesignTools.Operations;
+	using MatterHackers.MatterControl.Extensibility;
 	using MatterHackers.MatterControl.Library;
 	using MatterHackers.MatterControl.PartPreviewWindow;
 	using MatterHackers.MatterControl.PartPreviewWindow.View3D;
 	using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 	using MatterHackers.MatterControl.Tour;
+	using MatterHackers.MeshVisualizer;
 	using MatterHackers.PolygonMesh;
 	using MatterHackers.PolygonMesh.Processors;
 	using MatterHackers.VectorMath;
@@ -266,7 +268,7 @@ namespace MatterHackers.MatterControl
 
 		public IEnumerable<PrinterConfig> ActivePrinters => this.Workspaces.Where(w => w.Printer != null).Select(w => w.Printer);
 
-		private Dictionary<Type, HashSet<IObject3DEditor>> objectEditorsByType;
+		public ExtensionsConfig Extensions { get; }
 
 		public PopupMenu GetActionMenuForSceneItem(IObject3D selectedItem, InteractiveScene scene, bool addInSubmenu, IEnumerable<NodeOperation> nodeOperations = null)
 		{
@@ -1066,6 +1068,7 @@ namespace MatterHackers.MatterControl
 			};
 
 			this.RebuildSceneOperations(this.Theme);
+			this.Extensions = new ExtensionsConfig(this.Library);
 
 			HelpArticle helpArticle = null;
 
@@ -1439,26 +1442,6 @@ namespace MatterHackers.MatterControl
 				});
 
 			this.InitializeLibrary();
-
-			HashSet<IObject3DEditor> mappedEditors;
-			objectEditorsByType = new Dictionary<Type, HashSet<IObject3DEditor>>();
-
-			// Initialize plugins, passing the MatterControl assembly as the only non-dll instance
-			//PluginFinder.Initialize(Assembly.GetExecutingAssembly());
-
-			foreach (IObject3DEditor editor in PluginFinder.CreateInstancesOf<IObject3DEditor>())
-			{
-				foreach (Type type in editor.SupportedTypes())
-				{
-					if (!objectEditorsByType.TryGetValue(type, out mappedEditors))
-					{
-						mappedEditors = new HashSet<IObject3DEditor>();
-						objectEditorsByType.Add(type, mappedEditors);
-					}
-
-					mappedEditors.Add(editor);
-				}
-			}
 		}
 
 		public void Connection_ErrorReported(object sender, string line)
@@ -1602,29 +1585,6 @@ namespace MatterHackers.MatterControl
 			return false;
 		}
 
-		public HashSet<IObject3DEditor> GetEditorsForType(Type selectedItemType)
-		{
-			HashSet<IObject3DEditor> mappedEditors;
-			objectEditorsByType.TryGetValue(selectedItemType, out mappedEditors);
-
-			if (mappedEditors == null)
-			{
-				foreach (var kvp in objectEditorsByType)
-				{
-					var editorType = kvp.Key;
-
-					if (editorType.IsAssignableFrom(selectedItemType)
-						&& selectedItemType != typeof(Object3D))
-					{
-						mappedEditors = kvp.Value;
-						break;
-					}
-				}
-			}
-
-			return mappedEditors;
-		}
-
 		public void Shutdown()
 		{
 			// Ensure all threads shutdown gracefully on close
@@ -1680,7 +1640,6 @@ namespace MatterHackers.MatterControl
 			return TypeFaceCache[Name];
 		}
 
-
 		private static TypeFace titilliumTypeFace = null;
 		public static TypeFace TitilliumTypeFace
 		{
@@ -1694,7 +1653,6 @@ namespace MatterHackers.MatterControl
 				return titilliumTypeFace;
 			}
 		}
-
 
 		public static string LoadCachedFile(string cacheKey, string cacheScope)
 		{
@@ -2597,6 +2555,23 @@ If you experience adhesion problems, please re-run leveling."
 					}),
 					StopToolTip = "Cancel Print".Localize(),
 				});
+		}
+
+		private static PluginManager pluginManager = null;
+
+		public static PluginManager Plugins
+		{
+			get
+			{
+				// PluginManager initialization must occur late, after the config is loaded and after localization libraries
+				// have occurred, which currently is driven by MatterControlApplication init
+				if (pluginManager == null)
+				{
+					pluginManager = new PluginManager();
+				}
+
+				return pluginManager;
+			}
 		}
 
 		/// <summary>
@@ -3600,6 +3575,78 @@ If you experience adhesion problems, please re-run leveling."
 
 		public override void WriteJson(JsonWriter writer, IContentStore value, JsonSerializer serializer)
 		{
+		}
+	}
+
+	public class ExtensionsConfig
+	{
+		private List<IInteractionVolumeProvider> _iaVolumeProviders = new List<IInteractionVolumeProvider>();
+
+		private LibraryConfig libraryConfig;
+
+		//private List<IObject3DEditor> _IObject3DEditorProviders = new List<IObject3DEditor>()
+		//{
+		//	new IntersectionEditor(),
+		//	new SubtractEditor(),
+		//	new SubtractAndReplace()
+		//};
+
+		public ExtensionsConfig(LibraryConfig libraryConfig)
+		{
+			this.libraryConfig = libraryConfig;
+
+			objectEditorsByType = new Dictionary<Type, HashSet<IObject3DEditor>>();
+		}
+
+		private void MapTypesToEditor(IObject3DEditor editor)
+		{
+			foreach (Type type in editor.SupportedTypes())
+			{
+				if (!objectEditorsByType.TryGetValue(type, out HashSet<IObject3DEditor> mappedEditors))
+				{
+					mappedEditors = new HashSet<IObject3DEditor>();
+					objectEditorsByType.Add(type, mappedEditors);
+				}
+
+				mappedEditors.Add(editor);
+			}
+		}
+
+		public IEnumerable<IInteractionVolumeProvider> IAVolumeProviders => _iaVolumeProviders;
+
+		public void Register(IInteractionVolumeProvider volumeProvider)
+		{
+			_iaVolumeProviders.Add(volumeProvider);
+		}
+
+		private Dictionary<Type, HashSet<IObject3DEditor>> objectEditorsByType;
+
+		public HashSet<IObject3DEditor> GetEditorsForType(Type selectedItemType)
+		{
+			HashSet<IObject3DEditor> mappedEditors;
+			objectEditorsByType.TryGetValue(selectedItemType, out mappedEditors);
+
+			if (mappedEditors == null)
+			{
+				foreach (var kvp in objectEditorsByType)
+				{
+					var editorType = kvp.Key;
+
+					if (editorType.IsAssignableFrom(selectedItemType)
+						&& selectedItemType != typeof(Object3D))
+					{
+						mappedEditors = kvp.Value;
+						break;
+					}
+				}
+			}
+
+			return mappedEditors;
+		}
+
+		public void Register(IObject3DEditor object3DEditor)
+		{
+			this.MapTypesToEditor(object3DEditor);
 		}
 	}
 }
