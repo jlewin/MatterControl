@@ -30,41 +30,64 @@ either expressed or implied, of the FreeBSD Project.
 using System.Collections.Generic;
 using System.Linq;
 using MatterHackers.DataConverters3D;
-using MatterHackers.PolygonMesh;
+using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 {
-	public class MeshWrapperOperation : Object3D
+	public class OperationWrapper : Object3D
 	{
-		public MeshWrapperOperation()
+		public static OperationWrapper Create(IEnumerable<IObject3D> sourceItems)
 		{
-		}
+			var operationWrapper = new OperationWrapper();
 
-		public MeshWrapperOperation(List<IObject3D> children)
-		{
-			Children.Modify((list) =>
+			operationWrapper.Children.Modify((list) =>
 			{
-				foreach (var child in children)
+				list.AddRange(sourceItems);
+			});
+
+			// WTF - Child.Parent.Children.Modify?
+
+			// Child.Parent == this
+			// Child.Parent.Children.Modify == this.Childrent.Modify
+			// **************** IN A LOOP ***********************
+
+			operationWrapper.Children.Modify((list) =>
+			{
+				// Wrap every first descendant that has a mesh with a new node to store our operation result
+				foreach (var item in operationWrapper.VisibleMeshes().ToList())
 				{
-					list.Add(child);
+					var activeTransform = item.Matrix;
+
+					// Remove child and clear transform
+					list.Remove(item);
+					item.Matrix = Matrix4X4.Identity;
+
+					// Wrap and propagate properties
+					var wrapper = new OperationResult()
+					{
+						Name = item.Name,
+						OwnerID = operationWrapper.ID,
+						MaterialIndex = item.MaterialIndex,
+						OutputType = item.OutputType,
+						Color = item.Color,
+						Mesh = item.Mesh, // TODO: Unless this clones, we should really be leaving the mesh on the source and the operation should be using the source to generate and assign to this property
+						Matrix = activeTransform,
+					};
+					wrapper.Children.Add(item);
+
+					// Add wrapper
+					list.Add(wrapper);
 				}
 			});
 
-			// Wrap every first descendant that has a mesh
-			foreach (var child in this.VisibleMeshes().ToList())
-			{
-				// wrap the child in a DifferenceItem
-				child.Parent.Children.Modify((list) =>
-				{
-					list.Remove(child);
-					list.Add(new MeshWrapper(child, this.ID));
-				});
-			}
+			return operationWrapper;
 		}
 
-		public void ResetMeshWrappers()
+		public void ResetMeshes()
 		{
 			this.Mesh = null;
+
+			// Find operation result nodes and reset their meshes
 			var participants = this.Descendants().Where(o => o.OwnerID == this.ID).ToList();
 			foreach (var item in participants)
 			{

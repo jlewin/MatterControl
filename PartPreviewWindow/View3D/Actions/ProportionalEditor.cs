@@ -134,25 +134,20 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 
 	public class ProportionalEditor : IObject3DEditor
 	{
-		private MeshWrapperOperation group;
-		private View3DWidget view3DWidget;
+		private OperationWrapper group;
 		public string Name => "Proportional Scale";
 
 		public bool Unlocked { get; } = true;
 
 		public GuiWidget Create(IObject3D group, View3DWidget view3DWidget, ThemeConfig theme)
 		{
-			this.view3DWidget = view3DWidget;
-			this.group = group as MeshWrapperOperation;
+			this.group = group as OperationWrapper;
 
 			var mainContainer = new FlowLayoutWidget(FlowDirection.TopToBottom);
 
 			return mainContainer;
 		}
 
-		public IEnumerable<Type> SupportedTypes() => new Type[]
-		{
-			typeof(HoldChildProportional),
-		};
+		public IEnumerable<Type> SupportedTypes() => new Type[] { typeof(HoldChildProportional) };
 	}
 }

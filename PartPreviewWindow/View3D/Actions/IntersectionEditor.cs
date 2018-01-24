@@ -41,22 +41,22 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 {
 	public class IntersectionEditor : IObject3DEditor
 	{
-		private MeshWrapperOperation group;
+		private OperationWrapper group;
 		private View3DWidget view3DWidget;
 		public string Name => "Intersection";
 
 		public bool Unlocked { get; } = true;
 
-		public IEnumerable<Type> SupportedTypes() => new Type[] { typeof(MeshWrapperOperation) };
+		public IEnumerable<Type> SupportedTypes() => new Type[] { typeof(OperationWrapper) };
 
 		public GuiWidget Create(IObject3D group, View3DWidget view3DWidget, ThemeConfig theme)
 		{
 			this.view3DWidget = view3DWidget;
-			this.group = group as MeshWrapperOperation;
+			this.group = group as OperationWrapper;
 
 			var mainContainer = new FlowLayoutWidget(FlowDirection.TopToBottom);
 
-			if (group is MeshWrapperOperation operationNode
+			if (group is OperationWrapper operationNode
 				&& operationNode.Children.All(c => c.OutputType != PrintOutputTypes.Hole))
 			{
 				bool first = true;

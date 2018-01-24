@@ -346,6 +346,42 @@ namespace MatterHackers.MatterControl
 			},
 			new SceneSelectionOperation()
 			{
+				TitleResolver = () => "Scale".Localize(),
+				Action = (scene) =>
+				{
+					var selectedItem = scene.SelectedItem;
+					if (selectedItem != null)
+					{
+						var scalingObject = new ScalingObject()
+						{
+							AABB = selectedItem.GetAxisAlignedBoundingBox(),
+							Loading = true,
+							OutputType = PrintOutputTypes.Support // Help debug
+						};
+						
+						var scaleContainer = new Object3D()
+						{
+						};
+						scalingObject.Children.Add(scaleContainer);
+
+						var source = (selectedItem is SelectionGroup) ? selectedItem.Children.OfType<IObject3D>() :  new List<IObject3D> { selectedItem };
+
+						scene.Children.Add(scalingObject);
+
+						foreach(var item in source)
+						{
+							item.Parent.Children.Remove(item);
+							scaleContainer.Children.Add(item);
+						}
+
+						scalingObject.Loading = false;
+					}
+				},
+				Icon = AggContext.StaticData.LoadIcon("support.png").SetPreMultiply(),
+				IsEnabled = (scene) => scene.HasSelection,
+			},
+			new SceneSelectionOperation()
+			{
 				TitleResolver = () => "Make Support".Localize(),
 				Action = (scene) =>
 				{
@@ -412,12 +448,11 @@ namespace MatterHackers.MatterControl
 				var children = scene.SelectedItem.Children;
 				scene.SelectedItem = null;
 
-				var meshWrapperOperation = new MeshWrapperOperation(new List<IObject3D>(children.Select((i) => i.Clone())))
-				{
-					ActiveEditor = classDescriptor,
-					Name = editorName,
-				};
-
+				// TODO: Why clone each child rather than cloning the parent?
+				var meshWrapperOperation = OperationWrapper.Create(children.Select((i) => i.Clone()));
+				meshWrapperOperation.ActiveEditor = classDescriptor;
+				meshWrapperOperation.Name = editorName;
+				
 				scene.UndoBuffer.AddAndDo(
 					new ReplaceCommand(
 						new List<IObject3D>(children),

@@ -36,43 +36,36 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 {
 	public class MakeSupport : IUndoRedoCommand
 	{
-		List<PrintOutputTypes> itemsPrintOutputType = new List<PrintOutputTypes>();
-		List<IObject3D> itemsToChange = new List<IObject3D>();
+		// Map items and their original OutputType
+		private List<(IObject3D object3D, PrintOutputTypes originalOutputType)> sourceItems = new List<(IObject3D item, PrintOutputTypes originalOutputType)>();
 
 		public MakeSupport(IObject3D selectedItem)
 		{
-			if (selectedItem is SelectionGroup)
-			{
-				SetData(selectedItem.Children.ToList());
-			}
-			else
-			{
-				SetData(new List<IObject3D> { selectedItem });
-			}
-		}
+			// Ensure enumerable
+			var source = (selectedItem is SelectionGroup) ? selectedItem.Children.OfType<IObject3D>() :  new List<IObject3D> { selectedItem };
 
-		void SetData(List<IObject3D> itemsToChange)
-		{ 
-			foreach (var item in itemsToChange)
+			// Store object3D and original OutputType
+			foreach (var item in source)
 			{
-				this.itemsToChange.Add(item);
-				this.itemsPrintOutputType.Add(item.OutputType);
+				sourceItems.Add((item, item.OutputType));
 			}
 		}
 
 		void IUndoRedoCommand.Do()
 		{
-			foreach(var item in this.itemsToChange)
+			// Force Support
+			foreach(var item in sourceItems)
 			{
-				item.OutputType = PrintOutputTypes.Support;
+				item.object3D.OutputType = PrintOutputTypes.Support;
 			}
 		}
 
 		void IUndoRedoCommand.Undo()
 		{
-			for(int i=0; i< this.itemsToChange.Count; i++)
+			// Restore original
+			foreach(var item in sourceItems)
 			{
-				itemsToChange[i].OutputType = itemsPrintOutputType[i];
+				item.object3D.OutputType = item.originalOutputType;
 			}
 		}
 	}

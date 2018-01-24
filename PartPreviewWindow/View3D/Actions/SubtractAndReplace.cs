@@ -42,7 +42,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 {
 	public class SubtractAndReplace : IObject3DEditor
 	{
-		private MeshWrapperOperation group;
+		private OperationWrapper group;
 		private View3DWidget view3DWidget;
 		public string Name => "Subtract & Replace";
 
@@ -51,11 +51,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 		public GuiWidget Create(IObject3D group, View3DWidget view3DWidget, ThemeConfig theme)
 		{
 			this.view3DWidget = view3DWidget;
-			this.group = group as MeshWrapperOperation;
+			this.group = group as OperationWrapper;
 
 			var mainContainer = new FlowLayoutWidget(FlowDirection.TopToBottom);
 
-			if (group is MeshWrapperOperation)
+			if (group is OperationWrapper)
 			{
 				AddPaintSelector(view3DWidget, mainContainer, theme);
 			}
@@ -65,7 +65,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 
 		public IEnumerable<Type> SupportedTypes() => new Type[]
 		{
-			typeof(MeshWrapperOperation),
+			typeof(OperationWrapper),
 		};
 
 		private static FlowLayoutWidget CreateSettingsRow(string labelText)
@@ -106,7 +106,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 			updateButton.Click += (s, e) =>
 			{
 				// make sure the mesh on the group is not visible
-				group.ResetMeshWrappers();
+				group.ResetMeshes();
 				updateButton.Enabled = false;
 				ProcessBooleans(group);
 			};
@@ -144,7 +144,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 				checkBox.CheckedStateChanged += (s, e) =>
 				{
 					// make sure the mesh on the group is not visible
-					group.ResetMeshWrappers();
+					group.ResetMeshes();
 
 					var wrappedItems = item.Descendants().Where((obj) => obj.OwnerID == group.ID).ToList();
 					foreach (var meshWrapper in wrappedItems)

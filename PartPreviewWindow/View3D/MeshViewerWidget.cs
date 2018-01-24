@@ -144,6 +144,10 @@ namespace MatterHackers.MeshVisualizer
 			this.interactionLayer = interactionLayer;
 			this.World = interactionLayer.World;
 
+			var theme = ApplicationController.Instance.Theme;
+
+			this.gCodeMeshColor = new Color(theme.Colors.PrimaryAccentColor, 35);
+
 			scene.SelectionChanged += (sender, e) =>
 			{
 				Invalidate();
@@ -178,6 +182,8 @@ namespace MatterHackers.MeshVisualizer
 		}
 
 		public WorldView World { get; }
+
+		private ThemeConfig theme;
 
 		public event EventHandler LoadDone;
 
@@ -433,7 +439,12 @@ namespace MatterHackers.MeshVisualizer
 
 		public bool ModelView { get; set; } = true;
 
-		private void DrawObject(IObject3D object3D, List<IObject3D> transparentMeshes, bool parentSelected, DrawEventArgs e)
+		private Color wireframeColor = new Color("#333");
+
+		bool useMeshWireframe = false;
+		private Color gCodeMeshColor;
+
+		private void DrawObject(IObject3D object3D, List<(IObject3D, Color)> transparentMeshes, bool parentSelected, DrawEventArgs e)
 		{
 			var totalVertices = 0;
 
@@ -503,13 +514,22 @@ namespace MatterHackers.MeshVisualizer
 									|| isDebugItem;
 #endif
 
+				var renderType = this.RenderType;
+
+				if (!this.ModelView && !useMeshWireframe)
+				{
+					drawColor = gCodeMeshColor;
+					renderType = RenderTypes.Shaded;
+					renderAsSolid = false;
+				}
+
 				if (renderAsSolid)
 				{
-					GLHelper.Render(item.Mesh, drawColor, item.WorldMatrix(scene.RootItem), RenderType, item.WorldMatrix(scene.RootItem) * World.ModelviewMatrix);
+					GLHelper.Render(item.Mesh, drawColor, item.WorldMatrix(scene.RootItem), renderType, item.WorldMatrix(scene.RootItem) * World.ModelviewMatrix, wireframeColor);
 				}
 				else
 				{
-					transparentMeshes.Add(item);
+					transparentMeshes.Add((item, drawColor));
 				}
 
 				if (isSelected && !tooBigForComplexSelection)
@@ -661,13 +681,13 @@ namespace MatterHackers.MeshVisualizer
 
 		public EditorType EditorMode { get; set; } = EditorType.Part;
 
-		private int BackToFrontXY(IObject3D a, IObject3D b)
+		private int BackToFrontXY((IObject3D, Color) a, (IObject3D, Color) b)
 		{
-			var aCenterWorld = Vector3.Transform(a.Mesh.GetAxisAlignedBoundingBox().Center, a.Matrix);
+			var aCenterWorld = Vector3.Transform(a.Item1.Mesh.GetAxisAlignedBoundingBox().Center, a.Item1.Matrix);
 			aCenterWorld.Z = 0; // we only want to look at the distance on xy in world space
 			var aCenterInViewSpace = Vector3.Transform(aCenterWorld, World.ModelviewMatrix);
 
-			var bCenterWorld = Vector3.Transform(b.Mesh.GetAxisAlignedBoundingBox().Center, b.Matrix);
+			var bCenterWorld = Vector3.Transform(b.Item1.Mesh.GetAxisAlignedBoundingBox().Center, b.Item1.Matrix);
 			bCenterWorld.Z = 0; // we only want to look at the distance on xy in world space
 			var bCenterInViewSpace = Vector3.Transform(bCenterWorld, World.ModelviewMatrix);
 
@@ -676,7 +696,7 @@ namespace MatterHackers.MeshVisualizer
 
 		private void Draw_GlOpaqueContent(object sender, DrawEventArgs e)
 		{
-			List<IObject3D> transparentMeshes = new List<IObject3D>();
+			var transparentMeshes = new List<(IObject3D, Color)>();
 			foreach (var object3D in scene.Children)
 			{
 				DrawObject(object3D, transparentMeshes, false, e);
@@ -685,7 +705,7 @@ namespace MatterHackers.MeshVisualizer
 
 		private void Draw_GlTransparentContent(object sender, DrawEventArgs e)
 		{
-			List<IObject3D> transparentMeshes = new List<IObject3D>();
+			var transparentMeshes = new List<(IObject3D, Color)>();
 			foreach (var object3D in scene.Children)
 			{
 				if (object3D.Visible)
@@ -706,11 +726,12 @@ namespace MatterHackers.MeshVisualizer
 			}
 
 			// Transparent objects
-			foreach (var object3D in transparentMeshes)
+			foreach (var tuple in transparentMeshes)
 			{
+				var object3D = tuple.Item1;
 				GLHelper.Render(
 					object3D.Mesh,
-					GetItemColor(object3D),
+					tuple.Item2,
 					object3D.WorldMatrix(scene.RootItem),
 					RenderTypes.Outlines,
 					object3D.WorldMatrix(scene.RootItem) * World.ModelviewMatrix);

@@ -923,6 +923,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 						{
 							CurrentSelectInfo.HitPlane = new PlaneShape(Vector3.UnitZ, CurrentSelectInfo.PlaneDownHitPos.Z, null);
 
+							//while (hitObject.Parent != sceneContext.Scene)
+							//{
+							//	hitObject = hitObject.Parent;
+							//};
+
 							if (hitObject != Scene.SelectedItem)
 							{
 								if (Scene.SelectedItem == null)

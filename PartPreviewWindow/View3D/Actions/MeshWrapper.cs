@@ -32,17 +32,21 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 {
+	// Isn't this just clone, wrap, reset source Matrix to identity?
+
+	// alt name - OperationResult
+
 	/// <summary>
 	/// The goal of MeshWrapper is to provide a mutated version of a source item by some operation. To do so we wrap and clone all
 	/// properties of the source item and reset the source matrix to Identity, given that it now exists on the wrapping parent.
 	/// </summary>
-	public class MeshWrapper : Object3D
+	public class OperationResult : Object3D
 	{
-		public MeshWrapper()
+		public OperationResult()
 		{
 		}
 
-		public MeshWrapper(IObject3D child, string ownerId)
+		public OperationResult(IObject3D child, string ownerId)
 		{
 			Children.Add(child);
 
@@ -51,6 +55,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
 			this.MaterialIndex = child.MaterialIndex;
 			this.OutputType = child.OutputType;
 			this.Color = child.Color;
+
+			// Unless this clones, we should really be leaving the mesh on the source and the operation should be using the source to generate and assign to this property
 			this.Mesh = child.Mesh;
 
 			this.Matrix = child.Matrix;
