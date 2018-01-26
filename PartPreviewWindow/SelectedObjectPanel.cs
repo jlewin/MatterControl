@@ -37,6 +37,7 @@ using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.Library;
+using MatterHackers.MatterControl.DesignTools;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -52,6 +53,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private Dictionary<Type, HashSet<IObject3DEditor>> objectEditorsByType;
 		private SectionWidget editorSection;
 		private TextButton editButton;
+		private TextButton removeButton;
+
 		private GuiWidget editorPanel;
 		private InlineTitleEdit inlineTitleEdit;
 
@@ -154,6 +157,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					});
 			};
 			toolbar.AddChild(editButton);
+
+			removeButton = new TextButton("Remove".Localize(), theme)
+			{
+				BackgroundColor = theme.MinimalShade,
+				Margin = theme.ButtonSpacing
+			};
+			removeButton.Click += async (s, e) =>
+			{
+				this.item.Unwrap(printer.Bed);
+			};
+			toolbar.AddChild(removeButton);
+
 
 			// Add container used to host the current specialized editor for the selection
 			editorColumn.AddChild(editorPanel = new GuiWidget()
