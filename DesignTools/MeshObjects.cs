@@ -804,7 +804,7 @@ public class ChairFoot2 : MatterCadObject3D
 		{
 			foreach(var child in item.Children)
 			{
-				child.Matrix = item.Matrix * child.Matrix;
+				child.Matrix *= item.Matrix;
 			}
 
 			item.Parent.Children.Modify(list =>

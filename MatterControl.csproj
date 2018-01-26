@@ -88,6 +88,7 @@
     <Compile Include="DataStorage\ApplicationDataStorage.cs" />
     <Compile Include="DesignTools\MeshObjects.cs" />
     <Compile Include="DesignTools\PubicPropertyEditor.cs" />
+    <Compile Include="Library\Providers\GraphConfig.cs" />
     <Compile Include="PartPreviewWindow\AlignControls.cs" />
     <Compile Include="CustomWidgets\InlineTitleEdit.cs" />
     <Compile Include="PartPreviewWindow\LibraryBrowserPage.cs" />
