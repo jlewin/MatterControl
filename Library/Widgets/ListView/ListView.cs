@@ -43,6 +43,15 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.CustomWidgets
 {
+	public class ItemClickEventArgs : EventArgs
+	{
+		public ListViewItemBase ListItem { get; }
+		public ItemClickEventArgs(ListViewItemBase viewItemBase)
+		{
+			this.ListItem = viewItemBase;
+		}
+	}
+
 	public class ListView : ScrollableWidget
 	{
 		public event EventHandler ContentReloaded;
@@ -80,6 +89,13 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		}
 
 		public bool ShowItems { get; set; } = true;
+
+		public event EventHandler<ItemClickEventArgs> ItemRightClick;
+
+		internal void OnItemRightClick(ListViewItemBase listViewItemBase)
+		{
+			this.ItemRightClick?.Invoke(this, new ItemClickEventArgs(listViewItemBase));
+		}
 
 		public Predicate<ILibraryContainerLink> ContainerFilter { get; set; } = (o) => true;
 

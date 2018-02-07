@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterHackers.Agg.UI;
@@ -136,6 +137,21 @@ namespace MatterHackers.MatterControl.Library
 
 							break;
 
+						case PartPreviewWindow.SelectedObjectPanel.InMemoryItem memoryItem:
+							if (memoryItem.SourceItem is InteractiveScene scene)
+							{
+								// Serialize to in memory store
+								var memoryStream = new MemoryStream();
+								scene.Save(memoryStream);
+
+								memoryStream.Position = 0;
+
+								// Move to zero and add to library
+								AddItem(memoryStream, ".mcx", item.Name);
+							}
+
+							break;
+
 						case ILibraryContentStream streamItem:
 
 							string filePath;
@@ -177,6 +193,7 @@ namespace MatterHackers.MatterControl.Library
 								}
 								else
 								{
+									// TODO: This seems extra redundant. Why isn't the stream save above enough?
 									using (var stream = File.OpenRead(filePath))
 									{
 										// If the passed in item name equals the fileName, perform friendly name conversion, otherwise use supplied value

@@ -1333,12 +1333,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 							// save this part to correct library provider
 							if (destinationContainer is ILibraryWritableContainer writableContainer)
 							{
+								sceneContext.Scene.Name = newName;
+
 								writableContainer.Add(new[]
 								{
-									new FileSystemFileItem(sceneContext.EditContext.PartFilePath)
-									{
-										Name = newName
-									}
+									new SelectedObjectPanel.InMemoryItem(sceneContext.Scene)
 								});
 
 								destinationContainer.Dispose();

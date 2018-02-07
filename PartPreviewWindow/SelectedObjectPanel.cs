@@ -465,6 +465,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				this.existingItem = existingItem;
 			}
 
+			public IObject3D SourceItem => existingItem;
+
 			public string ID => existingItem.ID;
 
 			public string Name => existingItem.Name;

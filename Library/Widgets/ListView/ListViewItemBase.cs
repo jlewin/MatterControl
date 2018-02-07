@@ -317,6 +317,11 @@ namespace MatterHackers.MatterControl.CustomWidgets
 				view3DWidget.FinishDrop(mouseUpInBounds: meshViewerPosition.Contains(screenSpaceMousePosition));
 			}
 
+			if (mouseEvent.Button == MouseButtons.Right)
+			{
+				listViewItem.ListView.OnItemRightClick(this);
+			}
+
 			mouseDownInBounds = false;
 			base.OnMouseUp(mouseEvent);
 		}

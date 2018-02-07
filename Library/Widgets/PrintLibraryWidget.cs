@@ -82,6 +82,18 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				Border = new BorderDouble(top: 1)
 			};
 
+			libraryView.ItemRightClick += (s, e) =>
+			{
+				var popupMenu = new PopupMenu(theme);
+
+				this.PopuplatePopupMenu(popupMenu);
+
+				popupMenu.Position = e.ListItem.Position;
+
+				////////////////////////////////////////// SHOW!!!!!!!!!!!!!!!!!!!!
+				//popupMenu.
+			};
+
 			ApplicationController.Instance.Library.ActiveViewWidget = libraryView;
 
 			libraryView.SelectedItems.CollectionChanged += SelectedItems_CollectionChanged;
@@ -425,7 +437,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 					// Multiselect - disallow containers
 					return listView.SelectedItems.Any()
 						&& listView.SelectedItems.All(i => !(i.Model is ILibraryContainer));
-				}		
+				}
 			});
 
 			// edit menu item
@@ -732,14 +744,6 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			}
 		}
 
-		private void EnableMenus()
-		{
-			foreach (var menuAction in menuActions.Where(m => m.MenuItem != null))
-			{
-				menuAction.MenuItem.Enabled = menuAction.IsEnabled(libraryView.SelectedItems, libraryView);
-			}
-		}
-
 		private void deleteFromLibraryButton_Click(object sender, EventArgs e)
 		{
 			var libraryItems = libraryView.SelectedItems.Select(p => p.Model);
@@ -815,35 +819,36 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			CreateMenuActions();
 
 			navBar.OverflowButton.Name = "Print Library Overflow Menu";
-			navBar.ExtendOverflowMenu = (popupMenu) =>
-			{
-				// Create menu items in the DropList for each element in this.menuActions
-				foreach (var menuAction in menuActions)
-				{
-					if (menuAction is MenuSeparator)
-					{
-						popupMenu.CreateHorizontalLine();
-					}
-					else
-					{
-						var menuItem = popupMenu.CreateMenuItem(menuAction.Title);
-						menuItem.Name = $"{menuAction.Title} Menu Item";
-
-						menuItem.Enabled = menuAction.Action != null;
-						menuItem.ClearRemovedFlag();
-						menuItem.Click += (s, e) =>
-						{
-							menuAction.Action?.Invoke(libraryView.SelectedItems.Select(i => i.Model), libraryView);
-						};
-
-						// Store a reference to the newly created MenuItem back on the MenuAction definition
-						menuAction.MenuItem = menuItem;
-					}
-				}
-			};
-			
+			navBar.ExtendOverflowMenu = this.PopuplatePopupMenu;
 
 			base.OnLoad(args);
+		}
+
+		private void PopuplatePopupMenu(PopupMenu popupMenu)
+		{
+			// Create menu items in the DropList for each element in this.menuActions
+			foreach (var menuAction in menuActions)
+			{
+				if (menuAction is MenuSeparator)
+				{
+					popupMenu.CreateHorizontalLine();
+				}
+				else
+				{
+					var menuItem = popupMenu.CreateMenuItem(menuAction.Title);
+					menuItem.Name = $"{menuAction.Title} Menu Item";
+
+					menuItem.Enabled = menuAction.Action != null;
+					menuItem.ClearRemovedFlag();
+					menuItem.Click += (s, e) =>
+					{
+						menuAction.Action?.Invoke(libraryView.SelectedItems.Select(i => i.Model), libraryView);
+					};
+
+					// Store a reference to the newly created MenuItem back on the MenuAction definition
+					menuAction.MenuItem = menuItem;
+				}
+			}
 		}
 	}
 

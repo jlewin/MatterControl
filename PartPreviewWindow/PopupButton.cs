@@ -102,6 +102,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		{
 			if (PopupLayoutEngine == null)
 			{
+				// Why take and hold the PopupContent reference when it may change below and is held by and passed to the popupwidget?
 				PopupLayoutEngine = new PopupLayoutEngine(this.PopupContent, this, this.PopDirection, 0, this.AlignToRightEdge);
 			}
 			menuVisible = true;
