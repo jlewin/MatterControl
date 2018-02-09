@@ -1386,9 +1386,9 @@ namespace MatterHackers.MatterControl
 							{
 								this.ActivePrinter.Connection.CommunicationState = CommunicationStates.PreparingToPrint;
 
-								await ApplicationController.Instance.SliceFileLoadOutput(
+								await ApplicationController.Instance.SliceItemLoadOutput(
 									printer,
-									partFilePath,
+									printer.Bed.Scene,
 									gcodeFilePath);
 
 								partToPrint_SliceDone(partFilePath, gcodeFilePath);
@@ -1511,7 +1511,7 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-		public async Task SliceFileLoadOutput(PrinterConfig printer, string partFilePath, string gcodeFilePath)
+		public async Task SliceItemLoadOutput(PrinterConfig printer, IObject3D object3D, string gcodeFilePath)
 		{
 			// Slice
 			bool slicingSucceeded = false;
@@ -1520,8 +1520,8 @@ namespace MatterHackers.MatterControl
 			{
 				reporter.Report(new ProgressStatus() { Status = "Slicing".Localize() });
 
-				slicingSucceeded = await Slicer.SliceFile(
-					partFilePath, 
+				slicingSucceeded = await Slicer.SliceItem(
+					object3D, 
 					gcodeFilePath, 
 					printer,
 					new SliceProgressReporter(reporter, printer),
