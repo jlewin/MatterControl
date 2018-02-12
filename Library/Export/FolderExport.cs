@@ -54,7 +54,7 @@ namespace MatterHackers.MatterControl.Library.Export
 			return !libraryContent.IsProtected;
 		}
 
-		public async Task<bool> Generate(IEnumerable<ILibraryItem> libraryItems, string outputPath)
+		public async Task<bool> Generate(IEnumerable<ILibraryContentStream> libraryItems, string outputPath)
 		{
 			var streamItems = libraryItems.OfType<ILibraryContentStream>();
 			if (streamItems.Any())

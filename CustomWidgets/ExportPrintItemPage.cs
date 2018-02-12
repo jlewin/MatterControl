@@ -50,9 +50,9 @@ namespace MatterHackers.MatterControl
 
 		private Dictionary<RadioButton, IExportPlugin> exportPluginButtons;
 
-		private IEnumerable<ILibraryItem> libraryItems;
+		private IEnumerable<ILibraryContentStream> libraryItems;
 
-		public ExportPrintItemPage(IEnumerable<ILibraryItem> libraryItems)
+		public ExportPrintItemPage(IEnumerable<ILibraryContentStream> libraryItems)
 		{
 			this.WindowTitle = "Export File".Localize();
 			this.HeaderText = "Export selection to".Localize() + ":";

@@ -52,10 +52,12 @@ namespace MatterHackers.MatterControl.Tests.Automation
 
 				testRunner.WaitFor(() => File.Exists(fullPathToGcodeFile + ".gcode"), 10);
 
+				testRunner.Delay(999);
+
 				Assert.IsTrue(File.Exists(fullPathToGcodeFile + ".gcode") == true);
 
 				return Task.FromResult(0);
-			});
+			}, maxTimeToRun: 999);
 		}
 	}
 }

@@ -83,7 +83,7 @@ namespace MatterHackers.MatterControl.Library.Export
 			return null;
 		}
 
-		public async Task<bool> Generate(IEnumerable<ILibraryItem> libraryItems, string outputPath)
+		public async Task<bool> Generate(IEnumerable<ILibraryContentStream> libraryItems, string outputPath)
 		{
 			ILibraryContentStream libraryContent = libraryItems.OfType<ILibraryContentStream>().FirstOrDefault();
 
@@ -102,7 +102,7 @@ namespace MatterHackers.MatterControl.Library.Export
 						return true;
 					}
 				}
-				catch(Exception e)
+				catch
 				{
 				}
 
@@ -123,23 +123,37 @@ namespace MatterHackers.MatterControl.Library.Export
 			{
 				// Conceptually we need to:
 				//  - Check to see if the libraryContent is the bed plate, load into a scene if not or reference loaded scene
+
 				//  - If bedplate, save any pending changes before starting the print
-				await ApplicationController.Instance.Tasks.Execute(printer.Bed.SaveChanges);
+				//await ApplicationController.Instance.Tasks.Execute(printer.Bed.SaveChanges);
+
+				//var contentProvider = ApplicationController.Instance.Library.GetContentProvider(libraryContent);
+
+				var loadedItem = await libraryContent.CreateContent();
 
 				// Create a context to hold a temporary scene used during slicing to complete the export
 				var context = new EditContext()
 				{
-					ContentStore = ApplicationController.Instance.Library.PlatingHistory,
-					SourceItem = libraryContent
+					//ContentStore = ApplicationController.Instance.Library.PlatingHistory,
+					SourceItem = libraryContent,
+					Content = loadedItem
 				};
 
-				//  - Slice
+				// Get Bounds
+				var aabb = loadedItem.GetAxisAlignedBoundingBox(Matrix4X4.Identity);
+
+				// Move to bed center
+				var bedCenter = printer.Bed.BedCenter;
+				loadedItem.Matrix *= Matrix4X4.CreateTranslation((double)-aabb.Center.X, (double)-aabb.Center.Y, (double)-aabb.minXYZ.Z) * Matrix4X4.CreateTranslation(bedCenter.X, bedCenter.Y, 0);
+				loadedItem.Color = loadedItem.Color;
+
+				// Slice
 				await ApplicationController.Instance.Tasks.Execute((reporter, cancellationToken) =>
 				{
 					return Slicer.SliceItem(context.Content, context.GCodeFilePath, printer, reporter, cancellationToken);
 				});
 
-				//  - Return
+				// Return gcode path
 				fileToProcess = context.GCodeFilePath;
 			}
 

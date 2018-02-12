@@ -163,12 +163,6 @@ namespace MatterHackers.MatterControl.Library
 			return 0;
 		}
 
-		public void RegisterCreator(ILibraryContentItem libraryItem)
-		{
-			this.RootLibaryContainer.Items.Add(libraryItem);
-			OnLibraryItemsChanged();
-		}
-
 		public void RegisterCreator(ILibraryContentStream libraryItem)
 		{
 			this.RootLibaryContainer.Items.Add(libraryItem);
