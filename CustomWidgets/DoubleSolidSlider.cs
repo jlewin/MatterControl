@@ -163,36 +163,19 @@ namespace MatterHackers.MatterControl
 
 		public double SecondPosition0To1
 		{
-			get
-			{
-				return secondPosition0To1;
-			}
-
-			set
-			{
-				secondPosition0To1 = Math.Max(0, Math.Min(value, 1));
-			}
+			get => secondPosition0To1;
+			set => secondPosition0To1 = Math.Max(0, Math.Min(value, 1));
 		}
 
 		public double FirstPosition0To1
 		{
-			get
-			{
-				return firstPosition0To1;
-			}
-
-			set
-			{
-				firstPosition0To1 = Math.Max(0, Math.Min(value, 1));
-			}
+			get => firstPosition0To1;
+			set  => firstPosition0To1 = Math.Max(0, Math.Min(value, 1));
 		}
 
 		public double FirstValue
 		{
-			get
-			{
-				return Minimum + (Maximum - Minimum) * FirstPosition0To1;
-			}
+			get => Minimum + (Maximum - Minimum) * FirstPosition0To1;
 			set
 			{
 				double newPosition0To1 = Math.Max(0, Math.Min((value - Minimum) / (Maximum - Minimum), 1));
@@ -210,20 +193,14 @@ namespace MatterHackers.MatterControl
 
 		public double SecondValue
 		{
-			get
-			{
-				return Minimum + (Maximum - Minimum) * SecondPosition0To1;
-			}
+			get => Minimum + (Maximum - Minimum) * SecondPosition0To1;
 			set
 			{
 				double newPosition0To1 = Math.Max(0, Math.Min((value - Minimum) / (Maximum - Minimum), 1));
 				if (newPosition0To1 != SecondPosition0To1)
 				{
 					SecondPosition0To1 = newPosition0To1;
-					if (SecondValueChanged != null)
-					{
-						SecondValueChanged(this, null);
-					}
+					SecondValueChanged?.Invoke(this, null);
 					Invalidate();
 				}
 			}
@@ -231,26 +208,14 @@ namespace MatterHackers.MatterControl
 
 		public double PositionPixelsFromSecondValue
 		{
-			get
-			{
-				return ThumbWidth / 2 + TrackWidth * SecondPosition0To1;
-			}
-			set
-			{
-				SecondPosition0To1 = (value - ThumbWidth / 2) / TrackWidth;
-			}
+			get => ThumbWidth / 2 + TrackWidth * SecondPosition0To1;
+			set => SecondPosition0To1 = (value - ThumbWidth / 2) / TrackWidth;
 		}
 
 		public double PositionPixelsFromFirstValue
 		{
-			get
-			{
-				return ThumbWidth / 2 + TrackWidth * FirstPosition0To1;
-			}
-			set
-			{
-				FirstPosition0To1 = (value - ThumbWidth / 2) / TrackWidth;
-			}
+			get => ThumbWidth / 2 + TrackWidth * FirstPosition0To1;
+			set => FirstPosition0To1 = (value - ThumbWidth / 2) / TrackWidth;
 		}
 
 		public Orientation Orientation { get; set; }
@@ -259,36 +224,20 @@ namespace MatterHackers.MatterControl
 
 		public double ThumbHeight
 		{
-			get
-			{
-				return Math.Max(thumbHeight, ThumbWidth);
-			}
-			set
-			{
-				thumbHeight = value;
-			}
+			get =>  Math.Max(thumbHeight, ThumbWidth);
+			set => thumbHeight = value;
 		}
 
 		public double TotalWidthInPixels { get; set; }
 
-		public double TrackWidth
-		{
-			get
-			{
-				return TotalWidthInPixels - ThumbWidth;
-			}
-		}
+		public double TrackWidth => TotalWidthInPixels - ThumbWidth;
 
 		/// <summary>
 		/// There will always be 0 or at least two ticks, one at the start and one at the end.
 		/// </summary>
 		public int NumTicks
 		{
-			get
-			{
-				return numTicks;
-			}
-
+			get => numTicks;
 			set
 			{
 				numTicks = value;
@@ -336,10 +285,7 @@ namespace MatterHackers.MatterControl
 
 		public override RectangleDouble LocalBounds
 		{
-			get
-			{
-				return View.GetTotalBounds();
-			}
+			get => View.GetTotalBounds();
 			set
 			{
 				//OriginRelativeParent = new Vector2(value.Left, value.Bottom - View.GetTotalBounds().Bottom);
@@ -469,10 +415,7 @@ namespace MatterHackers.MatterControl
 				}
 				if (oldValue != FirstValue)
 				{
-					if (FirstValueChanged != null)
-					{
-						FirstValueChanged(this, mouseEvent);
-					}
+					FirstValueChanged?.Invoke(this, mouseEvent);
 					Invalidate();
 				}
 			}
@@ -489,10 +432,7 @@ namespace MatterHackers.MatterControl
 				}
 				if (oldValue != SecondValue)
 				{
-					if (SecondValueChanged != null)
-					{
-						SecondValueChanged(this, mouseEvent);
-					}
+					SecondValueChanged?.Invoke(this, mouseEvent);
 					Invalidate();
 				}
 			}

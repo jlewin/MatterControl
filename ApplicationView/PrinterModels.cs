@@ -467,8 +467,8 @@ namespace MatterHackers.MatterControl
 				cancellationToken, progressReporter);
 			this.GCodeRenderer = new GCodeRenderer(loadedGCode);
 			this.RenderInfo = new GCodeRenderInfo(
-					0,
-					Math.Max(1, this.ActiveLayerIndex),
+					0, // StartLayerIndex
+					Math.Max(1, this.ActiveLayerIndex), //EndLayerIndex
 					Agg.Transform.Affine.NewIdentity(),
 					1,
 					0,
