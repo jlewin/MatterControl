@@ -1776,7 +1776,7 @@ namespace MatterHackers.MatterControl
 				Position = new Vector2(0, height*.25),
 				HAnchor = HAnchor.Center | HAnchor.Fit,
 				VAnchor = VAnchor.Fit,
-				MinimumSize = new VectorMath.Vector2(400, 100),
+				MinimumSize = new Vector2(300, 100),
 				Margin = new BorderDouble(0, 0, 0, 200)
 			};
 			overlay.AddChild(progressPanel);
@@ -1817,9 +1817,12 @@ namespace MatterHackers.MatterControl
 					ReportStartupProgress(0.9, "AddChild->MainView");
 					systemWindow.AddChild(mainView, 0);
 
+					Thread.Sleep(6 * 1000);
 					ReportStartupProgress(1, "");
 					systemWindow.BackgroundColor = Color.Transparent;
 					overlay.Close();
+
+					systemWindow.Close();
 
 					AppContext.IsLoading = false;
 				});

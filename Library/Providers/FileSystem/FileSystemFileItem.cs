@@ -42,6 +42,10 @@ namespace MatterHackers.MatterControl.Library
 
 		public string AssetPath => this.Path;
 
+		public DateTime DateCreated { get; } = DateTime.Now;
+
+		public DateTime DateModified { get; } = DateTime.Now;
+
 		/// <summary>
 		// Gets the size, in bytes, of the current file.
 		/// </summary>

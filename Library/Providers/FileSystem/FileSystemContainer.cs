@@ -319,6 +319,10 @@ namespace MatterHackers.MatterControl.Library
 
 			public bool IsReadOnly { get; set; } = false;
 
+			public DateTime DateCreated { get; } = DateTime.Now;
+
+			public DateTime DateModified { get; } = DateTime.Now;
+
 			public bool UseIncrementedNameDuringTypeChange { get; set; }
 
 			public Task<ILibraryContainer> GetContainer(Action<double, string> reportProgress)
