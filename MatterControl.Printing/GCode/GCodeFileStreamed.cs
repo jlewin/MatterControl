@@ -48,7 +48,7 @@ namespace MatterControl.Printing
 		public GCodeFileStreamed(string fileName)
 		{
 			var inStream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-			openGcodeStream = new StreamReader(inStream);
+			openGcodeStream = new StreamReader( inStream);
 		}
 
 		~GCodeFileStreamed()

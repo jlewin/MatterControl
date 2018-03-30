@@ -116,18 +116,18 @@ namespace MatterControl.Printing
 			GCodeCommandQueue.Insert(insertIndex, printerMachineInstruction);
 		}
 
-		public static GCodeFile ParseGCodeString(string gcodeContents, 
+		public static GCodeFile ParseGCodeString(string gcodeContents,
 			Vector4 maxAccelerationMmPerS2,
 			Vector4 maxVelocityMmPerS,
 			Vector4 velocitySameAsStopMmPerS,
 			Vector4 speedMultiplier,
 			CancellationToken cancellationToken)
 		{
-			return ParseFileContents(gcodeContents, 
+			return ParseFileContents(gcodeContents,
 				maxAccelerationMmPerS2, maxVelocityMmPerS, velocitySameAsStopMmPerS, speedMultiplier, cancellationToken, null);
 		}
 
-		public static GCodeMemoryFile Load(Stream fileStream, 
+		public static GCodeMemoryFile Load(Stream fileStream,
 			Vector4 maxAccelerationMmPerS2,
 			Vector4 maxVelocityMmPerS,
 			Vector4 velocitySameAsStopMmPerS,
@@ -139,7 +139,7 @@ namespace MatterControl.Printing
 			{
 				using (var reader = new StreamReader(fileStream))
 				{
-					return ParseFileContents(reader.ReadToEnd(), 
+					return ParseFileContents(reader.ReadToEnd(),
 						maxAccelerationMmPerS2, maxVelocityMmPerS, velocitySameAsStopMmPerS, speedMultiplier,
 						cancellationToken, progressReporter);
 				}
@@ -165,7 +165,7 @@ namespace MatterControl.Printing
 				{
 					using (var stream = File.OpenRead(filePath))
 					{
-						return Load(stream, 
+						return Load(stream,
 							maxAccelerationMmPerS2,
 							maxVelocityMmPerS,
 							velocitySameAsStopMmPerS,
@@ -236,7 +236,11 @@ namespace MatterControl.Printing
 				gcodeHasExplicitLayerChangeInfo = true;
 			}
 
+			var speeds = new HashSet<float>();
+
 			GCodeMemoryFile loadedGCodeFile = new GCodeMemoryFile(gcodeHasExplicitLayerChangeInfo);
+
+			PrinterMachineInstruction previousInstruction = null;
 
 			int crCount = CountNumLines(gCodeString);
 			int lineIndex = 0;
@@ -300,6 +304,13 @@ namespace MatterControl.Printing
 
 				loadedGCodeFile.GCodeCommandQueue.Add(machineInstructionForLine);
 
+				if (previousInstruction != null
+					&& machineInstructionForLine.EPosition > previousInstruction.EPosition
+					&& (machineInstructionForLine.Line.IndexOf('X') != -1 || machineInstructionForLine.Line.IndexOf('Y') != -1))
+				{
+					speeds.Add((float)machineInstructionForLine.FeedRate);
+				}
+
 				if (progressReporter != null && maxProgressReport.ElapsedMilliseconds > 200)
 				{
 					progressReporter((double)lineIndex / crCount / 2, "");
@@ -312,14 +323,18 @@ namespace MatterControl.Printing
 					maxProgressReport.Restart();
 				}
 
+				previousInstruction = machineInstructionForLine;
+
 				lineIndex++;
 			}
 
-			loadedGCodeFile.AnalyzeGCodeLines(cancellationToken, progressReporter, 
+			loadedGCodeFile.AnalyzeGCodeLines(cancellationToken, progressReporter,
 				maxAccelerationMmPerS2,
 				maxVelocityMmPerS,
 				velocitySameAsStopMmPerS,
 				speedMultiplier);
+
+			loadedGCodeFile.Speeds = speeds;
 
 			loadTime.Stop();
 			Console.WriteLine("Time To Load Seconds: {0:0.00}".FormatWith(loadTime.Elapsed.TotalSeconds));
@@ -378,7 +393,7 @@ namespace MatterControl.Printing
 					}
 				}
 
-				if (feedRateMmPerMin > 0) 
+				if (feedRateMmPerMin > 0)
 				{
 					instruction.secondsThisLine = (float)GetSecondsThisLine(deltaPositionThisLine, deltaEPositionThisLine, feedRateMmPerMin,
 						maxAccelerationMmPerS2, maxVelocityMmPerS, velocitySameAsStopMmPerS, speedMultiplier);
@@ -434,6 +449,8 @@ namespace MatterControl.Printing
 		{
 			get { return indexOfChangeInZ.Count; }
 		}
+
+		public HashSet<float> Speeds { get; private set; }
 
 		private void ParseMLine(string lineString, PrinterMachineInstruction processingMachineState)
 		{
@@ -766,8 +783,8 @@ namespace MatterControl.Printing
 		{
 			if (instructionIndexToCheck > 1 && instructionIndexToCheck < GCodeCommandQueue.Count)
 			{
-				double extrusionLengeth = GCodeCommandQueue[instructionIndexToCheck].EPosition - GCodeCommandQueue[instructionIndexToCheck - 1].EPosition;
-				if (extrusionLengeth > 0)
+				double extrusionLength = GCodeCommandQueue[instructionIndexToCheck].EPosition - GCodeCommandQueue[instructionIndexToCheck - 1].EPosition;
+				if (extrusionLength > 0)
 				{
 					return true;
 				}
@@ -962,7 +979,7 @@ namespace MatterControl.Printing
 						{
 							line = GCodeCommandQueue[lastPrintLine++].Line;
 
-						} while (line != "; MatterSlice Completed Successfully" 
+						} while (line != "; MatterSlice Completed Successfully"
 							&& lastPrintLine < endIndex);
 					}
 
