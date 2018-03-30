@@ -269,26 +269,27 @@ namespace MatterHackers.MatterControl.ActionBar
 				graph.AddData(this.ActualTemperature);
 			}, 1, () => !HasBeenClosed);
 
-			var valueField = row.Descendants<MHNumberEdit>().FirstOrDefault();
-			valueField.Name = "Temperature Input";
-			var settingsRow = row.DescendantsAndSelf<SliceSettingsRow>().FirstOrDefault(); 
-			ActiveSliceSettings.SettingChanged.RegisterEvent((s, e) =>
-			{
-				if (e is StringEventArgs stringEvent)
-				{
-					if (stringEvent.Data == TemperatureKey)
-					{
-						var temp = printer.Settings.Helpers.ExtruderTemperature(hotendIndex);
-						valueField.Value = temp;
-						graph.GoalValue = temp;
-						settingsRow.UpdateStyle();
-						if (heatToggle.Checked)
-						{
-							SetTargetTemperature(temp);
-						}
-					}
-				};
-			}, ref unregisterEvents);
+
+			//var valueField = row.Descendants<MHNumberEdit>().FirstOrDefault();
+			//valueField.Name = "Temperature Input";
+			//var settingsRow = row.DescendantsAndSelf<SliceSettingsRow>().FirstOrDefault(); 
+			//ActiveSliceSettings.SettingChanged.RegisterEvent((s, e) =>
+			//{
+			//	if (e is StringEventArgs stringEvent)
+			//	{
+			//		if (stringEvent.Data == TemperatureKey)
+			//		{
+			//			var temp = printer.Settings.Helpers.ExtruderTemperature(hotendIndex);
+			//			valueField.Value = temp;
+			//			graph.GoalValue = temp;
+			//			settingsRow.UpdateStyle();
+			//			if (heatToggle.Checked)
+			//			{
+			//				SetTargetTemperature(temp);
+			//			}
+			//		}
+			//	};
+			//}, ref unregisterEvents);
 
 			container.AddChild(graph);
 

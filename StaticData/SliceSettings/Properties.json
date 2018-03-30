@@ -22,7 +22,22 @@
     "HelpText": "The X and Y values of the size of the print bed, in millimeters. For printers with a circular bed, these values are the diameters on the X and Y axes.",
     "DataEditType": "VECTOR2",
     "Units": "mm",
-    "DefaultValue": "200,200"
+    "DefaultValue": "200,200",
+    "QuickMenuSettings": [
+      {
+        "MenuName": "Fine",
+        "Value": "0.1"
+      },
+      {
+        "MenuName": "Standard",
+        "Value": "0.2"
+      },
+      {
+        "MenuName": "Coarse",
+        "Value": "0.3"
+      }
+    ],
+    "PlusOrMinus": "0.1",
   },
   {
     "SlicerConfigName": "bed_temperature",
@@ -1580,8 +1595,26 @@
     "DataEditType": "POSITIVE_DOUBLE",
     "Units": "°C",
     "ShowIfSet": "!sla_printer",
-    "DefaultValue": "200"
-  },
+    "DefaultValue": "200",
+    "QuickMenuSettings": [
+      {
+        "MenuName": "Cool",
+        "Value": "180"
+      },
+      {
+        "MenuName": "Mid",
+        "Value": "195"
+      },
+      {
+        "MenuName": "Hotter",
+        "Value": "210"
+      },
+      {
+        "MenuName": "Hot",
+        "Value": "221"
+      }
+    ],
+    "PlusOrMinus": "10",  },
   {
     "SlicerConfigName": "temperature1",
     "PresentationName": "Extruder 2 Temperature",

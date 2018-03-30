@@ -37,13 +37,15 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 	{
 		private UIField uiField;
 		private Color textColor;
+		private PrinterConfig printer;
 		private SliceSettingData settingData;
 
-		public DropMenuWrappedField(UIField uiField, SliceSettingData settingData, Color textColor)
+		public DropMenuWrappedField(UIField uiField, PrinterConfig printer, SliceSettingData settingData, Color textColor)
 		{
 			this.settingData = settingData;
 			this.uiField = uiField;
 			this.textColor = textColor;
+			this.printer = printer;
 		}
 
 		public void SetValue(string newValue, bool userInitiated)
@@ -51,11 +53,9 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			uiField.SetValue(newValue, userInitiated);
 		}
 
-		public string Value { get => uiField.Value; }
+		public string Value => uiField.Value;
 
 		public GuiWidget Content { get; private set; }
-
-		public event EventHandler<FieldChangedEventArgs> ValueChanged;
 
 		public void Initialize(int tabIndex)
 		{
@@ -68,12 +68,15 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				Margin = new BorderDouble(0, 0, 10, 0)
 			};
 
+			var sourceLayer = printer.Settings.ProvidedBy(settingData.SlicerConfigName);
+
 			foreach (QuickMenuNameValue nameValue in settingData.QuickMenuSettings)
 			{
 				string valueLocal = nameValue.Value;
 
 				MenuItem newItem = selectableOptions.AddItem(nameValue.MenuName);
-				if (uiField.Value == valueLocal)
+				if (uiField.Value == valueLocal
+					|| nameValue.MenuName == "Standard" && sourceLayer == "Base")
 				{
 					selectableOptions.SelectedLabel = nameValue.MenuName;
 				}
@@ -98,13 +101,13 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				if (e is StringEventArgs stringArgs
 					&& stringArgs.Data == settingData.SlicerConfigName)
 				{
-					string newSliceSettingValue = ActiveSliceSettings.Instance.GetValue(settingData.SlicerConfigName);
+					string currentValue = ActiveSliceSettings.Instance.GetValue(settingData.SlicerConfigName);
 
 					bool foundSetting = false;
 					foreach (QuickMenuNameValue nameValue in settingData.QuickMenuSettings)
 					{
 						string localName = nameValue.MenuName;
-						if (newSliceSettingValue == nameValue.Value)
+						if (currentValue == nameValue.Value)
 						{
 							selectableOptions.SelectedLabel = localName;
 							foundSetting = true;

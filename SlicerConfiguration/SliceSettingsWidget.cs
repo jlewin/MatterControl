@@ -744,7 +744,11 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 						break;
 
 					case SliceSettingData.DataEditTypes.VECTOR2:
-						uiField = new Vector2Field();
+						//uiField = new Vector2Field();
+						uiField = new RangedField()
+						{
+							SettingsData = settingData
+						};
 						break;
 
 					case SliceSettingData.DataEditTypes.OFFSET2:
@@ -770,6 +774,15 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			if (uiField != null)
 			{
+				if (settingData.QuickMenuSettings.Count > 2
+					&& settingData.DataEditType == SliceSettingData.DataEditTypes.POSITIVE_DOUBLE)
+				{
+					uiField = new RangedField()
+					{
+						SettingsData = settingData
+					};
+				}
+
 				if (fieldCache != null)
 				{
 					fieldCache[settingData.SlicerConfigName] = uiField;
@@ -803,7 +816,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				if (settingData.QuickMenuSettings.Count > 0 
 					&& settingData.SlicerConfigName == "baud_rate")
 				{
-					var dropMenu = new DropMenuWrappedField(uiField, settingData, textColor);
+					var dropMenu = new DropMenuWrappedField(uiField, printer, settingData, textColor);
 					dropMenu.Initialize(tabIndexForItem);
 
 					settingsRow.AddContent(dropMenu.Content);

@@ -605,6 +605,34 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			return ("", "");
 		}
 
+		/// <summary>
+		/// The conceptual layers owning the current value
+		/// </summary>
+		/// <param name="sliceSetting">The SliceSetting key</param>
+		/// <returns>The conceptual layer providing the current value</returns>
+		public string ProvidedBy(string sliceSetting)
+		{
+			foreach (PrinterSettingsLayer layer in defaultLayerCascade)
+			{
+				string value;
+				if (layer.TryGetValue(sliceSetting, out value))
+				{
+					if (layer == this.BaseLayer || layer == this.OemLayer)
+					{
+						return "Base";
+					}
+					else if (layer == this.MaterialLayer || layer == this.QualityLayer)
+					{
+						return "Preset";
+					}
+
+					return "User";
+				}
+			}
+
+			return null;
+		}
+
 		public bool Contains(string sliceSetting, IEnumerable<PrinterSettingsLayer> layerCascade = null)
 		{
 			if (layerCascade == null)
