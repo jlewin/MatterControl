@@ -217,6 +217,8 @@
     <Compile Include="SlicerConfiguration\SettingsOrganizer.cs" />
     <Compile Include="SlicerConfiguration\SlicerMapping\SliceEngineMapping.cs" />
     <Compile Include="SlicerConfiguration\UIFields\IpAddessField.cs" />
+    <Compile Include="SlicerConfiguration\UIFields\RangedField.cs" />
+    <Compile Include="SlicerConfiguration\UIFields\RangedSlider.cs" />
     <Compile Include="SlicerConfiguration\UIFields\Vector3Field.cs" />
     <Compile Include="Utilities\InspectForm.cs" Condition="'$(Configuration)' == 'Debug'">
       <SubType>Form</SubType>

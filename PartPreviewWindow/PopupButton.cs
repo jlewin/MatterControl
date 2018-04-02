@@ -42,7 +42,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		private GuiWidget buttonView;
 		private bool menuVisibileAtMouseDown = false;
-		private bool menuVisible = false;
+		protected bool menuVisible = false;
 		private PopupWidget popupWidget;
 
 		public PopupButton()
@@ -90,10 +90,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public override void OnDraw(Graphics2D graphics2D)
 		{
-			if (menuVisible)
-			{
-				graphics2D.FillRectangle(this.LocalBounds, slightShade);
-			}
 
 			base.OnDraw(graphics2D);
 		}

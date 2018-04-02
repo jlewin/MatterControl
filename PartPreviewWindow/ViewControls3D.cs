@@ -383,7 +383,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				},
 				BackgroundColor = theme.ToolbarButtonBackground,
 				HoverColor = theme.ToolbarButtonHover,
-				MouseDownColor = theme.ToolbarButtonDown,
 				DrawArrow = true,
 				Margin = theme.ButtonSpacing,
 			};

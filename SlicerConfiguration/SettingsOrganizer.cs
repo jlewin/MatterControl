@@ -80,6 +80,8 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 		public SettingsOrganizer.SubGroup OrganizerSubGroup { get; set; }
 
+		public double PlusOrMinus { get; set; }
+
 		public SliceSettingData(string slicerConfigName, string presentationName, DataEditTypes dataEditType, string helpText = "")
 		{
 			// During deserialization Json.net has to call this constructor but may fail to find the optional ExtraSettings

@@ -53,7 +53,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.DrawArrow = true;
 			this.BackgroundColor = theme.ToolbarButtonBackground;
 			this.HoverColor = theme.ToolbarButtonHover;
-			this.MouseDownColor = theme.ToolbarButtonDown;
 			this.Name = "PrintPopupMenu";
 			this.HAnchor = HAnchor.Fit;
 			this.VAnchor = VAnchor.Fit;
