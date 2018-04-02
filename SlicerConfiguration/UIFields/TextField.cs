@@ -84,6 +84,8 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				}
 			};
 
+			container.BackgroundColor = theme.ResolveColor(theme.Colors.PrimaryBackgroundColor, popup.HoverColor);
+
 			var textEditWidget = new MHTextEditWidget("", pixelWidth: ControlWidth, tabIndex: tabIndex)
 			{
 				ToolTipText = this.HelpText,

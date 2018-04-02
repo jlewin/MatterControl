@@ -100,6 +100,7 @@ namespace MatterHackers.MatterControl
 
 		public void DrawTrackAndThumb(Graphics2D graphics2D)
 		{
+			var trackBounds = GetTrackBounds();
 			RoundedRect track = new RoundedRect(GetTrackBounds(), 0);
 			Vector2 ValuePrintPosition;
 			if (sliderAttachedTo.Orientation == Orientation.Horizontal)

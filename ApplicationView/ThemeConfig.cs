@@ -126,7 +126,7 @@ namespace MatterHackers.MatterControl
 		public Color ToolbarButtonBackground { get; set; } = Color.Transparent;
 
 		//public Color ToolbarButtonHover { get; set; } = Color.Transparent;
-		public Color ToolbarButtonHover => this.SlightShade;
+		public Color ToolbarButtonHover { get; } = new Color("#FFFFFF64");
 
 		//public Color ToolbarButtonDown { get; set; } = Color.Transparent;
 		public Color ToolbarButtonDown => this.MinimalShade;

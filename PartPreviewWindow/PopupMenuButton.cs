@@ -27,7 +27,10 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System;
+using System.Linq;
 using MatterHackers.Agg;
+using MatterHackers.Agg.Image;
 using MatterHackers.Agg.UI;
 using MatterHackers.Agg.VertexSource;
 using MatterHackers.MatterControl.CustomWidgets;
@@ -36,11 +39,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 {
 	public class PopupMenuButton : PopupButton
 	{
+		private int gradientDistance = 8;
+
 		public PopupMenuButton()
 		{
 			var theme = ApplicationController.Instance.Theme;
 			this.DisabledColor = new Color(theme.Colors.SecondaryTextColor, 50);
-			this.HoverColor = theme.MinimalShade;
+			this.HoverColor = new Color("#FFFFFF64");
 		}
 
 		public PopupMenuButton(GuiWidget viewWidget, ThemeConfig theme)
@@ -53,7 +58,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			this.HoverColor = theme.ToolbarButtonHover;
 			this.BackgroundColor = theme.ToolbarButtonBackground;
-			this.MouseDownColor = theme.ToolbarButtonDown;
+			//this.MouseDownColor = theme.ToolbarButtonDown;
 		}
 
 		public PopupMenuButton(string text, ThemeConfig theme)
@@ -66,14 +71,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.DrawArrow = true;
 			this.HoverColor = theme.ToolbarButtonHover;
 			this.BackgroundColor = theme.ToolbarButtonBackground;
-			this.MouseDownColor = theme.ToolbarButtonDown;
+			//this.MouseDownColor = theme.ToolbarButtonDown;
 		}
 
 		public Color DisabledColor { get; set; }
 
 		public Color HoverColor { get; set; } = Color.Transparent;
 
-		public Color MouseDownColor { get; set;} = Color.Transparent;
+		public Color MouseDownColor => Color.Red;
 
 		private bool _drawArrow = false;
 		public bool DrawArrow
@@ -87,10 +92,29 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 					if (_drawArrow)
 					{
-						this.Padding = new BorderDouble(this.Padding.Left, this.Padding.Bottom, 20, this.Padding.Top);
+						this.Padding = new BorderDouble(this.Padding.Left, this.Padding.Bottom, 25, this.Padding.Top);
 					}
 				}
 			}
+		}
+
+		public override void OnLoad(EventArgs args)
+		{
+			// Required for background behind drop arrow
+			this.BackgroundColor = this.Parents<GuiWidget>().Where(p => p.BackgroundColor.Alpha0To1 == 1).FirstOrDefault()?.BackgroundColor ?? Color.Transparent;
+
+			this.HoverColor = new BlenderRGBA().Blend(this.BackgroundColor, this.HoverColor);
+
+			lastRenderColor = Color.Transparent;
+
+			base.OnLoad(args);
+		}
+
+		public override void OnBoundsChanged(EventArgs e)
+		{
+			dropArrowBounds = new RectangleDouble(LocalBounds.Right - DropArrow.ArrowHeight * 4, 0, LocalBounds.Right, this.Height);
+
+			base.OnBoundsChanged(e);
 		}
 
 		private VertexStorage dropArrow = DropArrow.DownArrow;
@@ -101,6 +125,19 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			if (this.DrawArrow)
 			{
+				// Background area for drop arrow
+				if (lastRenderColor != this.BackgroundColor)
+				{
+					gradientBackground = agg_basics.TrasparentToColorGradientX(
+						(int)dropArrowBounds.Width + gradientDistance,
+						(int)this.LocalBounds.Height,
+						this.BackgroundColor,
+						gradientDistance);
+
+					lastRenderColor = this.BackgroundColor;
+				}
+				graphics2D.Render(this.gradientBackground, dropArrowBounds.Left - gradientDistance, 0);
+
 				// Draw directional arrow
 				graphics2D.Render(
 					dropArrow, 
@@ -111,6 +148,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		}
 
 		private bool mouseInBounds;
+		private ImageBuffer gradientBackground;
+		private Color lastRenderColor;
+		private RectangleDouble dropArrowBounds;
+
 		public override void OnMouseEnterBounds(MouseEventArgs mouseEvent)
 		{
 			mouseInBounds = true;
@@ -129,14 +170,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		{
 			get
 			{
-				if (this.MouseCaptured
-					&& mouseInBounds
-					&& this.Enabled)
-				{
-					return this.MouseDownColor;
-				}
-				else if (this.mouseInBounds
-					&& this.Enabled)
+				if (menuVisible
+					|| (this.mouseInBounds && this.Enabled))
 				{
 					return this.HoverColor;
 				}
