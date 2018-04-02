@@ -27,6 +27,7 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MatterHackers.Agg;
@@ -39,66 +40,60 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
-	public class RangedField : UIField
+
+	public class FunkySlider : IgnoredPopupWidget
 	{
+		private class PresetItem
+		{
+			public string Name { get; set; }
+			public double Value { get; set; }
+			public IVertexSource VertexSource { get; set; }
+			public RectangleDouble Bounds { get; set; }
+		}
+
 		private SolidSlider layerSlider;
 
-		public SliceSettingData SettingsData { get; set; }
+		private double minimum = 0;
+		private double maximum = 1;
+		private double range;
+		private int smallBarHeight;
+		private double targetX;
+		private double targetY;
+		private double width;
+		private Color highlightA = new Color(Color.White, 200);
+		private Color highlightB = new Color(Color.White, 180);
 
-		public override void Initialize(int tabIndex)
+		private ThemeConfig theme;
+		private List<(string MenuName, double value)> sortedItems;
+
+		private List<PresetItem> presetItems;
+
+		public FunkySlider(SliceSettingData settingsData, ThemeConfig theme)
 		{
-			GuiWidget container;
+			this.theme = theme;
 
-			var theme = ApplicationController.Instance.Theme;
+			sortedItems = settingsData.QuickMenuSettings.Select(nameValue => (nameValue.MenuName, value: double.Parse(nameValue.Value))).OrderBy(x => x.value).ToList();
 
-			var xxx = new List<(string name, double value)>();
-
-			foreach (QuickMenuNameValue nameValue in this.SettingsData.QuickMenuSettings)
+			if (sortedItems.Count >= 2)
 			{
-				xxx.Add((nameValue.MenuName, double.Parse(nameValue.Value)));
+				minimum = sortedItems.Min(m => m.value) - settingsData.PlusOrMinus;
+				maximum = sortedItems.Max(m => m.value) + settingsData.PlusOrMinus;
 			}
 
-			var sorted = xxx.OrderBy(x => x.value);
-
-			double minimum = 0;
-			double maximum = 1;
-
-			if (xxx.Count >= 2)
+			var textEditWidget = new MHTextEditWidget("", pixelWidth: 50/* pixelWidth: ControlWidth, tabIndex: tabIndex*/)
 			{
-				minimum = xxx.Min(m => m.value) - this.SettingsData.PlusOrMinus;
-				maximum = xxx.Max(m => m.value) + this.SettingsData.PlusOrMinus;
-			}
-
-			// Wrap content with popup
-			var popup = new PopupMenuButton("Something", theme)
-			{
-				//VAnchor = VAnchor.Center,
-				Margin = new BorderDouble(right: 5, bottom: 2), // TODO: Bottom margin required as VAnchor is having no effect
-				Padding = new BorderDouble(5, 0),
-				AlignToRightEdge = true,
-				DrawArrow = true,
-				PopupContent = container = new IgnoredPopupWidget()
-				{
-					MinimumSize = new Vector2(400, 100),
-					BackgroundColor = theme.TabBodyBackground
-				}
-			};
-
-			container.BackgroundColor = theme.ResolveColor(theme.Colors.PrimaryBackgroundColor, popup.HoverColor);
-
-			var textEditWidget = new MHTextEditWidget("", pixelWidth: ControlWidth, tabIndex: tabIndex)
-			{
-				ToolTipText = this.HelpText,
 				SelectAllOnFocus = true,
 				Name = this.Name,
+				VAnchor = VAnchor.Bottom,
+				HAnchor = HAnchor.Right
 			};
-			container.AddChild(textEditWidget);
+			this.AddChild(textEditWidget);
 
 			layerSlider = new SolidSlider(new Vector2(), 8, 0, 1, Orientation.Horizontal)
 			{
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Top,
-				Margin = new BorderDouble(5),
+				//Margin = new BorderDouble(5),
 				Minimum = minimum,
 				Maximum = maximum,
 				Value = 0.3
@@ -107,75 +102,138 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				textEditWidget.Text = layerSlider.Value.ToString();
 			};
-			container.AddChild(layerSlider);
+			this.AddChild(layerSlider);
 
-			var highlightA = new Color(Color.White, 200);
-			var highlightB = new Color(Color.White, 180);
+			range = maximum - minimum;
+			smallBarHeight = 4;
+		}
 
-			var targetX = layerSlider.Position.X;
-			var targetY = layerSlider.Position.Y - layerSlider.LocalBounds.Height - 4;
+		public override void OnBoundsChanged(EventArgs e)
+		{
+			targetX = layerSlider.Position.X;
+			targetY = layerSlider.Position.Y - layerSlider.LocalBounds.Height + 6;
 
-			container.AfterDraw += (s, e) =>
+			width = layerSlider.Width;
+
+			presetItems = new List<PresetItem>();
+
+			foreach (var tuple in sortedItems)
 			{
-				var width = layerSlider.Width;
+				var rangedValue = tuple.value - minimum;
+				var percent = (rangedValue / range);
 
-				var range = maximum - minimum;
+				double xPos = targetX + width * percent;
 
-				foreach(var tuple in sorted)
+				var printer = new TypeFacePrinter(tuple.MenuName, theme.DefaultFontSize * GuiWidget.DeviceScale);
+				var rotatedLabel = new VertexSourceApplyTransform(
+					printer,
+					Affine.NewTranslation(-printer.LocalBounds.Width - 5, -2) * Affine.NewRotation(MathHelper.DegreesToRadians(40)));
+
+				rotatedLabel.Transform = (Affine)rotatedLabel.Transform * Affine.NewTranslation(xPos, targetY - smallBarHeight);
+
+				presetItems.Add(new PresetItem()
 				{
-					var rangedValue = tuple.value - minimum;
+					Value = tuple.value,
+					Name = tuple.MenuName,
+					VertexSource = rotatedLabel,
+					Bounds = rotatedLabel.GetBounds()
+				});
+			}
 
-					var percent = (rangedValue / range);
-					double xPos = targetX + width * percent;
+			base.OnBoundsChanged(e);
+		}
 
-					e.graphics2D.Line(xPos, targetY, xPos, targetY + 10, highlightB);
+		public override void OnDraw(Graphics2D graphics2D)
+		{
+			base.OnDraw(graphics2D);
 
-					var printer = new TypeFacePrinter(tuple.name, 12 * GuiWidget.DeviceScale);
-					var rotatedLabel = new VertexSourceApplyTransform(
-						printer,
-						Affine.NewRotation(MathHelper.DegreesToRadians(45)));
+			var step = width / 10;
 
-					var textBounds = rotatedLabel.GetBounds();
-					var bounds = new RectangleDouble(printer.TypeFaceStyle.DescentInPixels, textBounds.Bottom, printer.TypeFaceStyle.AscentInPixels, textBounds.Top);
+			for (int i = 1; i < 10; i++)
+			{
+				double xPos = targetX + step * i;
 
-					rotatedLabel.Transform = ((Affine)rotatedLabel.Transform) * Affine.NewTranslation(new Vector2(xPos-bounds.Width, targetY - 4 - bounds.Height));
+				graphics2D.Line(
+					xPos,
+					targetY - smallBarHeight,
+					xPos,
+					targetY + smallBarHeight,
+					highlightB);
+			}
 
-					e.graphics2D.Render(rotatedLabel, theme.Colors.PrimaryTextColor);
+			graphics2D.Line(
+				targetX + 1,
+				targetY - smallBarHeight - 3,
+				targetX + 1,
+				targetY + smallBarHeight,
+				highlightB);
 
-					//e.graphics2D.DrawString($"{tuple.name} ({tuple.value})" , xPos, targetY - 14, justification: Agg.Font.Justification.Center, pointSize: 8, color: theme.Colors.PrimaryTextColor);
+			graphics2D.Line(
+				targetX + width - 2,
+				targetY - smallBarHeight - 3,
+				targetX + width - 2,
+				targetY + smallBarHeight,
+				highlightB);
+
+			foreach (var item in presetItems)
+			{
+				var rangedValue = item.Value - minimum;
+				var percent = (rangedValue / range);
+
+				double xPos = targetX + width * percent;
+
+				graphics2D.Circle(xPos, targetY, 3, Color.White);
+				graphics2D.Circle(xPos, targetY, 2, theme.Colors.PrimaryAccentColor);
+
+				graphics2D.Render(item.VertexSource, theme.Colors.PrimaryTextColor);
+			}
+		}
+	}
+
+	public class RangedField : UIField
+	{
+		public SliceSettingData SettingsData { get; set; }
+
+		public override void Initialize(int tabIndex)
+		{
+			GuiWidget container;
+
+			var theme = ApplicationController.Instance.Theme;
+
+			PopupMenuButton popup;
+
+			this.Content = popup = new PopupMenuButton("RangedDrop", theme)
+			{
+				Margin = new BorderDouble(right: 5, bottom: 2), // TODO: Bottom margin required as VAnchor is having no effect
+				Padding = new BorderDouble(2, 0),
+				AlignToRightEdge = true,
+				DrawArrow = true,
+				PopupContent = container = new FunkySlider(this.SettingsData, theme)
+				{
+					MinimumSize = new Vector2(400, 100),
+					//Padding = 10,
+					BackgroundColor = theme.ResolveColor(theme.TabBodyBackground, theme.SlightShade)
 				}
-
-				e.graphics2D.Line(targetX, targetY, targetX, targetY + 10, Color.Red);
-
-				//var Height = container.Height;
-				//var Width = container.Width;
-
-				//for (int i = 0; i < Width / pixelSkip; i++)
-				//{
-				//	double xPos = Width - ((i * pixelSkip + 0) % Width);
-				//	int inset = (int)((i % 2) == 0 ? Height / 6 : Height / 3);
-				//	e.graphics2D.Line(xPos, inset, xPos, Height - inset, highlightB);
-				//}
 			};
 
-			this.Content = popup;
+			container.BackgroundColor = theme.ResolveColor(theme.Colors.PrimaryBackgroundColor, popup.HoverColor);
 
 			base.Initialize(tabIndex);
 		}
 
 		protected override void OnValueChanged(FieldChangedEventArgs fieldChangedEventArgs)
 		{
-			if (this.Value != layerSlider.Value.ToString())
-			{
-				if (double.TryParse(this.Value, out double result))
-				{
-					layerSlider.Value = result;
-				}
-				else
-				{
-					// TODO: Show a conversion/invalid value error
-				}
-			}
+			//if (this.Value != layerSlider.Value.ToString())
+			//{
+			//	if (double.TryParse(this.Value, out double result))
+			//	{
+			//		layerSlider.Value = result;
+			//	}
+			//	else
+			//	{
+			//		// TODO: Show a conversion/invalid value error
+			//	}
+			//}
 
 			base.OnValueChanged(fieldChangedEventArgs);
 		}
