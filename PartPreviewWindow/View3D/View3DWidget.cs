@@ -120,6 +120,16 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			trackballTumbleWidget.AnchorAll();
 
+			trackballTumbleWidget.GetBedIntersection = (localMousePostion) =>
+			{
+				Vector2 meshViewerWidgetScreenPosition = meshViewerWidget.TransformFromParentSpace(this, localMousePostion);
+				Ray ray = this.World.GetRayForLocalBounds(meshViewerWidgetScreenPosition);
+
+				IntersectInfo info = bedPlane.GetClosestIntersection(ray);
+
+				return info.HitPosition;
+			};
+
 			// TumbleWidget
 			this.InteractionLayer.AddChild(trackballTumbleWidget);
 
