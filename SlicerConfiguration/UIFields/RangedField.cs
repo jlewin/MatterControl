@@ -50,12 +50,13 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				Margin = new BorderDouble(right: 5, bottom: 2), // TODO: Bottom margin required as VAnchor is having no effect
 				Padding = new BorderDouble(2, 0),
+				MakeScrollable = false,
 				AlignToRightEdge = true,
 				DrawArrow = true,
 				PopupContent = container = new RangedSlider(this.SettingsData, theme)
 				{
 					MinimumSize = new Vector2(400, 100),
-					//Padding = 10,
+					//Padding = new BorderDouble(15, 15, 15, 0),
 					BackgroundColor = theme.ResolveColor(theme.TabBodyBackground, theme.SlightShade)
 				}
 			};
@@ -63,23 +64,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			container.BackgroundColor = theme.ResolveColor(theme.Colors.PrimaryBackgroundColor, popup.HoverColor);
 
 			base.Initialize(tabIndex);
-		}
-
-		protected override void OnValueChanged(FieldChangedEventArgs fieldChangedEventArgs)
-		{
-			//if (this.Value != layerSlider.Value.ToString())
-			//{
-			//	if (double.TryParse(this.Value, out double result))
-			//	{
-			//		layerSlider.Value = result;
-			//	}
-			//	else
-			//	{
-			//		// TODO: Show a conversion/invalid value error
-			//	}
-			//}
-
-			base.OnValueChanged(fieldChangedEventArgs);
 		}
 	}
 }
