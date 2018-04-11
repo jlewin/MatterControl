@@ -523,7 +523,7 @@ namespace MatterHackers.MatterControl
 
 			if (this.Scene.Persistable)
 			{
-				this.Scene.PersistAssets((progress0to1, status) =>
+				this.Scene.PersistAssets(progress: (progress0to1, status) =>
 				{
 					if (progress != null)
 					{

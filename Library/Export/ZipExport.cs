@@ -32,14 +32,130 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
+using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 
 namespace MatterHackers.MatterControl.Library.Export
 {
+	public class McxzExport : IExportPlugin
+	{
+		public string ButtonText => "MCXZ File".Localize();
+
+		public string FileExtension => ".mcxz";
+
+		public string ExtensionFilter => "Save as MCXZ|*.mcxz";
+
+		public ImageBuffer Icon { get; } = AggContext.StaticData.LoadIcon(Path.Combine("filetypes", "zip.png"));
+
+		public void Initialize(PrinterConfig printer)
+		{
+		}
+
+		public bool Enabled => true;
+
+		public bool ExportPossible(ILibraryAsset libraryItem) => libraryItem is InteractiveScene;
+
+		private class ZipAssetManager : IAssetManager
+		{
+			private ZipArchive zipArchive;
+
+			public ZipAssetManager(ZipArchive zipArchive)
+			{
+				this.zipArchive = zipArchive;
+			}
+
+			public Task AcquireAsset(string sha1PlusExtension, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				throw new NotImplementedException();
+			}
+
+			public Task<Stream> LoadAsset(IAssetObject assetObject, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				throw new NotImplementedException();
+			}
+
+			public Task PublishAsset(string sha1PlusExtension, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				Console.WriteLine($"PublishAsset: {sha1PlusExtension}");
+				return Task.CompletedTask;
+			}
+
+			public Task StoreAsset(IAssetObject assetObject, bool publishAfterSave, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				Console.WriteLine($"StoreAsset: {assetObject.AssetPath}");
+				return Task.CompletedTask;
+			}
+
+			public Task<string> StoreFile(string filePath, bool publishAfterSave, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				Console.WriteLine($"StoreFile: {filePath}");
+				return Task.FromResult("");
+			}
+
+			public Task<string> StoreMcx(IObject3D object3D, bool publishAfterSave)
+			{
+				Console.WriteLine($"StoreMcx: {object3D.MeshPath}");
+				return Task.FromResult("");
+			}
+
+			public Task StoreMesh(IObject3D object3D, bool publishAfterSave, CancellationToken cancellationToken, Action<double, string> progress)
+			{
+				Console.WriteLine($"StoreMesh: {object3D.MeshPath}");
+				return Task.FromResult("");
+			}
+
+			public string StoreStream(Stream stream, string extension)
+			{
+				Console.WriteLine($"StoreStream: !!!!!");
+
+				return "";
+			}
+		}
+
+		public async Task<bool> Generate(IEnumerable<ILibraryItem> libraryItems, string outputPath)
+		{
+			if (libraryItems.FirstOrDefault() is InMemoryLibraryItem item &&
+				await item.GetObject3D(null) is InteractiveScene scene)
+			{
+				await Task.Run(async () =>
+				{
+					try
+					{
+						if (File.Exists(outputPath))
+						{
+							File.Delete(outputPath);
+						}
+
+						using (ZipArchive zipArchive = ZipFile.Open(outputPath, ZipArchiveMode.Create))
+						{
+							var xxx = new ZipAssetManager(zipArchive);
+
+							var newEntry = zipArchive.CreateEntry("rootitem.mcx");
+
+							using (Stream zipEntryStream = newEntry.Open())
+							{
+								scene.SaveTo(zipEntryStream, xxx, publishAssets: true);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex.Message);
+					}
+				});
+
+				return true;
+			}
+
+			return false;
+		}
+	}
+
 	public class ZipExport : IExportPlugin
 	{
 		public string ButtonText => "ZIP File".Localize();
