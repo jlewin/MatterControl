@@ -57,7 +57,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			this.settingsContext = settingsContext;
 
-			settingsControlBar = new PresetsToolbar(printer)
+			settingsControlBar = new PresetsToolbar(printer, theme)
 			{
 				HAnchor = HAnchor.Stretch,
 				Padding = new BorderDouble(8, 12, 8, 8)

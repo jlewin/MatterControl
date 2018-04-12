@@ -36,18 +36,19 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.ActionBar
 {
+	/*
 	public class ResetButton : GuiWidget
 	{
 		private readonly string resetConnectionText = "Reset\nConnection".Localize();
 		private EventHandler unregisterEvents;
 
-		public ResetButton(PrinterConfig printer, TextImageButtonFactory buttonFactory)
+		public ResetButton(PrinterConfig printer, ThemeConfig theme)
 		{
 			this.HAnchor = HAnchor.Stretch | HAnchor.Fit;
 			this.VAnchor = VAnchor.Fit;
 			this.BackgroundColor = ActiveTheme.Instance.PrimaryBackgroundColor;
 
-			Button resetConnectionButton = buttonFactory.Generate(resetConnectionText, AggContext.StaticData.LoadIcon("e_stop4.png", IconColor.Theme));
+			Button resetConnectionButton = buttonFactory.Generate(resetConnectionText, AggContext.StaticData.LoadIcon("e_stop4.png", theme.InvertRequired));
 			resetConnectionButton.Visible = printer.Settings.GetValue<bool>(SettingsKey.show_reset_connection);
 			resetConnectionButton.Click += (s, e) =>
 			{
@@ -64,5 +65,5 @@ namespace MatterHackers.MatterControl.ActionBar
 				}
 			}, ref unregisterEvents);
 		}
-	}
+	} */
 }

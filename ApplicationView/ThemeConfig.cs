@@ -97,9 +97,12 @@ namespace MatterHackers.MatterControl
 		public Color ToolbarButtonHover => this.SlightShade;
 		public Color ToolbarButtonDown => this.MinimalShade;
 
+		// Dark themes require inverted icons as icons are stroked in black
+		public bool InvertRequired => this.Colors.IsDarkTheme;
+
 		public GuiWidget CreateSearchButton()
 		{
-			return new IconButton(AggContext.StaticData.LoadIcon("icon_search_24x24.png", 16, 16, IconColor.Theme), this)
+			return new IconButton(AggContext.StaticData.LoadIcon("icon_search_24x24.png", 16, 16, this.InvertRequired), this)
 			{
 				ToolTipText = "Search".Localize(),
 			};

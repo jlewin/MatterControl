@@ -60,10 +60,10 @@ namespace MatterHackers.MatterControl.PrinterControls
 					"Print Leveling Plane".Localize(),
 					null,
 					theme,
-					AggContext.StaticData.LoadIcon("leveling_32x32.png", 16, 16, IconColor.Theme)));
+					AggContext.StaticData.LoadIcon("leveling_32x32.png", 16, 16, theme.InvertRequired)));
 
 				// run leveling button
-				var runWizardButton = new IconButton(AggContext.StaticData.LoadIcon("fa-cog_16.png", IconColor.Theme), theme)
+				var runWizardButton = new IconButton(AggContext.StaticData.LoadIcon("fa-cog_16.png", theme.InvertRequired), theme)
 				{
 					VAnchor = VAnchor.Center,
 					Margin = theme.ButtonSpacing,
@@ -109,9 +109,9 @@ namespace MatterHackers.MatterControl.PrinterControls
 						"Print Leveling Probe".Localize(),
 						null,
 						theme,
-						AggContext.StaticData.LoadIcon("probing_32x32.png", 16, 16, IconColor.Theme)));
+						AggContext.StaticData.LoadIcon("probing_32x32.png", 16, 16, theme.InvertRequired)));
 
-					var runCalibrateProbeButton = new IconButton(AggContext.StaticData.LoadIcon("fa-cog_16.png", IconColor.Theme), theme)
+					var runCalibrateProbeButton = new IconButton(AggContext.StaticData.LoadIcon("fa-cog_16.png", theme.InvertRequired), theme)
 					{
 						VAnchor = VAnchor.Center,
 						Margin = theme.ButtonSpacing,
@@ -138,7 +138,7 @@ namespace MatterHackers.MatterControl.PrinterControls
 
 		public static SectionWidget CreateSection(PrinterConfig printer, ThemeConfig theme)
 		{
-			var editButton = new IconButton(AggContext.StaticData.LoadIcon("icon_edit.png", 16, 16, IconColor.Theme), theme);
+			var editButton = new IconButton(AggContext.StaticData.LoadIcon("icon_edit.png", 16, 16, theme.InvertRequired), theme);
 			editButton.Click += (s, e) =>
 			{
 				DialogWindow.Show(new EditLevelingSettingsPage(printer));

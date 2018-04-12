@@ -43,14 +43,17 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private GuiWidget imageButton;
 
-		private ImageBuffer arrowRight = AggContext.StaticData.LoadIcon("fa-angle-right_12.png", IconColor.Theme);
+		private ImageBuffer arrowRight;
 
-		private ImageBuffer arrowDown = AggContext.StaticData.LoadIcon("fa-angle-down_12.png", IconColor.Theme);
+		private ImageBuffer arrowDown;
 
 		private TextWidget textWidget;
 
 		public ExpandCheckboxButton(string text, ThemeConfig theme, int pointSize = 11, bool expandable = true)
 		{
+			arrowRight = AggContext.StaticData.LoadIcon("fa-angle-right_12.png", theme.InvertRequired);
+			arrowDown = AggContext.StaticData.LoadIcon("fa-angle-down_12.png", theme.InvertRequired);
+
 			imageButton = new GuiWidget()
 			{
 				MinimumSize = new Vector2((expandable) ? theme.ButtonHeight : 10, 20),

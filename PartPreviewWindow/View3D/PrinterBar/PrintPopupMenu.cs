@@ -74,7 +74,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					BackgroundColor = menuTheme.Colors.PrimaryBackgroundColor
 				};
 
-				column.AddChild(new TextWidget("Options".Localize())
+				column.AddChild(new TextWidget("Options".Localize(), textColor: menuTheme.Colors.PrimaryTextColor)
 				{
 					HAnchor = HAnchor.Left
 				});

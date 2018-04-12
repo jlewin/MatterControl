@@ -133,7 +133,7 @@ namespace MatterHackers.MatterControl
 			};
 			this.AddChild(row);
 
-			row.AddChild(new IconButton(AggContext.StaticData.LoadIcon("mh-app-logo.png", IconColor.Theme), theme)
+			row.AddChild(new IconButton(AggContext.StaticData.LoadIcon("mh-app-logo.png", theme.InvertRequired), theme)
 			{
 				VAnchor = VAnchor.Center,
 				Margin = new BorderDouble(right: 4),
