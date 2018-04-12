@@ -84,7 +84,7 @@ namespace MatterHackers.MatterControl.ActionBar
 				unloadButton.Click += (s, e) => unloadFilament.Run(printer.Connection);
 				macroButtons.AddChild(unloadButton);
 
-				this.AddChild(new SettingsItem("Filament".Localize(), macroButtons, enforceGutter: false));
+				this.AddChild(new SettingsItem("Filament".Localize(), macroButtons, theme, enforceGutter: false));
 			}
 
 			// Add the Extrude buttons
@@ -119,6 +119,7 @@ namespace MatterHackers.MatterControl.ActionBar
 			this.AddChild(new SettingsItem(
 				macroButtons == null ? "Filament".Localize() : "", // Don't put the name if we put in a macro button (it hase the name)
 				buttonContainer,
+				theme,
 				enforceGutter: false));
 
 			var moveButtonsContainer = new FlowLayoutWidget()
@@ -169,7 +170,7 @@ namespace MatterHackers.MatterControl.ActionBar
 				Margin = new BorderDouble(3, 0)
 			});
 
-			this.AddChild(new SettingsItem("Distance".Localize(), moveButtonsContainer, enforceGutter: false));
+			this.AddChild(new SettingsItem("Distance".Localize(), moveButtonsContainer, theme, enforceGutter: false));
 		}
 	}
 
@@ -225,6 +226,7 @@ namespace MatterHackers.MatterControl.ActionBar
 			GuiWidget hotendRow;
 			container.AddChild(hotendRow = new SettingsItem(
 				string.Format("{0} {1}", "Hotend".Localize(), hotendIndex + 1),
+				theme,
 				new SettingsItem.ToggleSwitchConfig()
 				{
 					Checked = false,
@@ -253,7 +255,7 @@ namespace MatterHackers.MatterControl.ActionBar
 			var settingsContext = new SettingsContext(printer, null, NamedSettingsLayers.All);
 			// TODO: make this be for the correct extruder
 			var settingsData = SettingsOrganizer.Instance.GetSettingsData(TemperatureKey);
-			var temperatureRow = SliceSettingsTabView.CreateItemRow(settingsData, settingsContext, printer, Color.Black, ApplicationController.Instance.Theme, ref tabIndex);
+			var temperatureRow = SliceSettingsTabView.CreateItemRow(settingsData, settingsContext, printer, theme, ref tabIndex);
 			container.AddChild(temperatureRow);
 
 			// Add the temperature row to the always enabled list ensuring the field can be set when disconnected
@@ -326,7 +328,7 @@ namespace MatterHackers.MatterControl.ActionBar
 				pulldownContainer.Parent.RemoveChild(pulldownContainer);
 				pulldownContainer.ClearRemovedFlag();
 				container.AddChild(
-					new SettingsItem("Material".Localize(), pulldownContainer, enforceGutter: false)
+					new SettingsItem("Material".Localize(), pulldownContainer, theme, enforceGutter: false)
 					{
 						Border = new BorderDouble(0, 1)
 					});

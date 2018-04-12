@@ -119,12 +119,11 @@ namespace MatterHackers.MatterControl
 			this.VAnchor = VAnchor.Fit;
 			this.HAnchor = HAnchor.Stretch;
 			this.Margin = 0;
-			this.PopupContent = new ApplicationSettingsWidget(theme)
+			this.PopupContent = new ApplicationSettingsWidget(ApplicationController.Instance.MenuTheme)
 			{
 				HAnchor = HAnchor.Absolute,
 				VAnchor = VAnchor.Fit,
 				Width = 500,
-				BackgroundColor = Color.White
 			};
 
 			var row = new FlowLayoutWidget()

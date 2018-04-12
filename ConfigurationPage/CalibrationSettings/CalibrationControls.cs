@@ -59,7 +59,6 @@ namespace MatterHackers.MatterControl.PrinterControls
 				this.AddChild(settingsRow = new SettingsRow(
 					"Print Leveling Plane".Localize(),
 					null,
-					theme.Colors.PrimaryTextColor,
 					theme,
 					AggContext.StaticData.LoadIcon("leveling_32x32.png", 16, 16, IconColor.Theme)));
 
@@ -109,7 +108,6 @@ namespace MatterHackers.MatterControl.PrinterControls
 					this.AddChild(settingsRow = new SettingsRow(
 						"Print Leveling Probe".Localize(),
 						null,
-						theme.Colors.PrimaryTextColor,
 						theme,
 						AggContext.StaticData.LoadIcon("probing_32x32.png", 16, 16, IconColor.Theme)));
 

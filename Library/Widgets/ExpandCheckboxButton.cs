@@ -49,10 +49,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private TextWidget textWidget;
 
-		public ExpandCheckboxButton(string text, int pointSize = 11, bool expandable = true)
+		public ExpandCheckboxButton(string text, ThemeConfig theme, int pointSize = 11, bool expandable = true)
 		{
-			var theme = ApplicationController.Instance.Theme;
-
 			imageButton = new GuiWidget()
 			{
 				MinimumSize = new Vector2((expandable) ? theme.ButtonHeight : 10, 20),
@@ -68,7 +66,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 			_expandable = expandable;
 
-			this.AddChild(textWidget = new TextWidget(text, pointSize: pointSize, textColor: ActiveTheme.Instance.PrimaryTextColor)
+			this.AddChild(textWidget = new TextWidget(text, pointSize: pointSize, textColor: theme.Colors.PrimaryTextColor)
 			{
 				VAnchor = VAnchor.Center,
 				AutoExpandBoundsToText = true

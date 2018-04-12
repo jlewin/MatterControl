@@ -187,7 +187,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			if (printer.Settings.GetValue<bool>(SettingsKey.has_heated_bed))
 			{
-				this.AddChild(new TemperatureWidgetBed(printer));
+				this.AddChild(new TemperatureWidgetBed(printer, theme));
 			}
 
 			this.OverflowButton.Name = "Printer Overflow Menu";

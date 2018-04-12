@@ -46,13 +46,15 @@ namespace MatterHackers.MatterControl.ActionBar
 		private string sliceSettingsNote = "Note: Slice Settings are applied before the print actually starts. Changes while printing will not effect the active print.".Localize();
 		private string waitingForBedToHeatMessage = "The bed is currently heating and its target temperature cannot be changed until it reaches {0}°C.\n\nYou can set the starting bed temperature in SETTINGS -> Filament -> Temperatures.\n\n{1}".Localize();
 		private string waitingForBedToHeatTitle = "Waiting For Bed To Heat".Localize();
+		private ThemeConfig theme;
 
-		public TemperatureWidgetBed(PrinterConfig printer)
+		public TemperatureWidgetBed(PrinterConfig printer, ThemeConfig theme)
 			: base(printer, "150.3°")
 		{
 			this.Name = "Bed TemperatureWidget";
 			this.DisplayCurrentTemperature();
 			this.ToolTipText = "Current bed temperature".Localize();
+			this.theme = theme;
 
 			this.ImageWidget.Image = AggContext.StaticData.LoadIcon("bed.png", IconColor.Theme);
 
@@ -87,6 +89,7 @@ namespace MatterHackers.MatterControl.ActionBar
 
 			container.AddChild(hotendRow = new SettingsItem(
 				"Heated Bed".Localize(),
+				theme,
 				new SettingsItem.ToggleSwitchConfig()
 				{
 					Checked = false,
@@ -115,7 +118,7 @@ namespace MatterHackers.MatterControl.ActionBar
 			var settingsContext = new SettingsContext(printer, null, NamedSettingsLayers.All);
 
 			var settingsData = SettingsOrganizer.Instance.GetSettingsData(SettingsKey.bed_temperature);
-			var temperatureRow = SliceSettingsTabView.CreateItemRow(settingsData, settingsContext, printer, Color.Black, ApplicationController.Instance.Theme, ref tabIndex);
+			var temperatureRow = SliceSettingsTabView.CreateItemRow(settingsData, settingsContext, printer, theme, ref tabIndex);
 			container.AddChild(temperatureRow);
 
 			alwaysEnabled.Add(hotendRow);

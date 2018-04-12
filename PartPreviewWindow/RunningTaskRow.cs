@@ -93,7 +93,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			rowContainer.AddChild(mainTitle);
 
-			expandButton = new ExpandCheckboxButton(!string.IsNullOrWhiteSpace(title) ? title : taskDetails.Title, 10)
+			expandButton = new ExpandCheckboxButton(!string.IsNullOrWhiteSpace(title) ? title : taskDetails.Title, theme, 10)
 			{
 				VAnchor = VAnchor.Center | VAnchor.Fit,
 				HAnchor = HAnchor.Fit,
@@ -102,7 +102,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			expandButton.CheckedStateChanged += (s, e) =>
 			{
-				progressBar.FillColor = expandButton.Checked ? theme.Shade : ActiveTheme.Instance.PrimaryAccentColor;
+				progressBar.FillColor = expandButton.Checked ? theme.Shade : theme.Colors.PrimaryAccentColor;
 				detailsPanel.Visible = expandButton.Checked;
 			};
 			topRow.AddChild(expandButton);

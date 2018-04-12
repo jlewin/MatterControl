@@ -90,7 +90,9 @@ namespace MatterHackers.MatterControl
 	{
 		private Dictionary<Type, HashSet<IObject3DEditor>> objectEditorsByType;
 
-		public ThemeConfig Theme { get; set; }
+		public ThemeConfig Theme { get; }
+
+		public ThemeConfig MenuTheme { get; set; }
 
 		public RunningTasksConfig Tasks { get; set; } = new RunningTasksConfig();
 
@@ -695,10 +697,26 @@ namespace MatterHackers.MatterControl
 		{
 			// Initialize the AppContext theme object which will sync its content with Agg ActiveTheme changes
 			this.Theme = new ThemeConfig();
+			this.MenuTheme = new ThemeConfig();
 
 			ActiveTheme.ThemeChanged.RegisterEvent((s, e) =>
 			{
-				this.Theme.RebuildTheme(ActiveTheme.Instance);
+				var themeColors = ActiveTheme.Instance;
+				this.Theme.RebuildTheme(themeColors);
+
+				var json = JsonConvert.SerializeObject(ActiveTheme.Instance);
+
+				var clonedColors = JsonConvert.DeserializeObject<ThemeColors>(json);
+				clonedColors.IsDarkTheme = false;
+				clonedColors.Name = "MenuColors";
+				clonedColors.PrimaryTextColor = new Color("#222");
+				clonedColors.SecondaryTextColor = new Color("#666");
+				clonedColors.PrimaryBackgroundColor = new Color("#fff");
+				clonedColors.SecondaryBackgroundColor = new Color("#ddd");
+				clonedColors.TertiaryBackgroundColor = new Color("#ccc");
+
+				this.MenuTheme.RebuildTheme(clonedColors);
+
 				this.RebuildSceneOperations();
 			}, ref unregisterEvents);
 
@@ -1248,6 +1266,8 @@ namespace MatterHackers.MatterControl
 					});
 				}
 			}
+
+			File.WriteAllText(@"c:\temp\theme.json", JsonConvert.SerializeObject(this.Theme, Formatting.Indented));
 
 			// TODO: This should be moved into the splash screen and shown instead of MainView
 			if (AggContext.OperatingSystem == OSType.Android)
@@ -2105,7 +2125,7 @@ namespace MatterHackers.MatterControl
 							progressPanel.AddChild(
 								new TextWidget(ex.Message, pointSize: theme.FontSize9, textColor: errorTextColor));
 
-							var closeButton = new TextButton("Close", theme, Color.White)
+							var closeButton = new TextButton("Close", theme)
 							{
 								BackgroundColor = theme.SlightShade,
 								HAnchor = HAnchor.Right,

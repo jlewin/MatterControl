@@ -138,8 +138,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.AddChild(
 				new SettingsItem(
 					"Color View".Localize(),
-					theme.Colors.PrimaryTextColor,
-					buttonPanel,
+					theme,
+					optionalControls: buttonPanel,
 					enforceGutter: false)
 				{
 					Margin = new BorderDouble(bottom: 2)
@@ -196,8 +196,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.AddChild(
 				new SettingsItem(
 					"Model View".Localize(),
-					theme.Colors.PrimaryTextColor,
 					buttonPanel,
+					theme,
 					enforceGutter: false));
 
 			gcodeOptions = sceneContext.RendererOptions;
@@ -254,7 +254,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				{
 					var settingsItem = new SettingsItem(
 						option.Title,
-						theme.Colors.PrimaryTextColor,
+						theme,
 						new SettingsItem.ToggleSwitchConfig()
 						{
 							Name = option.Title + " Toggle",

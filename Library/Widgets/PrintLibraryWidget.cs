@@ -158,7 +158,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			toolbar.Padding = theme.ToolbarPadding;
 			allControls.AddChild(toolbar);
 
-			var showFolders = new ExpandCheckboxButton("Folders".Localize())
+			var showFolders = new ExpandCheckboxButton("Folders".Localize(), theme)
 			{
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Fit,

@@ -132,8 +132,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.AddChild(
 				new SettingsItem(
 					"View Style".Localize(),
-					theme.Colors.PrimaryTextColor,
 					buttonPanel,
+					theme,
 					enforceGutter: false)
 				{
 					Margin = new BorderDouble(bottom: 2),
@@ -147,7 +147,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					this.AddChild(
 						new SettingsItem(
 							option.Title,
-							theme.Colors.PrimaryTextColor,
+							theme,
 							new SettingsItem.ToggleSwitchConfig()
 							{
 								Name = option.Title + " Toggle",

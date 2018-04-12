@@ -284,6 +284,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 				foreach (var group in category.Groups)
 				{
+					//////////////////////////////////////////////////////
 					if (group.Name == "Connection")
 					{
 						categoryPanel.AddChild(
@@ -597,10 +598,10 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 		internal GuiWidget CreateItemRow(SliceSettingData settingData)
 		{
-			return CreateItemRow(settingData, settingsContext, printer, theme.Colors.PrimaryTextColor, theme, ref tabIndexForItem, allUiFields);
+			return CreateItemRow(settingData, settingsContext, printer, theme, ref tabIndexForItem, allUiFields);
 		}
 
-		public static GuiWidget CreateItemRow(SliceSettingData settingData, SettingsContext settingsContext, PrinterConfig printer, Color textColor, ThemeConfig theme, ref int tabIndexForItem, Dictionary<string, UIField> fieldCache = null)
+		public static GuiWidget CreateItemRow(SliceSettingData settingData, SettingsContext settingsContext, PrinterConfig printer, ThemeConfig theme, ref int tabIndexForItem, Dictionary<string, UIField> fieldCache = null)
 		{
 			string sliceSettingValue = settingsContext.GetValue(settingData.SlicerConfigName);
 
@@ -610,7 +611,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			bool placeFieldInDedicatedRow = false;
 
 			bool fullRowSelect = settingData.DataEditType == SliceSettingData.DataEditTypes.CHECK_BOX;
-			var settingsRow = new SliceSettingsRow(printer, settingsContext, settingData, textColor, theme, fullRowSelect: fullRowSelect);
+			var settingsRow = new SliceSettingsRow(printer, settingsContext, settingData, theme, fullRowSelect: fullRowSelect);
 
 			switch (settingData.DataEditType)
 			{
@@ -652,7 +653,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					break;
 
 				case SliceSettingData.DataEditTypes.CHECK_BOX:
-					uiField = new ToggleboxField(textColor);
+					uiField = new ToggleboxField(theme.Colors.PrimaryTextColor);
 					useDefaultSavePattern = false;
 					uiField.ValueChanged += (s, e) =>
 					{
@@ -712,7 +713,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					break;
 
 				case SliceSettingData.DataEditTypes.HARDWARE_PRESENT:
-					uiField = new ToggleboxField(textColor);
+					uiField = new ToggleboxField(theme.Colors.PrimaryTextColor);
 					break;
 
 				case SliceSettingData.DataEditTypes.VECTOR2:
@@ -721,7 +722,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 				case SliceSettingData.DataEditTypes.OFFSET2:
 					placeFieldInDedicatedRow = true;
-					uiField = new ExtruderOffsetField(settingsContext, settingData.SlicerConfigName, textColor);
+					uiField = new ExtruderOffsetField(settingsContext, settingData.SlicerConfigName, theme.Colors.PrimaryTextColor);
 					break;
 #if !__ANDROID__
 				case SliceSettingData.DataEditTypes.IP_LIST:
@@ -733,7 +734,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					// Missing Setting
 					settingsRow.AddContent(new TextWidget($"Missing the setting for '{settingData.DataEditType}'.")
 					{
-						TextColor = textColor,
+						TextColor = theme.Colors.PrimaryTextColor,
 						BackgroundColor = Color.Red
 					});
 					break;
@@ -774,7 +775,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				if (settingData.QuickMenuSettings.Count > 0
 					&& settingData.SlicerConfigName == "baud_rate")
 				{
-					var dropMenu = new DropMenuWrappedField(uiField, settingData, textColor);
+					var dropMenu = new DropMenuWrappedField(uiField, settingData, theme.Colors.PrimaryTextColor);
 					dropMenu.Initialize(tabIndexForItem);
 
 					settingsRow.AddContent(dropMenu.Content);
