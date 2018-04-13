@@ -104,23 +104,33 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				{
 					Affine transform = totalTransform;
 
+					Vector2 gridOffset = gridCenterMm - gridSizeMm / 2;
+					Vector2 start = new Vector2(0, 0) + gridOffset;
+					transform.transform(ref start);
+
+					var matrix = Matrix4X4.CreateTranslation(start.X, start.Y, 0);
+
 					if (this.options.RenderBed)
 					{
 						//using (new PerformanceTimer("GCode Timer", "Render Grid"))
 						{
 							double gridLineWidths = 0.2 * layerScale;
 
-							if (graphics2D is Graphics2DOpenGL graphics2DGl)
-							{
-								GlRenderGrid(graphics2DGl, transform, gridLineWidths);
-							}
-							else
-							{
-								CreateGrid(transform);
+							//graphics2D.Render(printer.Bed.BedplateImage);
 
-								Stroke stroke = new Stroke(grid, gridLineWidths);
-								graphics2D.Render(stroke, gridColor);
-							}
+							GLHelper.Render(printer.Bed.Mesh, Color.Transparent, RenderTypes.Shaded, matrix);
+
+							//if (graphics2D is Graphics2DOpenGL graphics2DGl)
+							//{
+							//	GlRenderGrid(graphics2DGl, transform, gridLineWidths);
+							//}
+							//else
+							//{
+							//	CreateGrid(transform);
+
+							//	Stroke stroke = new Stroke(grid, gridLineWidths);
+							//	graphics2D.Render(stroke, gridColor);
+							//}
 						}
 					}
 

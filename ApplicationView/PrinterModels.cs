@@ -45,6 +45,7 @@ namespace MatterHackers.MatterControl
 	using System.ComponentModel;
 	using System.Threading;
 	using MatterHackers.Agg;
+	using MatterHackers.Agg.Image;
 	using MatterHackers.DataConverters3D;
 	using MatterHackers.GCodeVisualizer;
 	using MatterHackers.Localizations;
@@ -281,6 +282,8 @@ namespace MatterHackers.MatterControl
 
 		public GCodeRenderInfo RenderInfo { get; set; }
 
+		public ImageBuffer BedplateImage { get; private set; }
+
 		private Mesh _bedMesh;
 		public Mesh Mesh
 		{
@@ -291,7 +294,7 @@ namespace MatterHackers.MatterControl
 
 					// Load bed and build volume meshes
 					var bedGenerator = new BedMeshGenerator();
-					(_bedMesh, _buildVolumeMesh) = bedGenerator.CreatePrintBedAndVolume(Printer);
+					(_bedMesh, _buildVolumeMesh, this.BedplateImage) = bedGenerator.CreatePrintBedAndVolume(Printer);
 
 					Task.Run(() =>
 					{
