@@ -355,6 +355,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					var y = this.Size.Y / 2 - this.Image.Height / 2;
 
 					graphics2D.Render((this.Enabled) ? this.Image : this.DisabledImage, x, y);
+
+					graphics2D.Rectangle(
+						this.LocalBounds.Left,
+						this.LocalBounds.Bottom,
+						this.LocalBounds.Left + theme.MenuGutterWidth,
+						this.LocalBounds.Top, Color.Blue);
 				}
 
 				base.OnDraw(graphics2D);

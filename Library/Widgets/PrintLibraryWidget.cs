@@ -112,6 +112,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			var firstChild = toolbar.OverflowButton.Children<ImageWidget>().FirstOrDefault();
 			firstChild.Image = AggContext.StaticData.LoadIcon("fa-sort_16.png", 32, 32, theme.InvertIcons);
 
+			toolbar.OverflowButton.BackgroundColor = new Color(Color.Blue, 50);
 			toolbar.OverflowButton.Name = "Print Library View Options";
 			toolbar.Padding = theme.ToolbarPadding;
 
