@@ -29,7 +29,6 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
@@ -198,19 +197,18 @@ namespace MatterHackers.MatterControl.CustomWidgets
 	{
 		private static ImageBuffer loadingImage = AggContext.StaticData.LoadIcon("IC_32x32.png");
 
-		internal static int ItemPadding = 2;
+		internal static int ItemPadding = 0;
 
 		private TextWidget text;
-		private ThemeConfig theme;
 
 		public IconViewItem(ListViewItem item, int thumbWidth, int thumbHeight, ThemeConfig theme)
-			: base(item, thumbWidth, thumbHeight)
+			: base(item, thumbWidth, thumbHeight, theme)
 		{
-			this.theme = theme;
 			this.VAnchor = VAnchor.Fit;
 			this.HAnchor = HAnchor.Fit;
 			this.Padding = IconViewItem.ItemPadding;
 			this.Margin = new BorderDouble(6, 0, 0, 6);
+			this.Border = 2;
 
 			int scaledWidth = (int)(thumbWidth * GuiWidget.DeviceScale);
 			int scaledHeight = (int)(thumbHeight * GuiWidget.DeviceScale);

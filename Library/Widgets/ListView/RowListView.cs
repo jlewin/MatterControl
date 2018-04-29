@@ -30,27 +30,28 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
-using MatterHackers.Agg.Image;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.Library;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.CustomWidgets
 {
 	public class RowListView : FlowLayoutWidget, IListContentView
 	{
+		private ThemeConfig theme;
+
 		public int ThumbWidth { get; } = 50;
 		public int ThumbHeight { get; } = 50;
 
-		public RowListView()
+		public RowListView(ThemeConfig theme)
 			: base(FlowDirection.TopToBottom)
 		{
+			this.theme = theme;
 		}
 
 		public ListViewItemBase AddItem(ListViewItem item)
 		{
-			var detailsView = new RowViewItem(item, this.ThumbWidth, this.ThumbHeight);
+			var detailsView = new RowViewItem(item, this.ThumbWidth, this.ThumbHeight, theme);
 			this.AddChild(detailsView);
 
 			return detailsView;
@@ -91,8 +92,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private event EventHandler unregisterEvents;
 
-		public RowViewItem(ListViewItem listViewItem, int thumbWidth, int thumbHeight)
-			: base(listViewItem, thumbWidth, thumbHeight)
+		public RowViewItem(ListViewItem listViewItem, int thumbWidth, int thumbHeight, ThemeConfig theme)
+			: base(listViewItem, thumbWidth, thumbHeight, theme)
 		{
 			// Set Display Attributes
 			this.VAnchor = VAnchor.Fit;
