@@ -45,30 +45,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private TextWidget costTextWidget;
 
 		private EventHandler unregisterEvents;
+		private ThemeConfig theme;
 
-		public GCodeDetailsView(GCodeDetails gcodeDetails, int dataPointSize, int headingPointSize)
+		public GCodeDetailsView(GCodeDetails gcodeDetails, ThemeConfig theme)
 			: base(FlowDirection.TopToBottom)
 		{
-			var margin = new BorderDouble(0, 9, 0, 3);
-
-			TextWidget AddSetting(string title, string value, GuiWidget parentWidget)
-			{
-				parentWidget.AddChild(
-					new TextWidget(title + ":", textColor: ActiveTheme.Instance.PrimaryTextColor, pointSize: headingPointSize)
-					{
-						HAnchor = HAnchor.Left
-					});
-
-				var textWidget = new TextWidget(value, textColor: ActiveTheme.Instance.PrimaryTextColor, pointSize: dataPointSize)
-				{
-					HAnchor = HAnchor.Left,
-					Margin = margin
-				};
-
-				parentWidget.AddChild(textWidget);
-
-				return textWidget;
-			}
+			this.theme = theme;
 
 			// put in the print time
 			AddSetting("Print Time".Localize(), gcodeDetails.EstimatedPrintTime, this);
@@ -109,6 +91,25 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					}
 				}
 			}, ref unregisterEvents);
+		}
+
+		TextWidget AddSetting(string title, string value, GuiWidget parentWidget)
+		{
+			parentWidget.AddChild(
+				new TextWidget(title + ":", textColor: theme.Colors.PrimaryTextColor, pointSize: theme.DefaultFontSize)
+				{
+					HAnchor = HAnchor.Left
+				});
+
+			var textWidget = new TextWidget(value, textColor: ActiveTheme.Instance.PrimaryTextColor, pointSize: theme.FontSize9)
+			{
+				HAnchor = HAnchor.Left,
+				Margin = new BorderDouble(0, 9, 0, 3)
+			};
+
+			parentWidget.AddChild(textWidget);
+
+			return textWidget;
 		}
 
 		public override void OnClosed(ClosedEventArgs e)
