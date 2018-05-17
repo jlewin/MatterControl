@@ -117,6 +117,16 @@ namespace MatterHackers.MatterControl.CustomWidgets
 				}
 			}
 		}
+
+		public override void OnDraw(Graphics2D graphics2D)
+		{
+			base.OnDraw(graphics2D);
+
+			if (GuiWidget.DebugLayout)
+			{
+				graphics2D.Rectangle(this.LocalBounds, new Color(Color.Red, 50));
+			}
+		}
 	}
 
 	public class SimpleFlowButton : FlowLayoutWidget

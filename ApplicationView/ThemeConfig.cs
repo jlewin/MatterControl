@@ -74,7 +74,8 @@ namespace MatterHackers.MatterControl
 		/// </summary>
 		public bool InvertIcons => this.Colors.IsDarkTheme;
 
-		public BorderDouble ButtonSpacing { get; set; } = new BorderDouble(3, 0, 0, 0);
+		public BorderDouble ButtonSpacing { get; set; } = new BorderDouble(right: 3);
+
 		public BorderDouble ToolbarPadding { get; set; } = 3;
 
 		public LinkButtonFactory LinkButtonFactory { get; private set; }

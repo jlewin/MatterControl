@@ -56,7 +56,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 			imageButton = new GuiWidget()
 			{
-				MinimumSize = new Vector2((expandable) ? theme.ButtonHeight : 10, 20),
+				MinimumSize = new Vector2((expandable) ? theme.ButtonHeight : 10, theme.ButtonHeight),
 				VAnchor = VAnchor.Center,
 			};
 			imageButton.AddChild(imageWidget = new ImageWidget(arrowRight)
