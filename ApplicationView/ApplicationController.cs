@@ -1760,7 +1760,7 @@ namespace MatterHackers.MatterControl
 					{
 						this.ActivePrinter.Connection.CommunicationState = CommunicationStates.PreparingToPrint;
 
-						bool slicingSucceeded = await ApplicationController.Instance.SliceItemLoadOutput(
+						(bool slicingSucceeded, string finalPath) = await ApplicationController.Instance.SliceItemLoadOutput(
 							printer,
 							printer.Bed.Scene,
 							gcodeFilePath);
@@ -1768,7 +1768,7 @@ namespace MatterHackers.MatterControl
 						// Only start print if slicing completed
 						if (slicingSucceeded)
 						{
-							this.ArchiveAndStartPrint(partFilePath, gcodeFilePath, printer);
+							this.ArchiveAndStartPrint(partFilePath, finalPath, printer);
 						}
 						else
 						{
@@ -1914,7 +1914,7 @@ namespace MatterHackers.MatterControl
 		/// <param name="object3D">The IObject3D to slice</param>
 		/// <param name="gcodeFilePath">The path to write the file to</param>
 		/// <returns>A boolean indicating if the slicing operation completed without aborting</returns>
-		public async Task<bool> SliceItemLoadOutput(PrinterConfig printer, IObject3D object3D, string gcodeFilePath)
+		public async Task<(bool, string)> SliceItemLoadOutput(PrinterConfig printer, IObject3D object3D, string gcodeFilePath)
 		{
 			// Slice
 			bool slicingSucceeded = false;
@@ -1932,7 +1932,33 @@ namespace MatterHackers.MatterControl
 			// Skip loading GCode output if slicing failed
 			if (!slicingSucceeded)
 			{
-				return false;
+				return (false, gcodeFilePath);
+			}
+
+			var postProcessors = printer.Bed.Scene.Children.OfType<IGCodePostProcess>();
+			if (postProcessors.Any())
+			{
+				using (var resultStream = File.OpenRead(gcodeFilePath))
+				{
+					Stream contextStream = resultStream;
+
+					// Execute each post processor
+					foreach (var processor in postProcessors)
+					{
+						contextStream = processor.PostProcess(contextStream);
+
+						// Alway move to beginning
+						contextStream.Position = 0;
+					}
+
+					// Modify final path name
+					gcodeFilePath = Path.ChangeExtension(gcodeFilePath, ".postprocessed.gcode");
+
+					using (var finalStream = File.OpenWrite(gcodeFilePath))
+					{
+						contextStream.CopyTo(finalStream);
+					}
+				}
 			}
 
 			await ApplicationController.Instance.Tasks.Execute("Loading GCode".Localize(), (innerProgress, token) =>
@@ -1955,7 +1981,7 @@ namespace MatterHackers.MatterControl
 				return Task.CompletedTask;
 			});
 
-			return slicingSucceeded;
+			return (slicingSucceeded, gcodeFilePath);
 		}
 
 		internal GuiWidget GetViewOptionButtons(BedConfig sceneContext, PrinterConfig printer, ThemeConfig theme)
