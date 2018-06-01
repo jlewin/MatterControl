@@ -31,7 +31,9 @@ using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.CustomWidgets.TreeView;
+using MatterHackers.MatterControl.DesignTools;
 using MatterHackers.MatterControl.Library;
+using MatterHackers.MatterControl.PartPreviewWindow.View3D;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -71,11 +73,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		private static void AddTree(IObject3D item, TreeNode parent, ThemeConfig theme)
 		{
-			var node = AddItem(item, parent, theme);
+			var contextNode = (item is MeshWrapper) ? parent : AddItem(item, parent, theme);
 
-			foreach (var child in item.Children)
+			if (!(item is ITreeLeaf))
 			{
-				AddTree(child, node, theme);
+				foreach (var child in item.Children)
+				{
+					AddTree(child, contextNode, theme);
+				}
 			}
 		}
 

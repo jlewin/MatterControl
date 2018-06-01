@@ -44,7 +44,11 @@ using Newtonsoft.Json.Converters;
 
 namespace MatterHackers.MatterControl.DesignTools
 {
-	public class TextObject3D : Object3D, IPublicPropertyObject
+	public interface ITreeLeaf
+	{
+	}
+
+	public class TextObject3D : Object3D, IPublicPropertyObject,  ITreeLeaf
 	{
 		public TextObject3D()
 		{
