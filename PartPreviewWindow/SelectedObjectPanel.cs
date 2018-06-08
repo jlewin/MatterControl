@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JsonPath;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
@@ -100,7 +101,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			selectedObjectEditorColumn.AddChild(toolbar);
 
-			selectedObjectEditorColumn.Resized += (s, e) => 
+			selectedObjectEditorColumn.Resized += (s, e) =>
 			{
 				sceneContext.ViewState.SelectedObjectEditorHeight = selectedObjectEditorColumn.Height;
 			};
@@ -264,9 +265,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public GuiWidget ContentPanel { get; set; }
 
+		JsonPathContext xpathLikeResolver = new JsonPathContext();
+
 		public void SetActiveItem(IObject3D selectedItem)
 		{
-
 			var selectedItemType = selectedItem.GetType();
 
 			editButton.Enabled = (selectedItem.Children.Count > 0);
@@ -279,7 +281,24 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			var activeEditors = new List<(IObject3DEditor, IObject3D, string)>();
 
-			foreach (var child in new[] { selectedItem })
+			var editableItems = new List<IObject3D> { selectedItem };
+
+			if (selectedItem is ComponentObject3D componentObject)
+			{
+				foreach(var selector in componentObject.SurfacedEditors)
+				{
+					// Get the named property via reflection
+					// Selector example:            '$.Children<CylinderObject3D>'
+					var properties = xpathLikeResolver.Select(componentObject, selector).ToList();
+
+					// TODO: Create editor row for each property
+					// - Use the type of the property to find a matching editor (ideally all datatype -> editor functionality would resolve consistently)
+					// - Add editor row for each
+					editableItems.AddRange(properties.OfType<IObject3D>());
+				}
+			}
+
+			foreach (var child in editableItems)
 			{
 				if (ApplicationController.Instance.GetEditorsForType(child.GetType())?.FirstOrDefault() is IObject3DEditor editor)
 				{
