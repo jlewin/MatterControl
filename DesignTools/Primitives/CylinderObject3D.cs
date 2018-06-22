@@ -103,8 +103,8 @@ namespace MatterHackers.MatterControl.DesignTools
 		public static CylinderObject3D Create()
 		{
 			var item = new CylinderObject3D();
-
 			item.Rebuild(null);
+
 			return item;
 		}
 
