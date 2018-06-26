@@ -3,7 +3,7 @@
 // See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Net;
 using Markdig.Renderers;
 using MatterHackers.Agg.UI;
@@ -16,8 +16,13 @@ namespace Markdig.Agg
 		public MarkdownPage()
 		{
 			this.WindowTitle = this.HeaderText = "Markdown Tests";
-			contentRow.AddChild(new MarkdownWidget(new Uri("https://raw.githubusercontent.com/lunet-io/markdig/master/"),
-				new Uri("https://raw.githubusercontent.com/lunet-io/markdig/master/readme.md")));
+			//contentRow.AddChild(new MarkdownWidget(new Uri("https://raw.githubusercontent.com/lunet-io/markdig/master/"),
+			//	new Uri("https://raw.githubusercontent.com/lunet-io/markdig/master/readme.md")));
+		}
+
+		public override void OnLoad(EventArgs args)
+		{
+			base.OnLoad(args);
 		}
 	}
 }

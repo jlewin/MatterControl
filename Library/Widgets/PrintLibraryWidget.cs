@@ -586,6 +586,21 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				},
 				IsEnabled = (selectedListItems, listView) => true
 			});
+
+			// edit menu item
+			menuActions.Add(new PrintItemAction()
+			{
+				Title = "Markdown Import".Localize(),
+				Action = (selectedLibraryItems, listView) =>
+				{
+					UiThread.RunOnIdle(async () =>
+					{
+						await SupportSiteCollector.ResolveLinks();
+						//await SupportSiteCollector.CollectWikiPage("Main_Page");
+					});
+				},
+				IsEnabled = (selectedListItems, listView) => true
+			});
 #endif
 
 			// edit menu item
