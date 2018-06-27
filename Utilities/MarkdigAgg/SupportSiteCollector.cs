@@ -9,7 +9,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using MatterHackers.MatterControl;
 using Newtonsoft.Json;
 
 namespace Markdig.Agg
@@ -79,6 +81,78 @@ namespace Markdig.Agg
 		}
 
 		private static Dictionary<string, string> urlMap = new Dictionary<string, string>();
+
+		public static void BuildDocumentsTree()
+		{
+			var root = ProcTree(@"C:\Temp\wiki_import\Site\docs");
+			File.WriteAllText(@"c:\temp\guides2.json", JsonConvert.SerializeObject(root, Formatting.Indented));
+		}
+
+		private static HelpContainer ProcTree(string directoryPath)
+		{
+			var directoryInfo = new DirectoryInfo(directoryPath);
+
+			var container = new HelpContainer()
+			{
+				Name = directoryInfo.Name
+			};
+
+			foreach(var subdirectory in directoryInfo.GetDirectories())
+			{
+				container.Containers.Add(ProcTree(subdirectory.FullName));
+			}
+
+			foreach(var file in directoryInfo.GetFiles())
+			{
+				container.Items.Add(new GuideAsset()
+				{
+					MenuName = file.Name,
+				});
+			}
+
+			return container;
+		}
+
+		public static void AppendMarkdownExtensions()
+		{
+			var allFiles = Directory.GetFiles(@"C:\Temp\wiki_import\Site\docs", "*.md", SearchOption.AllDirectories);
+
+			var documentNames = new HashSet<string>(allFiles.Select(f => Path.GetFileNameWithoutExtension(f)));
+
+			foreach(var filePath in allFiles)
+			{
+				string markdownText = File.ReadAllText(filePath);
+
+				var document = new MarkdownDocument(new Uri("http://matterhackers.com"))
+				{
+					Markdown = markdownText
+				};
+
+				document.Parse();
+
+				foreach (var link in document.Children)
+				{
+					if (link.LinkInline.Url.Contains("#"))
+					{
+						string leftValue = link.LinkInline.Url;
+						string rightValue = "";
+
+						int splitPosition = leftValue.IndexOf("#");
+						if (splitPosition > 0)
+						{
+							rightValue = leftValue.Substring(splitPosition);
+							leftValue = leftValue.Substring(0, splitPosition) + ".md";
+
+							string linkText = leftValue + rightValue;
+
+							markdownText = Regex.Replace(markdownText, $"\\(\\s*{link.LinkInline.Url}", $"(" + linkText);
+						}
+					}
+				}
+
+				File.WriteAllText(filePath, markdownText);
+			}
+		}
 
 		public async static Task ResolveLinks()
 		{

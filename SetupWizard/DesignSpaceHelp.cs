@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 #if !__ANDROID__
 using Markdig.Agg;
@@ -40,21 +41,12 @@ using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.VectorMath;
+using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl
 {
 	public class GuideAsset
 	{
-		/// <summary>
-		/// The first level category this guide is part of
-		/// </summary>
-		public string Category;
-
-		/// <summary>
-		/// Second level category
-		/// </summary>
-		public string SubCategory;
-
 		/// <summary>
 		/// The name that is in the navigation list with categories
 		/// </summary>
@@ -70,6 +62,13 @@ namespace MatterHackers.MatterControl
 		/// be used to navigate to this guide while opening the control
 		/// </summary>
 		public string Key;
+	}
+
+	public class HelpContainer
+	{
+		public List<HelpContainer> Containers { get; set; } = new List<HelpContainer>();
+		public List<GuideAsset> Items { get; set; } = new List<GuideAsset>();
+		public string Name { get; set; }
 	}
 
 	public class DesignSpaceGuide : DialogPage
@@ -285,7 +284,7 @@ namespace MatterHackers.MatterControl
 
 			var rootNode = new TreeNode(useIcon: false)
 			{
-				Text = "Help Guides",
+				Text = "Help",
 				TextColor = theme.Colors.PrimaryTextColor,
 				PointSize = theme.DefaultFontSize,
 				TreeView = treeView,
@@ -304,29 +303,34 @@ namespace MatterHackers.MatterControl
 			TreeNode firstNode = null;
 			double maxMenuItemWidth = 0;
 
-			foreach (var guide in ApplicationController.Instance.FeatureGuides.OrderBy(g => g.MenuName))
-			{
-				var treeNode = new TreeNode(useIcon: false)
-				{
-					Text = guide.MenuName,
-					Tag = guide,
-					TextColor = theme.Colors.PrimaryTextColor,
-					PointSize = theme.DefaultFontSize,
-				};
 
-				maxMenuItemWidth = Math.Max(maxMenuItemWidth, treeNode.Width);
+			//foreach (var guide in ApplicationController.Instance.FeatureGuides.OrderBy(g => g.MenuName))
+			//{
+			//	var treeNode = new TreeNode(useIcon: false)
+			//	{
+			//		Text = guide.MenuName,
+			//		Tag = guide,
+			//		TextColor = theme.Colors.PrimaryTextColor,
+			//		PointSize = theme.DefaultFontSize,
+			//	};
 
-				if (firstNode == null)
-				{
-					firstNode = treeNode;
-				}
+			//	maxMenuItemWidth = Math.Max(maxMenuItemWidth, treeNode.Width);
 
-				nodesByID.Add(guide.MenuName, treeNode);
+			//	if (firstNode == null)
+			//	{
+			//		firstNode = treeNode;
+			//	}
 
-				rootNode.Nodes.Add(treeNode);
-			}
+			//	nodesByID.Add(guide.MenuName, treeNode);
 
-			treeView.AddChild(rootNode);
+			//	rootNode.Nodes.Add(treeNode);
+			//}
+
+			//treeView.AddChild(rootNode);
+
+			var rootContainer = JsonConvert.DeserializeObject<HelpContainer>(File.ReadAllText(@"C:\Temp\guides2.json"));
+
+			treeView.AddChild(ProcTree(rootContainer));
 
 			var splitter = new Splitter()
 			{
@@ -338,6 +342,29 @@ namespace MatterHackers.MatterControl
 			splitter.Panel1.AddChild(treeView);
 			splitter.Panel2.AddChild(rightPanel);
 			guideContainer.AddChild(splitter);
+		}
+
+		private TreeNode ProcTree(HelpContainer container)
+		{
+			var treeNode = new TreeNode(false)
+			{
+				Text = container.Name,
+			};
+
+			foreach(var child in container.Containers)
+			{
+				treeNode.Nodes.Add(ProcTree(child));
+			}
+
+			foreach (var item in container.Items)
+			{
+				treeNode.Nodes.Add(new TreeNode()
+				{
+					Text = item.MenuName
+				});
+			}
+
+			return treeNode;
 		}
 
 		public Color ChildBorderColor { get; private set; }

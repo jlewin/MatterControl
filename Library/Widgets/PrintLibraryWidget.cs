@@ -593,9 +593,11 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				Title = "Markdown Import".Localize(),
 				Action = (selectedLibraryItems, listView) =>
 				{
-					UiThread.RunOnIdle(async () =>
+					UiThread.RunOnIdle(/*async*/ () =>
 					{
-						await SupportSiteCollector.ResolveLinks();
+						SupportSiteCollector.BuildDocumentsTree();
+						//SupportSiteCollector.AppendMarkdownExtensions();
+						// await SupportSiteCollector.ResolveLinks();
 						//await SupportSiteCollector.CollectWikiPage("Main_Page");
 					});
 				},

@@ -203,7 +203,7 @@ namespace Markdig.Renderers.Agg.Inlines
 
 			if (link.IsImage) //link.IsImage)
 			{
-				renderer.WriteInline(new ImageLinkSimpleX(url)); // new ImageLinkAdvancedX(url)); //new InlineUIContainer(image));
+				//renderer.WriteInline(new ImageLinkSimpleX(url)); // new ImageLinkAdvancedX(url)); //new InlineUIContainer(image));
 			}
 			else
 			{
