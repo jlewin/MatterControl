@@ -42,6 +42,66 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.PrinterCommunication;
 	using MatterHackers.VectorMath;
 
+	public interface IThemeColorsProvider
+	{
+		void SetAccentColor(Color color);
+		IEnumerable<Color> GetColors();
+		IThemeColors GetTheme(Color color);
+		Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor);
+	}
+
+	public class ClassicThemeColors : IThemeColorsProvider
+	{
+		public IEnumerable<Color> GetColors()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void SetAccentColor(Color color)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static Dictionary<string, Color> Colors = new Dictionary<string, Color>()
+		{
+			//Dark themes
+			{ "Red - Dark", new Color(172, 25, 61) },
+			{ "Pink - Dark", new Color(220, 79, 173) },
+			{ "Orange - Dark", new Color(255, 129, 25) },
+			{ "Green - Dark", new Color(0, 138, 23) },
+			{ "Blue - Dark", new Color(0, 75, 139) },
+			{ "Teal - Dark", new Color(0, 130, 153) },
+			{ "Light Blue - Dark", new Color(93, 178, 255) },
+			{ "Purple - Dark", new Color(70, 23, 180) },
+			{ "Magenta - Dark", new Color(140, 0, 149) },
+			{ "Grey - Dark", new Color(88, 88, 88) },
+
+			//Light themes
+			{ "Red - Light", new Color(172, 25, 61) },
+			{ "Pink - Light", new Color(220, 79, 173) },
+			{ "Orange - Light", new Color(255, 129, 25) },
+			{ "Green - Light", new Color(0, 138, 23) },
+			{ "Blue - Light", new Color(0, 75, 139) },
+			{ "Teal - Light", new Color(0, 130, 153) },
+			{ "Light Blue - Light", new Color(93, 178, 255) },
+			{ "Purple - Light", new Color(70, 23, 180) },
+			{ "Magenta - Light", new Color(140, 0, 149) },
+			{ "Grey - Light", new Color(88, 88, 88) },
+		};
+
+		public bool DarkTheme { get; set; }
+
+		public IThemeColors GetTheme(Color color)
+		{
+			return ThemeColors.Create("Unknown", color, this.DarkTheme);
+		}
+
+		public Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor)
+		{
+			return ThemeColors.GetAdjustedAccentColor(accentColor, backgroundColor);
+		}
+	}
+
 	public class ThemeConfig
 	{
 		public static ImageBuffer RestoreNormal { get; private set; }
@@ -175,6 +235,24 @@ namespace MatterHackers.MatterControl
 		public BorderDouble SeparatorMargin { get; }
 
 		public ImageBuffer GeneratingThumbnailIcon { get; private set; }
+
+		public IThemeColorsProvider ThemeProvider { get; set; } = new ClassicThemeColors();
+
+		public void SetTheme(Color color)
+		{
+			var theme = this.ThemeProvider.GetTheme(color);
+
+			UiThread.RunOnIdle(() =>
+			{
+				UserSettings.Instance.set(UserSettingsKey.ActiveThemeName, theme.Name);
+
+				//Set new user selected Default
+				ActiveTheme.Instance = theme;
+
+				// Explicitly fire ReloadAll in response to user interaction
+				ApplicationController.Instance.ReloadAll();
+			});
+		}
 
 		public GuiWidget CreateSearchButton()
 		{

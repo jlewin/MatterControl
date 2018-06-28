@@ -1284,18 +1284,27 @@ namespace MatterHackers.MatterControl
 		internal static void LoadTheme()
 		{
 			string activeThemeName = UserSettings.Instance.get(UserSettingsKey.ActiveThemeName);
-			if (!string.IsNullOrEmpty(activeThemeName))
+
+			Color themeColor;
+
+			if (!string.IsNullOrEmpty(activeThemeName)
+				&& ClassicThemeColors.Colors.TryGetValue(activeThemeName, out Color classicThemeColor))
 			{
-				ActiveTheme.Instance = ActiveTheme.GetThemeColors(activeThemeName);
+				themeColor = classicThemeColor;
 			}
-			else if (!string.IsNullOrEmpty(OemSettings.Instance.ThemeColor))
+			else if (!string.IsNullOrEmpty(OemSettings.Instance.ThemeColor)
+				&& ClassicThemeColors.Colors.TryGetValue(OemSettings.Instance.ThemeColor, out Color oemThemeColor))
 			{
-				ActiveTheme.Instance = ActiveTheme.GetThemeColors(OemSettings.Instance.ThemeColor);
+				activeThemeName = OemSettings.Instance.ThemeColor;
+				themeColor = oemThemeColor;
 			}
 			else
 			{
-				ActiveTheme.Instance = ActiveTheme.GetThemeColors("Blue - Light");
+				activeThemeName = ClassicThemeColors.Colors.Keys.First();
+				themeColor = ClassicThemeColors.Colors[activeThemeName];
 			}
+
+			ActiveTheme.Instance = ThemeColors.Create(activeThemeName, themeColor, activeThemeName.Contains("Dark"));
 		}
 
 		public static ApplicationController Instance

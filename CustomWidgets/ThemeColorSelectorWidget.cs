@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017, Kevin Pope, John Lewin
+Copyright (c) 2018, Kevin Pope, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,114 +31,51 @@ using System;
 using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
-using MatterHackers.MatterControl.ConfigurationPage;
-using MatterHackers.MatterControl.SlicerConfiguration;
+using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl
 {
 	public class ThemeColorSelectorWidget : FlowLayoutWidget
 	{
-		private ThemePreviewButton darkPreviewButton;
-		private ThemePreviewButton lightPreviewButton;
+		private int containerHeight = (int)(20 * GuiWidget.DeviceScale);
+		private Action<Color> previewTheme;
 
-		private int containerHeight = (int)(30 * GuiWidget.DeviceScale + .5);
-		private int colorSelectSize = (int)(28 * GuiWidget.DeviceScale + .5);
-
-		public ThemeColorSelectorWidget(ThemePreviewButton darkPreview, ThemePreviewButton lightPreview)
+		public ThemeColorSelectorWidget(Action<Color> previewTheme)
 		{
 			this.Padding = new BorderDouble(2, 0);
+			this.previewTheme = previewTheme;
 
-			this.darkPreviewButton = darkPreview;
-			this.lightPreviewButton = lightPreview;
+			var themeColors = ClassicThemeColors.Colors;
 
-			int themeCount = ActiveTheme.AvailableThemes.Count;
-
-			var allThemes = ActiveTheme.AvailableThemes;
-
-			int index = 0;
-			for (int x = 0; x < themeCount / 2; x++)
+			foreach(var color in themeColors.Values.Take(themeColors.Count /2))
 			{
-				var themeButton = CreateThemeButton(allThemes[index], index);
+				var themeButton = CreateThemeButton(color);
 				themeButton.Width = containerHeight;
 
 				this.AddChild(themeButton);
-
-				index++;
 			}
-
-			this.Width = containerHeight * (themeCount / 2);
 		}
 
-		private int hoveredThemeIndex = 0;
-		private int midPoint = ActiveTheme.AvailableThemes.Count / 2;
-
-		public Button CreateThemeButton(IThemeColors darkTheme, int darkThemeIndex)
+		public ColorButton CreateThemeButton(Color color)
 		{
-			var normal = new GuiWidget(colorSelectSize, colorSelectSize);
-			normal.BackgroundColor = darkTheme.SourceColor;
-
-			var hover = new GuiWidget(colorSelectSize, colorSelectSize);
-			hover.BackgroundColor = darkTheme.SourceColor;
-
-			var pressed = new GuiWidget(colorSelectSize, colorSelectSize);
-			pressed.BackgroundColor = darkTheme.SourceColor;
-
-			var disabled = new GuiWidget(colorSelectSize, colorSelectSize);
-
-			int lightThemeIndex = darkThemeIndex + midPoint;
-			var lightTheme = ActiveTheme.AvailableThemes[lightThemeIndex];
-
-			var colorButton = new Button(0, 0, new ButtonViewStates(normal, hover, pressed, disabled));
-			colorButton.Cursor = Cursors.Hand;
+			var colorButton = new ColorButton(color)
+			{
+				Cursor = Cursors.Hand,
+				Width = containerHeight,
+				Height = containerHeight,
+				Margin = 2
+			};
 			colorButton.Click += (s, e) =>
 			{
-				// Determine if we should set the dark or light version of the theme
-				var activeThemeIndex = ActiveTheme.AvailableThemes.IndexOf(ActiveTheme.Instance);
-
-				bool useLightTheme = activeThemeIndex >= midPoint;
-
-				SetTheme(darkThemeIndex, useLightTheme);
+				ApplicationController.Instance.Theme.SetTheme(colorButton.BackgroundColor);
 			};
 
 			colorButton.MouseEnterBounds += (s, e) =>
 			{
-				darkPreviewButton.SetThemeColors(darkTheme);
-				lightPreviewButton.SetThemeColors(lightTheme);
-
-				hoveredThemeIndex = darkThemeIndex;
-			};
-
-			colorButton.MouseLeaveBounds += (s, e) =>
-			{
-				// darkPreviewButton.SetThemeColors(ActiveTheme.Instance);
+				previewTheme(colorButton.BackgroundColor);
 			};
 
 			return colorButton;
-		}
-
-		private static void SetTheme(int themeIndex, bool useLightTheme)
-		{
-			if (useLightTheme)
-			{
-				themeIndex += (ActiveTheme.AvailableThemes.Count / 2);
-			}
-
-			// save it for this printer
-			SetTheme(ActiveTheme.AvailableThemes[themeIndex].Name);
-		}
-
-		public static void SetTheme(string themeName)
-		{
-			UiThread.RunOnIdle(() =>
-			{
-				UserSettings.Instance.set(UserSettingsKey.ActiveThemeName, themeName);
-
-				//Set new user selected Default
-				ActiveTheme.Instance = ActiveTheme.GetThemeColors(themeName);
-
-				// Explicitly fire ReloadAll in response to user interaction
-				ApplicationController.Instance.ReloadAll();
-			});
 		}
 	}
 }

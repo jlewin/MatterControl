@@ -360,27 +360,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				Margin = new BorderDouble(left: 30)
 			};
 
-			// Determine if we should set the dark or light version of the theme
-			var activeThemeIndex = ActiveTheme.AvailableThemes.IndexOf(ApplicationController.Instance.Theme.Colors);
-
-			var midPoint = ActiveTheme.AvailableThemes.Count / 2;
-
-			int darkThemeIndex;
-			int lightThemeIndex;
-
-			bool isLightTheme = activeThemeIndex >= midPoint;
-			if (isLightTheme)
+			var colorsProvider = new ClassicThemeColors()
 			{
-				lightThemeIndex = activeThemeIndex;
-				darkThemeIndex = activeThemeIndex - midPoint;
-			}
-			else
-			{
-				darkThemeIndex = activeThemeIndex;
-				lightThemeIndex = activeThemeIndex + midPoint;
-			}
+				DarkTheme = true
+			};
 
-			var darkPreview = new ThemePreviewButton(ActiveTheme.AvailableThemes[darkThemeIndex], !isLightTheme)
+			var darkPreview = new ThemePreviewButton(theme, colorsProvider,  true)
 			{
 				HAnchor = HAnchor.Absolute,
 				VAnchor = VAnchor.Absolute,
@@ -389,17 +374,29 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				Margin = new BorderDouble(5, 15, 10, 10)
 			};
 
-			var lightPreview = new ThemePreviewButton(ActiveTheme.AvailableThemes[lightThemeIndex], isLightTheme)
+			colorsProvider = new ClassicThemeColors()
+			{
+				DarkTheme = false
+			};
+
+			var lightPreview = new ThemePreviewButton(theme, colorsProvider, true)
 			{
 				HAnchor = HAnchor.Absolute,
 				VAnchor = VAnchor.Absolute,
 				Width = 80,
 				Height = 65,
 				Margin = new BorderDouble(5, 15, 10, 10)
+			};
+
+
+			Action<Color> previewTheme = (color) =>
+			{
+				darkPreview.PreviewTheme(color);
+				lightPreview.PreviewTheme(color);
 			};
 
 			// Add color selector
-			container.AddChild(new ThemeColorSelectorWidget(darkPreview, lightPreview)
+			container.AddChild(new ThemeColorSelectorWidget(previewTheme)
 			{
 				Margin = new BorderDouble(right: 5)
 			});
@@ -417,6 +414,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 
 			return container;
 		}
+
+		public void PreviewTheme(Color color)
+		{
+
+		}
+
 
 		[Conditional("DEBUG")]
 		private void GenerateLocalizationValidationFile()
