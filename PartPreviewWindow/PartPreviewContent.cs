@@ -62,7 +62,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				VAnchor = VAnchor.Stretch,
 				HAnchor = HAnchor.Stretch,
-				BackgroundColor = ActiveTheme.Instance.PrimaryBackgroundColor,
+				BackgroundColor = theme.ActiveTabColor,
 				BorderColor = theme.MinimalShade,
 				Border = new BorderDouble(left: 1),
 				NewTabPage = () =>

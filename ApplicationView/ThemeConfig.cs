@@ -34,6 +34,8 @@ using MatterHackers.Agg.UI;
 namespace MatterHackers.MatterControl
 {
 	using System.Collections.Generic;
+	using System.IO;
+	using System.Linq;
 	using Agg.Image;
 	using CustomWidgets;
 	using MatterHackers.Agg.Platform;
@@ -42,6 +44,183 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.PrinterCommunication;
 	using MatterHackers.VectorMath;
 	using Newtonsoft.Json;
+	using Newtonsoft.Json.Serialization;
+
+	public interface IColorTheme
+	{
+		IEnumerable<Color> GetColors();
+		ThemeSet GetTheme(Color accentColor);
+	}
+
+	public class AltThemeColors : IColorTheme
+	{
+		public AltThemeColors()	{ }
+
+		public IEnumerable<Color> GetColors()
+		{
+			return new[]
+			{
+				Color.Red,
+				Color.Blue,
+				Color.Green
+			};
+		}
+
+		public ThemeSet GetTheme(Color accentColor)
+		{
+			var primaryBackgroundColor = new Color("#003F69");
+
+			var colors = new ThemeColors
+			{
+				IsDarkTheme = true,
+				Name = "xxx",
+				SourceColor = accentColor,
+				PrimaryBackgroundColor = primaryBackgroundColor,
+				SecondaryBackgroundColor = new Color("#1B511C"),
+				TertiaryBackgroundColor = new Color("#7A1F1F"),
+				PrimaryTextColor = new Color("#FFFFFF"),
+				SecondaryTextColor = new Color("#C8C8C8"),
+
+				PrimaryAccentColor = GetAdjustedAccentColor(accentColor, primaryBackgroundColor)
+			};
+
+			var theme = new ThemeConfig()
+			{
+				Colors = colors
+			};
+
+			return new ThemeSet()
+			{
+				Theme = theme,
+				MenuTheme = theme
+			};
+		}
+
+		public Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor)
+		{
+			return ThemeColors.GetAdjustedAccentColor(accentColor, backgroundColor);
+		}
+	}
+
+	public class ClassicThemeColors : IColorTheme
+	{
+		public ClassicThemeColors(bool darkTheme)
+		{
+			this.DarkTheme = darkTheme;
+		}
+
+		public IEnumerable<Color> GetColors()
+		{
+			throw new NotImplementedException();
+		}
+
+		public static Dictionary<string, Color> Colors = new Dictionary<string, Color>()
+		{
+			//Dark themes
+			{ "Red - Dark", new Color(172, 25, 61) },
+			{ "Pink - Dark", new Color(220, 79, 173) },
+			{ "Orange - Dark", new Color(255, 129, 25) },
+			{ "Green - Dark", new Color(0, 138, 23) },
+			{ "Blue - Dark", new Color(0, 75, 139) },
+			{ "Teal - Dark", new Color(0, 130, 153) },
+			{ "Light Blue - Dark", new Color(93, 178, 255) },
+			{ "Purple - Dark", new Color(70, 23, 180) },
+			{ "Magenta - Dark", new Color(140, 0, 149) },
+			{ "Grey - Dark", new Color(88, 88, 88) },
+
+			//Light themes
+			{ "Red - Light", new Color(172, 25, 61) },
+			{ "Pink - Light", new Color(220, 79, 173) },
+			{ "Orange - Light", new Color(255, 129, 25) },
+			{ "Green - Light", new Color(0, 138, 23) },
+			{ "Blue - Light", new Color(0, 75, 139) },
+			{ "Teal - Light", new Color(0, 130, 153) },
+			{ "Light Blue - Light", new Color(93, 178, 255) },
+			{ "Purple - Light", new Color(70, 23, 180) },
+			{ "Magenta - Light", new Color(140, 0, 149) },
+			{ "Grey - Light", new Color(88, 88, 88) },
+		};
+
+		public bool DarkTheme { get; set; }
+
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//////////////////
+		//DefaultThumbView.ThumbColor = new Color(colors.PrimaryTextColor, 30);
+
+		public ThemeSet GetTheme(Color accentColor)
+		{
+			var colors = ThemeColors.Create("Unknown", accentColor, this.DarkTheme);
+
+			var json = JsonConvert.SerializeObject(colors);
+
+			var clonedColors = JsonConvert.DeserializeObject<ThemeColors>(json);
+			clonedColors.IsDarkTheme = false;
+			clonedColors.Name = "MenuColors";
+			clonedColors.PrimaryTextColor = new Color("#222");
+			clonedColors.SecondaryTextColor = new Color("#666");
+			clonedColors.PrimaryBackgroundColor = new Color("#fff");
+			clonedColors.SecondaryBackgroundColor = new Color("#ddd");
+			clonedColors.TertiaryBackgroundColor = new Color("#ccc");
+
+			return new ThemeSet()
+			{
+				Theme = BuildTheme(colors),
+				MenuTheme = BuildTheme(clonedColors)
+			};
+		}
+
+		private Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor)
+		{
+			return ThemeColors.GetAdjustedAccentColor(accentColor, backgroundColor);
+		}
+
+		private ThemeConfig BuildTheme(ThemeColors colors)
+		{
+			var theme = new ThemeConfig();
+
+			theme.Colors = colors;
+
+			theme.ActiveTabColor = theme.ResolveColor(
+				colors.TertiaryBackgroundColor,
+				new Color(
+					Color.White,
+					(colors.IsDarkTheme) ? 3 : 25));
+			theme.TabBarBackground = theme.ActiveTabColor.AdjustLightness(0.85).ToColor();
+			theme.ThumbnailBackground = theme.MinimalShade;
+			theme.AccentMimimalOverlay = new Color(theme.Colors.PrimaryAccentColor, 50);
+			theme.InteractionLayerOverlayColor = new Color(theme.ActiveTabColor, 240);
+			theme.InactiveTabColor = theme.ResolveColor(theme.ActiveTabColor, new Color(Color.White, theme.MinimalShade.alpha));
+			theme.SplitterBackground = theme.ActiveTabColor.AdjustLightness(0.87).ToColor();
+
+			theme.PresetColors = new PresetColors();
+
+			theme.SlightShade = new Color(0, 0, 0, 40);
+			theme.MinimalShade = new Color(0, 0, 0, 15);
+			theme.Shade = new Color(0, 0, 0, 120);
+			theme.DarkShade = new Color(0, 0, 0, 190);
+
+			return theme;
+		}
+
+	}
 
 	public class ThemeConfig
 	{
@@ -72,7 +251,7 @@ namespace MatterHackers.MatterControl
 		/// <summary>
 		/// Indicates if icons should be inverted due to black source images on a dark theme
 		/// </summary>
-		public bool InvertIcons => this.Colors.IsDarkTheme;
+		public bool InvertIcons => this?.Colors.IsDarkTheme ?? false;
 
 		internal void ApplyPrimaryActionStyle(GuiWidget guiWidget)
 		{
@@ -138,18 +317,19 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-		public IThemeColors Colors { get; set; }
-		public PresetColors PresetColors { get; set; } = new PresetColors();
+		public ThemeColors Colors { get; set; } = new ThemeColors();
 
-		public Color SlightShade { get; } = new Color(0, 0, 0, 40);
-		public Color MinimalShade { get; } = new Color(0, 0, 0, 15);
-		public Color Shade { get; } = new Color(0, 0, 0, 120);
-		public Color DarkShade { get; } = new Color(0, 0, 0, 190);
+		public PresetColors PresetColors { get; set; }
+
+		public Color SlightShade { get; set; }
+		public Color MinimalShade { get; set; }
+		public Color Shade { get; set; }
+		public Color DarkShade { get; set; }
 
 		public Color ActiveTabColor { get; set; }
 		public Color TabBarBackground { get; set; }
 		public Color InactiveTabColor { get; set; }
-		public Color InteractionLayerOverlayColor { get; private set; }
+		public Color InteractionLayerOverlayColor { get; set; }
 
 		public TextWidget CreateHeading(string text)
 		{
@@ -159,8 +339,8 @@ namespace MatterHackers.MatterControl
 			};
 		}
 
-		public Color SplitterBackground { get; private set; } = new Color(0, 0, 0, 60);
-		public Color TabBodyBackground { get; private set; }
+		public Color SplitterBackground { get; set; } = new Color(0, 0, 0, 60);
+		public Color TabBodyBackground { get; set; }
 		public Color ToolbarButtonBackground { get; set; } = Color.Transparent;
 		public Color ToolbarButtonHover => this.SlightShade;
 		public Color ToolbarButtonDown => this.MinimalShade;
@@ -182,49 +362,25 @@ namespace MatterHackers.MatterControl
 		public ThemeConfig()
 		{
 			this.SeparatorMargin = (this.ButtonSpacing * 2).Clone(left: this.ButtonSpacing.Right);
+
+
+			//this.Colors = ActiveTheme.Instance as ThemeColors;
+
+			this.RebuildTheme();
 		}
 
-		public void RebuildTheme(IThemeColors colors)
+		public void RebuildTheme()
 		{
 			int size = (int)(16 * GuiWidget.DeviceScale);
 
-			if (AggContext.OperatingSystem == OSType.Android)
-			{
-				restoreNormal = ColorCircle(size, new Color(200, 0, 0));
-			}
-			else
-			{
-				restoreNormal = ColorCircle(size, Color.Transparent);
-			}
-
+			// In TouchScreenMode, use red icon as no hover, otherwise transparent and red on hover
+			restoreNormal = ColorCircle(size, (GuiWidget.TouchScreenMode) ? new Color(200, 0, 0) : Color.Transparent);
 			restoreHover = ColorCircle(size, new Color("#DB4437"));
 			restorePressed = ColorCircle(size, new Color(255, 0, 0));
 
-			this.Colors = colors;
-
 			this.GeneratingThumbnailIcon = AggContext.StaticData.LoadIcon("building_thumbnail_40x40.png", 40, 40, this.InvertIcons);
 
-			DefaultThumbView.ThumbColor = new Color(colors.PrimaryTextColor, 30);
-
-			this.TabBodyBackground = this.ResolveColor(
-				colors.TertiaryBackgroundColor,
-				new Color(
-					Color.White,
-					(colors.IsDarkTheme) ? 3 : 25));
-
-			this.ActiveTabColor = this.TabBodyBackground;
-			this.TabBarBackground = this.ActiveTabColor.AdjustLightness(0.85).ToColor();
-			this.ThumbnailBackground = this.MinimalShade;
-			this.AccentMimimalOverlay = new Color(this.Colors.PrimaryAccentColor, 50);
-
-			// Active tab color with slight transparency
-			this.InteractionLayerOverlayColor = new Color(this.ActiveTabColor, 240);
-
-			float alpha0to1 = (colors.IsDarkTheme ? 20 : 60) / 255.0f;
-
-			this.InactiveTabColor = ResolveColor(colors.PrimaryBackgroundColor, new Color(Color.White, this.SlightShade.alpha));
-
-			this.SplitterBackground = this.ActiveTabColor.AdjustLightness(0.87).ToColor();
+			DefaultThumbView.ThumbColor = new Color(this.Colors.PrimaryTextColor, 30);
 		}
 
 		public JogControls.MoveButton CreateMoveButton(PrinterConfig printer, string label, PrinterConnection.Axis axis, double movementFeedRate, bool levelingButtons = false)

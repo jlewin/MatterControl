@@ -111,7 +111,7 @@ namespace MatterHackers.MatterControl
 
 			additionalInfoContainer = new FlowLayoutWidget(FlowDirection.TopToBottom)
 			{
-				BackgroundColor = theme.Colors.SecondaryBackgroundColor,
+				BackgroundColor = theme.MinimalShade,
 				HAnchor = HAnchor.Stretch,
 				Padding = new BorderDouble(left: 6, top: 6),
 				Visible = false

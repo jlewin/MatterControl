@@ -54,7 +54,7 @@ namespace MatterHackers.MatterControl
 
 			this.AnchorAll();
 			this.Name = "WidescreenPanel";
-			this.BackgroundColor = theme.Colors.PrimaryBackgroundColor;
+			this.BackgroundColor = theme.ActiveTabColor;
 
 			// Push TouchScreenMode into GuiWidget
 			GuiWidget.TouchScreenMode = UserSettings.Instance.IsTouchScreen;

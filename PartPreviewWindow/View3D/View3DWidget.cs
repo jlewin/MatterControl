@@ -100,7 +100,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.viewControls3D = viewControls3D;
 			this.theme = theme;
 			this.Name = "View3DWidget";
-			this.BackgroundColor = theme.ActiveTabColor;
+			this.BackgroundColor = theme.ResolveColor(theme.ActiveTabColor, new Color(Color.Black, 20));
 			this.Border = new BorderDouble(top: 1);
 			this.BorderColor = theme.MinimalShade;
 			this.HAnchor = HAnchor.Stretch; //	HAnchor.MaxFitOrStretch,

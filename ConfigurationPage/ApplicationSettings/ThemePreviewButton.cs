@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017, John Lewin
+Copyright (c) 2018, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using MatterHackers.Agg;
-using MatterHackers.Agg.ImageProcessing;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.VectorMath;
@@ -38,18 +37,32 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 	public class ThemePreviewButton : GuiWidget
 	{
 		private GuiWidget accentColor;
+		private Color activeColor;
+		private IColorTheme colorProvider;
 		private GuiWidget secondaryBackground;
 		private GuiWidget tertiaryBackground;
 		private GuiWidget icon1;
 		private GuiWidget icon2;
 		private GuiWidget icon3;
-		private string themeName = "";
+		private ThemeConfig theme;
+		private ThemeSet themeset;
+		private IThemeColors themeColors;
 
-		public ThemePreviewButton(IThemeColors theme, bool isActive)
+		public ThemePreviewButton(ThemeConfig theme, IColorTheme colorProvider, bool isActive)
 		{
+			this.theme = theme;
+			activeColor = theme.Colors.SourceColor;
+
+			var primaryAccentColor = theme.Colors.PrimaryAccentColor;
+
+			themeset = colorProvider.GetTheme(activeColor);
+
+			themeColors = themeset.Theme.Colors;
+
 			this.Padding = 8;
-			this.BackgroundColor = theme.PrimaryBackgroundColor;
+			this.BackgroundColor = theme.ActiveTabColor;
 			this.Cursor = Cursors.Hand;
+			this.colorProvider = colorProvider;
 
 			secondaryBackground = new GuiWidget()
 			{
@@ -57,7 +70,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				VAnchor = VAnchor.Stretch,
 				Margin = new BorderDouble(0),
 				Width = 20,
-				BackgroundColor = theme.SecondaryBackgroundColor,
+				BackgroundColor = theme.MinimalShade,
 			};
 			this.AddChild(secondaryBackground);
 
@@ -67,7 +80,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				VAnchor = VAnchor.Absolute | VAnchor.Top,
 				Height = 6,
 				Margin = new BorderDouble(left: 25),
-				BackgroundColor = theme.PrimaryAccentColor,
+				BackgroundColor = primaryAccentColor,
 			};
 			this.AddChild(accentColor);
 
@@ -78,7 +91,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				Height = 8,
 				Width = 8,
 				Margin = new BorderDouble(left: 6, top: 6),
-				BackgroundColor = theme.PrimaryAccentColor,
+				BackgroundColor = primaryAccentColor,
 			};
 			this.AddChild(icon1);
 
@@ -89,7 +102,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				Height = 8,
 				Width = 8,
 				Margin = new BorderDouble(left: 6, top: 20),
-				BackgroundColor = theme.PrimaryAccentColor,
+				BackgroundColor = primaryAccentColor,
 			};
 			this.AddChild(icon2);
 
@@ -100,7 +113,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				Height = 8,
 				Width = 8,
 				Margin = new BorderDouble(left: 6, top: 34),
-				BackgroundColor = theme.PrimaryAccentColor,
+				BackgroundColor = primaryAccentColor,
 			};
 			this.AddChild(icon3);
 
@@ -110,7 +123,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				VAnchor = VAnchor.Absolute | VAnchor.Top,
 				Height = 37,
 				Margin = new BorderDouble(left: 25, top: 12),
-				BackgroundColor = theme.TertiaryBackgroundColor,
+				BackgroundColor = theme.SlightShade,
 			};
 			this.AddChild(tertiaryBackground);
 
@@ -124,35 +137,31 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				});
 			}
 
-			var overlay = new GuiWidget();
-			overlay.AnchorAll();
-			overlay.Cursor = Cursors.Hand;
+			var overlay = new GuiWidget
+			{
+				VAnchor = VAnchor.Stretch,
+				HAnchor = HAnchor.Stretch,
+				Cursor = Cursors.Hand
+			};
 			overlay.Click += (s, e) =>
 			{
-				ThemeColorSelectorWidget.SetTheme(this.themeName);
+				// Activate the theme
+				AppContext.SetTheme(activeColor);
 			};
 
 			this.AddChild(overlay);
 		}
 
-		public void SetThemeColors(IThemeColors theme)
+		public void PreviewTheme(Color sourceColor)
 		{
-			accentColor.BackgroundColor = theme.PrimaryAccentColor;
-			icon1.BackgroundColor = theme.PrimaryAccentColor;
-			icon2.BackgroundColor = theme.PrimaryAccentColor;
-			icon3.BackgroundColor = theme.PrimaryAccentColor;
+			var adjustedAccentColor = sourceColor;
 
-			tertiaryBackground.BackgroundColor = theme.TertiaryBackgroundColor;
-			secondaryBackground.BackgroundColor = theme.SecondaryBackgroundColor;
+			accentColor.BackgroundColor = adjustedAccentColor;
+			icon1.BackgroundColor = adjustedAccentColor;
+			icon2.BackgroundColor = adjustedAccentColor;
+			icon3.BackgroundColor = adjustedAccentColor;
 
-			this.BackgroundColor = theme.PrimaryBackgroundColor;
-			this.themeName = theme.Name;
-		}
-
-		public override void OnClick(MouseEventArgs mouseEvent)
-		{
-			ThemeColorSelectorWidget.SetTheme(this.themeName);
-			base.OnClick(mouseEvent);
+			activeColor = adjustedAccentColor;
 		}
 	}
 }

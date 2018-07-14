@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2018, Kevin Pope, John Lewin
 All rights reserved.
 
@@ -28,55 +28,62 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
-using MatterHackers.MatterControl.PartPreviewWindow;
 
-namespace MatterHackers.MatterControl
+namespace MatterHackers.MatterControl.ConfigurationPage
 {
-	public class ThemeColorSelectorWidget : FlowLayoutWidget
+	public class ThemeColorPanel : FlowLayoutWidget
 	{
-		private int containerHeight = (int)(20 * GuiWidget.DeviceScale);
-		private Action<Color> previewTheme;
-
-		public ThemeColorSelectorWidget(Action<Color> previewTheme)
+		public ThemeColorPanel(ThemeConfig theme)
+			: base (FlowDirection.TopToBottom)
 		{
-			this.Padding = new BorderDouble(2, 0);
-			this.previewTheme = previewTheme;
-
-			var themeColors = ClassicThemeColors.Colors;
-
-			foreach(var color in themeColors.Values.Take(themeColors.Count /2))
+			var previewWidget = new ThemePreviewButton(theme, ApplicationController.ThemeProvider, true)
 			{
-				var themeButton = CreateThemeButton(color);
-				themeButton.Width = containerHeight;
-
-				this.AddChild(themeButton);
-			}
-		}
-
-		public ColorButton CreateThemeButton(Color color)
-		{
-			var colorButton = new ColorButton(color)
-			{
-				Cursor = Cursors.Hand,
-				Width = containerHeight,
-				Height = containerHeight,
-				Margin = 2
-			};
-			colorButton.Click += (s, e) =>
-			{
-				AppContext.SetTheme(colorButton.BackgroundColor);
+				HAnchor = HAnchor.Absolute,
+				VAnchor = VAnchor.Absolute,
+				Width = 80,
+				Height = 65,
+				Margin = new BorderDouble(5, 15, 10, 10)
 			};
 
-			colorButton.MouseEnterBounds += (s, e) =>
+			Action<Color> previewTheme = (color) =>
 			{
-				previewTheme(colorButton.BackgroundColor);
+				previewWidget.PreviewTheme(color);
 			};
 
-			return colorButton;
+			// Add color selector
+			this.AddChild(new ThemeColorSelectorWidget(previewTheme)
+			{
+				Margin = new BorderDouble(right: 5)
+			});
+
+			var previewPanel = new FlowLayoutWidget()
+			{
+				HAnchor = HAnchor.Stretch,
+				VAnchor = VAnchor.Fit,
+			};
+
+			previewPanel.AddChild(previewWidget);
+
+			var droplist = new DropDownList("Custom", theme.Colors.PrimaryTextColor, maxHeight: 200, pointSize: theme.DefaultFontSize)
+			{
+				BorderColor = theme.GetBorderColor(75),
+				Margin = new BorderDouble(0, 0, 10, 0)
+			};
+			droplist.AddItem("Classic Dark");
+			droplist.AddItem("Classic Light");
+			droplist.AddItem("Modern Dark");
+
+			droplist.SelectionChanged += (s, e) =>
+			{
+				ApplicationController.ThemeProvider = ApplicationController.GetColorProvider(droplist.SelectedValue);
+				UserSettings.Instance.set(UserSettingsKey.ColorThemeProviderName, droplist.SelectedValue);
+			};
+
+			previewPanel.AddChild(droplist);
+
+			this.AddChild(previewPanel);
 		}
 	}
 }
