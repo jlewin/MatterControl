@@ -75,7 +75,11 @@
     <Compile Include="AboutPage\CheckForUpdatesPage.cs" />
     <Compile Include="AboutPage\ContactFormPage.cs" />
     <Compile Include="ApplicationView\LogoSpinner.cs" />
+    <Compile Include="ApplicationView\Themes\AltColorsTheme.cs" />
+    <Compile Include="ApplicationView\Themes\ClassicColorsTheme.cs" />
+    <Compile Include="ApplicationView\Themes\SolarizedTheme.cs" />
     <Compile Include="ApplicationView\ThumbnailsConfig.cs" />
+    <Compile Include="ConfigurationPage\ApplicationSettings\ThemeColorPanel.cs" />
     <Compile Include="ConfigurationPage\PrintLeveling\LevelingPlan.cs" />
     <Compile Include="ConfigurationPage\PrintLeveling\LevelingWizardPage.cs" />
     <Compile Include="ConfigurationPage\PrintLeveling\LevelingWizardRootPage.cs" />
@@ -203,7 +207,7 @@
     <Compile Include="ActionBar\TemperatureWidgetExtruder.cs" />
     <Compile Include="ApplicationView\ApplicationController.cs" />
     <Compile Include="ApplicationView\PrinterModels.cs" />
-    <Compile Include="ApplicationView\ThemeConfig.cs" />
+    <Compile Include="ApplicationView\Themes\ThemeConfig.cs" />
     <Compile Include="ConfigurationPage\ApplicationSettings\SettingsItem.cs" />
     <Compile Include="ConfigurationPage\ApplicationSettings\ThemePreviewButton.cs" />
     <Compile Include="ControlElements\MHNumberEdit.cs" />

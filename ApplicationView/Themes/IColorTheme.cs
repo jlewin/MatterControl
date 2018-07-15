@@ -1,5 +1,5 @@
-/*
-Copyright (c) 2018, Kevin Pope, John Lewin
+﻿/*
+Copyright (c) 2018, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,15 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using System;
-using System.Linq;
 using MatterHackers.Agg;
-using MatterHackers.Agg.UI;
-using MatterHackers.MatterControl.ConfigurationPage;
-using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl
 {
+	using System.Collections.Generic;
+
+	public interface IColorTheme
+	{
+		IEnumerable<Color> GetColors();
+		ThemeSet GetTheme(Color accentColor);
+	}
 }

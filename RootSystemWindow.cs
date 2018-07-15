@@ -75,6 +75,8 @@ namespace MatterHackers.MatterControl
 				SystemWindow.ShareSingleOsWindow = true;
 			}
 
+
+
 			string textSizeMode = UserSettings.Instance.get(UserSettingsKey.ApplicationTextSize);
 			if (!string.IsNullOrEmpty(textSizeMode))
 			{

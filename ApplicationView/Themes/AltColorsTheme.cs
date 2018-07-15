@@ -1,5 +1,5 @@
-/*
-Copyright (c) 2018, Kevin Pope, John Lewin
+﻿/*
+Copyright (c) 2018, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,51 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using System;
-using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
-using MatterHackers.MatterControl.ConfigurationPage;
-using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl
 {
+	using System.Collections.Generic;
+
+	public class AltColorsTheme : IColorTheme
+	{
+		public AltColorsTheme()	{ }
+
+		public IEnumerable<Color> GetColors()
+		{
+			return new[]
+			{
+				Color.Red,
+				Color.Blue,
+				Color.Green
+			};
+		}
+
+		public ThemeSet GetTheme(Color accentColor)
+		{
+			var primaryBackgroundColor = new Color("#003F69");
+
+			var colors = new ThemeColors
+			{
+				IsDarkTheme = true,
+				Name = "xxx",
+				SourceColor = accentColor,
+				PrimaryBackgroundColor = primaryBackgroundColor,
+				SecondaryBackgroundColor = new Color("#1B511C"),
+				TertiaryBackgroundColor = new Color("#7A1F1F"),
+				PrimaryTextColor = new Color("#FFFFFF"),
+				SecondaryTextColor = new Color("#C8C8C8"),
+
+				PrimaryAccentColor = GetAdjustedAccentColor(accentColor, primaryBackgroundColor)
+			};
+
+			return ClassicColorsTheme.ThemeFromColors(colors);
+		}
+
+		public Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor)
+		{
+			return ThemeColors.GetAdjustedAccentColor(accentColor, backgroundColor);
+		}
+	}
 }

@@ -260,7 +260,6 @@ namespace MatterControl.Tests.MatterControl
 			MatterControlUtilities.OverrideAppDataLocation(TestContext.CurrentContext.ResolveProjectPath(4));
 
 			var theme = new ThemeConfig();
-			theme.RebuildTheme(ActiveTheme.Instance);
 
 			var field = new ComPortField(new PrinterConfig(PrinterSettings.Empty), theme);
 

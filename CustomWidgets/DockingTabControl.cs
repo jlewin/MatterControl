@@ -215,7 +215,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 						{
 							Name = tabTitle + " Tab",
 							InactiveTabColor = Color.Transparent,
-							ActiveTabColor = theme.TabBodyBackground
+							ActiveTabColor = theme.ActiveTabColor
 						};
 
 					tab.CloseClicked += (s, e) =>
