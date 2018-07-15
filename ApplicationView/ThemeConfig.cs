@@ -441,6 +441,12 @@ namespace MatterHackers.MatterControl
 			};
 		}
 
+		public void ApplyBottomBorder(GuiWidget widget)
+		{
+			widget.BorderColor = this.GetBorderColor(20);
+			widget.Border = new BorderDouble(bottom: 1);
+		}
+
 		public SectionWidget ApplyBoxStyle(SectionWidget sectionWidget)
 		{
 			return ApplyBoxStyle(
