@@ -38,31 +38,23 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 	{
 		private GuiWidget accentColor;
 		private Color activeColor;
-		private IColorTheme colorProvider;
 		private GuiWidget secondaryBackground;
 		private GuiWidget tertiaryBackground;
 		private GuiWidget icon1;
 		private GuiWidget icon2;
 		private GuiWidget icon3;
 		private ThemeConfig theme;
-		private ThemeSet themeset;
-		private IThemeColors themeColors;
 
-		public ThemePreviewButton(ThemeConfig theme, IColorTheme colorProvider, bool isActive)
+		public ThemePreviewButton(ThemeConfig theme, ThemeColorPanel themeColorPanel, bool isActive)
 		{
 			this.theme = theme;
-			activeColor = theme.Colors.SourceColor;
+			activeColor = theme.Colors.PrimaryAccentColor;
 
 			var primaryAccentColor = theme.Colors.PrimaryAccentColor;
-
-			themeset = colorProvider.GetTheme(activeColor);
-
-			themeColors = themeset.Theme.Colors;
 
 			this.Padding = 8;
 			this.BackgroundColor = theme.ActiveTabColor;
 			this.Cursor = Cursors.Hand;
-			this.colorProvider = colorProvider;
 
 			secondaryBackground = new GuiWidget()
 			{
@@ -146,13 +138,27 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			overlay.Click += (s, e) =>
 			{
 				// Activate the theme
-				AppContext.SetTheme(activeColor);
+				themeColorPanel.SetThemeColor(activeColor);
 			};
 
 			this.AddChild(overlay);
 		}
 
-		public void PreviewTheme(Color sourceColor)
+		private ThemeSet _themeSet;
+
+		public ThemeSet ActiveThemeSet
+		{
+			get => _themeSet;
+			set
+			{
+				_themeSet = value;
+
+				this.BackgroundColor = _themeSet.Theme.ActiveTabColor;
+				secondaryBackground.BackgroundColor = _themeSet.Theme.MinimalShade;
+			}
+		}
+
+		public void PreviewThemeColor(Color sourceColor)
 		{
 			var adjustedAccentColor = sourceColor;
 

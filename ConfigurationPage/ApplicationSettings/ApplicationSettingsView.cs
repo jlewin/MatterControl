@@ -304,7 +304,8 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 			this.AddChild(new SettingsItem("Theme".Localize(), new GuiWidget(), theme));
 			this.AddChild(new ThemeColorPanel(theme)
 			{
-				Margin = new BorderDouble(left: 8)
+				Margin = new BorderDouble(left: 8),
+				HAnchor = HAnchor.Stretch
 			});
 
 			var aboutMatterControl = new SettingsItem("About".Localize() + " " + ApplicationController.Instance.ProductName, theme);

@@ -45,6 +45,7 @@ using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrintQueue;
+using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.PrintLibrary
 {
@@ -585,6 +586,28 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				},
 				IsEnabled = (selectedListItems, listView) => true
 			});
+
+			var xa = @"C:\Program Files\Microsoft VS Code Insiders\resources\app\extensions\theme-solarized-dark\themes\solarized-dark-color-theme.json";
+
+
+
+			menuActions.Add(new PrintItemAction()
+			{
+				Title = "Import Theme"/* Don't localize debug tool */,
+				Action = (selectedLibraryItems, listView) =>
+				{
+					var xxx = JsonConvert.DeserializeObject<VSCodeTheme>(File.ReadAllText(xa));
+
+					var themeSet = AppContext.ThemeSet;
+
+					themeSet.Theme.TabBarBackground = new Color(xxx.colors.SideBarBackground);
+					themeSet.Theme.ActiveTabColor = new Color(xxx.colors.EditorBackground);
+
+					Console.WriteLine($"\"ActiveTabColor\": \"{xxx.colors.EditorBackground}\",");
+					Console.WriteLine($"\"TabBarBackground\": \"{xxx.colors.SideBarBackground}\",");
+				},
+				IsEnabled = (selectedListItems, listView) => true
+			});
 #endif
 
 			// edit menu item
@@ -826,6 +849,20 @@ namespace MatterHackers.MatterControl.PrintLibrary
 					&& libraryAsset.ContentType == "mcx";
 				}
 			});
+		}
+
+		private class VSCodeTheme
+		{
+			public VSCodeColors colors { get; set; }
+		}
+
+		private class VSCodeColors
+		{
+			[JsonProperty(PropertyName = "sideBar.background")]
+			public string SideBarBackground { get; set; }
+
+			[JsonProperty(PropertyName = "editor.background")]
+			public string EditorBackground { get; set; }
 		}
 
 		public override void OnClosed(ClosedEventArgs e)

@@ -28,32 +28,47 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
+using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl.ConfigurationPage
 {
 	public class ThemeColorPanel : FlowLayoutWidget
 	{
+		private ThemePreviewButton previewWidget;
+		private Color lastColor;
+		private ThemeColorSelectorWidget colorSelector;
+
+		public IColorTheme ThemeProvider { get; private set; }
+
 		public ThemeColorPanel(ThemeConfig theme)
 			: base (FlowDirection.TopToBottom)
 		{
-			var previewWidget = new ThemePreviewButton(theme, ApplicationController.ThemeProvider, true)
+			string currentProvider = UserSettings.Instance.get(UserSettingsKey.ColorThemeProviderName);
+
+			if (AppContext.ThemeProviders.TryGetValue(currentProvider, out IColorTheme themeProvider))
+			{
+				this.ThemeProvider = themeProvider;
+			}
+			else
+			{
+				this.ThemeProvider = AppContext.ThemeProviders.Values.First();
+			}
+
+			previewWidget = new ThemePreviewButton(theme, this, true)
 			{
 				HAnchor = HAnchor.Absolute,
 				VAnchor = VAnchor.Absolute,
 				Width = 80,
 				Height = 65,
-				Margin = new BorderDouble(5, 15, 10, 10)
-			};
-
-			Action<Color> previewTheme = (color) =>
-			{
-				previewWidget.PreviewTheme(color);
+				Margin = new BorderDouble(5, 15, 10, 10),
+				ActiveThemeSet = AppContext.ThemeSet
 			};
 
 			// Add color selector
-			this.AddChild(new ThemeColorSelectorWidget(previewTheme)
+			this.AddChild(colorSelector = new ThemeColorSelectorWidget(this)
 			{
 				Margin = new BorderDouble(right: 5)
 			});
@@ -71,19 +86,101 @@ namespace MatterHackers.MatterControl.ConfigurationPage
 				BorderColor = theme.GetBorderColor(75),
 				Margin = new BorderDouble(0, 0, 10, 0)
 			};
-			droplist.AddItem("Classic Dark");
-			droplist.AddItem("Classic Light");
-			droplist.AddItem("Modern Dark");
+
+			int i = 0;
+
+			foreach (var item in AppContext.ThemeProviders)
+			{
+				var newItem = droplist.AddItem(item.Key);
+
+				if (item.Value == themeProvider)
+				{
+					droplist.SelectedIndex = i;
+				}
+
+				i++;
+			}
 
 			droplist.SelectionChanged += (s, e) =>
 			{
-				ApplicationController.ThemeProvider = ApplicationController.GetColorProvider(droplist.SelectedValue);
-				UserSettings.Instance.set(UserSettingsKey.ColorThemeProviderName, droplist.SelectedValue);
+				if (AppContext.ThemeProviders.TryGetValue(droplist.SelectedValue, out IColorTheme provider))
+				{
+					this.ThemeProvider = provider;
+
+					var previewColor = provider.GetColors().First();
+
+					colorSelector.RebuildColorButtons();
+
+					this.previewWidget.ActiveThemeSet = provider.GetTheme(previewColor);
+					previewWidget.PreviewThemeColor(previewColor);
+
+					UserSettings.Instance.set(UserSettingsKey.ColorThemeProviderName, droplist.SelectedValue);
+				}
 			};
 
 			previewPanel.AddChild(droplist);
 
 			this.AddChild(previewPanel);
+		}
+
+		public void PreviewTheme(Color accentColor)
+		{
+			previewWidget.PreviewThemeColor(accentColor);
+		}
+
+		public void SetThemeColor(Color accentColor)
+		{
+			lastColor = accentColor;
+			AppContext.SetTheme(ThemeProvider.GetTheme(accentColor));
+		}
+
+		public class ThemeColorSelectorWidget : FlowLayoutWidget
+		{
+			private int containerHeight = (int)(20 * GuiWidget.DeviceScale);
+			private ThemeColorPanel themeColorPanel;
+
+			public ThemeColorSelectorWidget(ThemeColorPanel themeColorPanel)
+			{
+				this.Padding = new BorderDouble(2, 0);
+				this.themeColorPanel = themeColorPanel;
+
+				this.RebuildColorButtons();
+			}
+
+			public void RebuildColorButtons()
+			{
+				this.CloseAllChildren();
+
+				foreach (var color in themeColorPanel.ThemeProvider.GetColors())
+				{
+					var themeButton = CreateThemeButton(color);
+					themeButton.Width = containerHeight;
+
+					this.AddChild(themeButton);
+				}
+			}
+
+			public ColorButton CreateThemeButton(Color color)
+			{
+				var colorButton = new ColorButton(color)
+				{
+					Cursor = Cursors.Hand,
+					Width = containerHeight,
+					Height = containerHeight,
+					Margin = 2
+				};
+				colorButton.Click += (s, e) =>
+				{
+					themeColorPanel.SetThemeColor(colorButton.BackgroundColor);
+				};
+
+				colorButton.MouseEnterBounds += (s, e) =>
+				{
+					themeColorPanel.PreviewTheme(colorButton.BackgroundColor);
+				};
+
+				return colorButton;
+			}
 		}
 	}
 }

@@ -54,8 +54,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			: base (FlowDirection.TopToBottom)
 		{
 			this.printer = printer;
-			this.BackgroundColor = theme.TabBodyBackground;
-
 			this.settingsContext = settingsContext;
 
 			settingsControlBar = new PresetsToolbar(printer, theme)

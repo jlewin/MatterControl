@@ -121,7 +121,8 @@ namespace MatterHackers.MatterControl
 			{
 				HAnchor = HAnchor.Absolute,
 				VAnchor = VAnchor.Fit,
-				Width = 500,
+				Width = 600,
+				MinimumSize = new Vector2(400, 0)
 			};
 
 			var row = new FlowLayoutWidget()

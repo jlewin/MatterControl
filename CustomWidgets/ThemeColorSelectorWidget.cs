@@ -28,55 +28,12 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
+using MatterHackers.MatterControl.ConfigurationPage;
 using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl
 {
-	public class ThemeColorSelectorWidget : FlowLayoutWidget
-	{
-		private int containerHeight = (int)(20 * GuiWidget.DeviceScale);
-		private Action<Color> previewTheme;
-
-		public ThemeColorSelectorWidget(Action<Color> previewTheme)
-		{
-			this.Padding = new BorderDouble(2, 0);
-			this.previewTheme = previewTheme;
-
-			var themeColors = ClassicThemeColors.Colors;
-
-			foreach(var color in themeColors.Values.Take(themeColors.Count /2))
-			{
-				var themeButton = CreateThemeButton(color);
-				themeButton.Width = containerHeight;
-
-				this.AddChild(themeButton);
-			}
-		}
-
-		public ColorButton CreateThemeButton(Color color)
-		{
-			var colorButton = new ColorButton(color)
-			{
-				Cursor = Cursors.Hand,
-				Width = containerHeight,
-				Height = containerHeight,
-				Margin = 2
-			};
-			colorButton.Click += (s, e) =>
-			{
-				AppContext.SetTheme(colorButton.BackgroundColor);
-			};
-
-			colorButton.MouseEnterBounds += (s, e) =>
-			{
-				previewTheme(colorButton.BackgroundColor);
-			};
-
-			return colorButton;
-		}
-	}
 }

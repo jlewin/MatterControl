@@ -120,9 +120,46 @@ namespace MatterHackers.MatterControl
 
 		private static ThemeSet themeset;
 
-		internal static void SetTheme(Color accentColor)
+		public static ThemeSet ThemeSet => themeset;
+
+		public static Dictionary<string, IColorTheme> ThemeProviders = new Dictionary<string, IColorTheme>()
 		{
-			AppContext.SetTheme(ApplicationController.ThemeProvider.GetTheme(accentColor));
+			{ "Classic Dark" , new ClassicThemeColors(darkTheme: true) },
+			{ "Classic Light", new ClassicThemeColors(darkTheme: false) },
+			{ "Modern Dark",   new AltThemeColors() },
+			{ "Solarized Dark", new SolarizedTheme(true) },
+			{ "Solarized Light", new SolarizedTheme(false) },
+		};
+
+		public static IColorTheme GetColorProvider(string key)
+		{
+			if (ThemeProviders.TryGetValue(key, out IColorTheme themeProvider))
+			{
+				return themeProvider;
+			}
+
+			return ThemeProviders.Values.First();
+		}
+
+		static AppContext()
+		{
+			try
+			{
+				themeset = JsonConvert.DeserializeObject<ThemeSet>(File.ReadAllText(@"C:\Temp\themeset.json"));
+			}
+			catch { }
+
+			if (themeset == null)
+			{
+				themeset = new ThemeSet()
+				{
+					Theme = new ThemeConfig(),
+					MenuTheme = new ThemeConfig()
+				};
+			}
+
+			DefaultThumbView.ThumbColor = new Color(themeset.Theme.Colors.PrimaryTextColor, 30);
+			ActiveTheme.Instance = themeset.Theme.Colors;
 		}
 
 		public static void SetTheme(ThemeSet themeSet)
@@ -150,49 +187,6 @@ namespace MatterHackers.MatterControl
 				// Explicitly fire ReloadAll in response to user interaction
 				ApplicationController.Instance.ReloadAll();
 			});
-		}
-
-		internal static void LoadTheme()
-		{
-			// Initialize the AppContext theme object which will sync its content with Agg ActiveTheme changes
-			ThemeSet themeSet = null;
-
-			try
-			{
-				themeSet = JsonConvert.DeserializeObject<ThemeSet>(File.ReadAllText(@"C:\Temp\themeset.json"));
-			}
-			catch { }
-
-			AppContext.SetTheme(themeSet ?? new ThemeSet()
-			{
-				Theme = new ThemeConfig(),
-				MenuTheme = new ThemeConfig()
-			});
-
-			//string activeThemeName = UserSettings.Instance.get(UserSettingsKey.ActiveThemeName);
-
-			//Color themeColor;
-
-			//if (!string.IsNullOrEmpty(activeThemeName)
-			//	&& ClassicThemeColors.Colors.TryGetValue(activeThemeName, out Color classicThemeColor))
-			//{
-			//	themeColor = classicThemeColor;
-			//}
-			//else if (!string.IsNullOrEmpty(OemSettings.Instance.ThemeColor)
-			//	&& ClassicThemeColors.Colors.TryGetValue(OemSettings.Instance.ThemeColor, out Color oemThemeColor))
-			//{
-			//	activeThemeName = OemSettings.Instance.ThemeColor;
-			//	themeColor = oemThemeColor;
-			//}
-			//else
-			//{
-			//	activeThemeName = ClassicThemeColors.Colors.Keys.First();
-			//	themeColor = ClassicThemeColors.Colors[activeThemeName];
-			//}
-
-			//ThemeProvider = GetColorProvider(UserSettings.Instance.get(UserSettingsKey.ColorThemeProviderName));
-
-			//ActiveTheme.Instance = ThemeColors.Create(activeThemeName, themeColor, activeThemeName.Contains("Dark"));
 		}
 
 		private class WritablePropertiesOnlyResolver : DefaultContractResolver
@@ -774,8 +768,6 @@ namespace MatterHackers.MatterControl
 
 			this.RebuildSceneOperations(this.Theme);
 
-			ApplicationController.ThemeProvider = ApplicationController.GetColorProvider("Classic Dark");
-
 			HelpArticle helpArticle = null;
 
 			string helpPath = Path.Combine("OEMSettings", "toc.json");
@@ -789,13 +781,6 @@ namespace MatterHackers.MatterControl
 			}
 
 			this.HelpArticles = helpArticle ?? new HelpArticle();
-
-			ActiveTheme.ThemeChanged.RegisterEvent((s, e) =>
-			{
-				Debugger.Break();
-				//ChangeToTheme(ActiveTheme.Instance);
-			}, ref unregisterEvents);
-
 
 			Object3D.AssetsPath = Path.Combine(ApplicationDataStorage.Instance.ApplicationLibraryDataPath, "Assets");
 
@@ -1413,24 +1398,6 @@ namespace MatterHackers.MatterControl
 			}
 
 			ApplicationSettings.Instance.ReleaseClientToken();
-		}
-
-		public static IColorTheme ThemeProvider { get; set; }
-
-		public static IColorTheme GetColorProvider(string colorProviderName)
-		{
-			switch (colorProviderName)
-			{
-				case "Classic Dark":
-					return new ClassicThemeColors(darkTheme: true);
-
-				case "Classic Light":
-					return new ClassicThemeColors(darkTheme: false);
-
-				case "Modern Dark":
-				default:
-					return new AltThemeColors();
-			}
 		}
 
 		public static ApplicationController Instance
@@ -2385,9 +2352,6 @@ namespace MatterHackers.MatterControl
 			timer = Stopwatch.StartNew();
 
 			var systemWindow = new RootSystemWindow(width, height);
-
-			// Load theme
-			AppContext.LoadTheme();
 
 			var overlay = new GuiWidget()
 			{
