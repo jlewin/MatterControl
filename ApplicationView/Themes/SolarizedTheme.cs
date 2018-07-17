@@ -73,15 +73,10 @@ namespace MatterHackers.MatterControl
 					Colors = new ThemeColors()
 					{
 						IsDarkTheme = darkTheme,
-						Name = "ClassicThemeColors",
-						Transparent = new Color("#00000000"),
-						SecondaryTextColor = new Color("#C8C8C8"),
+						BorderColor = new Color("#C8C8C8"),
 						PrimaryBackgroundColor = new Color("#003F69"),
-						SecondaryBackgroundColor = new Color("#1B511C"),
-						TertiaryBackgroundColor = new Color("#7A1F1F"),
 						PrimaryTextColor = baseColors.Base0,
 						PrimaryAccentColor = accentColor,
-						SourceColor = baseColors.Base0
 					},
 					PresetColors = new PresetColors()
 					{
@@ -107,42 +102,81 @@ namespace MatterHackers.MatterControl
 					ThumbnailBackground = new Color("#00000000"),
 					AccentMimimalOverlay = new Color(accentColor, 80),
 				},
-				MenuTheme = new ThemeConfig()
-				{
-					Colors = new ThemeColors()
-					{
-						IsDarkTheme = true,
-						Name = "MenuColors",
-						Transparent = new Color("#00000000"),
-						SecondaryTextColor = new Color("#666666"),
-						PrimaryBackgroundColor = new Color("#2d2f31"),
-						SecondaryBackgroundColor = new Color("#DDDDDD"),
-						TertiaryBackgroundColor = new Color("#CCCCCC"),
-						PrimaryTextColor = baseColors.Base1,
-						PrimaryAccentColor = accentColor,
-						SourceColor = new Color("#00FF00")
-					},
-					PresetColors = new PresetColors()
-					{
-						MaterialPreset = new Color("#FF7F00"),
-						QualityPreset = new Color("#FFFF00"),
-						UserOverride = new Color("#445FDC96")
-					},
-					SlightShade = new Color("#00000028"),
-					MinimalShade = new Color("#0000000F"),
-					Shade = new Color("#00000078"),
-					DarkShade = new Color("#000000BE"),
+				MenuTheme = (darkTheme) ? this.DarkMenu(baseColors, accentColor) : this.LightMenu(baseColors, accentColor)
+			};
+		}
 
-					ActiveTabColor = new Color("#2d2f31"),
-					TabBarBackground = new Color("#B1B1B1"),
-					InactiveTabColor = new Color("#D0D0D0"),
-					InteractionLayerOverlayColor = new Color("#D0D0D0F0"),
-					SplitterBackground = new Color("#B5B5B5"),
-					TabBodyBackground = new Color("#00000000"),
-					ToolbarButtonBackground = new Color("#00000000"),
-					ThumbnailBackground = new Color("#00000000"),
-					AccentMimimalOverlay = new Color(accentColor, 80),
-				}
+		private ThemeConfig LightMenu(BaseColors baseColors, Color accentColor)
+		{
+			var backgroundColor = new Color("#f1f1f1");
+
+			return new ThemeConfig()
+			{
+				Colors = new ThemeColors()
+				{
+					IsDarkTheme = false,
+					BorderColor = new Color("#666666"),
+					PrimaryBackgroundColor = backgroundColor,
+					PrimaryTextColor = new Color("#555"),
+					PrimaryAccentColor = accentColor,
+				},
+				PresetColors = new PresetColors()
+				{
+					MaterialPreset = new Color("#FF7F00"),
+					QualityPreset = new Color("#FFFF00"),
+					UserOverride = new Color("#445FDC96")
+				},
+				SlightShade = new Color("#00000028"),
+				MinimalShade = new Color("#0000000F"),
+				Shade = new Color("#00000078"),
+				DarkShade = new Color("#000000BE"),
+
+				ActiveTabColor = backgroundColor,
+				TabBarBackground = new Color("#B1B1B1"),
+				InactiveTabColor = new Color("#D0D0D0"),
+				InteractionLayerOverlayColor = new Color("#D0D0D0F0"),
+				SplitterBackground = new Color("#B5B5B5"),
+				TabBodyBackground = new Color("#00000000"),
+				ToolbarButtonBackground = new Color("#00000000"),
+				ThumbnailBackground = new Color("#00000000"),
+				AccentMimimalOverlay = new Color(accentColor, 80),
+			};
+		}
+
+		private ThemeConfig DarkMenu(BaseColors baseColors, Color accentColor)
+		{
+			var backgroundColor = new Color("#2d2f31");
+
+			return new ThemeConfig()
+			{
+				Colors = new ThemeColors()
+				{
+					IsDarkTheme = true,
+					BorderColor = new Color("#666666"),
+					PrimaryBackgroundColor = backgroundColor,
+					PrimaryTextColor = baseColors.Base1,
+					PrimaryAccentColor = accentColor,
+				},
+				PresetColors = new PresetColors()
+				{
+					MaterialPreset = new Color("#FF7F00"),
+					QualityPreset = new Color("#FFFF00"),
+					UserOverride = new Color("#445FDC96")
+				},
+				SlightShade = new Color("#00000028"),
+				MinimalShade = new Color("#0000000F"),
+				Shade = new Color("#00000078"),
+				DarkShade = new Color("#000000BE"),
+
+				ActiveTabColor = backgroundColor,
+				TabBarBackground = new Color("#B1B1B1"),
+				InactiveTabColor = new Color("#D0D0D0"),
+				InteractionLayerOverlayColor = new Color("#D0D0D0F0"),
+				SplitterBackground = new Color("#B5B5B5"),
+				TabBodyBackground = new Color("#00000000"),
+				ToolbarButtonBackground = new Color("#00000000"),
+				ThumbnailBackground = new Color("#00000000"),
+				AccentMimimalOverlay = new Color(accentColor, 80),
 			};
 		}
 
