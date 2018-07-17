@@ -81,37 +81,38 @@ namespace MatterHackers.MatterControl
 		{
 			var colors = ThemeColors.Create("Unknown", accentColor, this.DarkTheme);
 
-			return ThemeFromColors(colors);
+			return ThemeFromColors(colors, this.DarkTheme);
 		}
 
-		public static ThemeSet ThemeFromColors(ThemeColors colors)
+		public static ThemeSet ThemeFromColors(ThemeColors colors, bool darkTheme)
 		{
 			var json = JsonConvert.SerializeObject(colors);
 
 			var clonedColors = JsonConvert.DeserializeObject<ThemeColors>(json);
 			clonedColors.IsDarkTheme = false;
-			clonedColors.Name = "MenuColors";
 			clonedColors.PrimaryTextColor = new Color("#222");
-			clonedColors.SecondaryTextColor = new Color("#666");
 			clonedColors.PrimaryBackgroundColor = new Color("#fff");
-			clonedColors.SecondaryBackgroundColor = new Color("#ddd");
-			clonedColors.TertiaryBackgroundColor = new Color("#ccc");
 
 			return new ThemeSet()
 			{
-				Theme = BuildTheme(colors),
-				MenuTheme = BuildTheme(clonedColors)
+				Theme = BuildTheme(colors, darkTheme),
+				MenuTheme = BuildTheme(clonedColors, darkTheme)
 			};
 		}
 
-		private static ThemeConfig BuildTheme(ThemeColors colors)
+		private static ThemeConfig BuildTheme(ThemeColors colors, bool darkTheme)
 		{
 			var theme = new ThemeConfig();
 
 			theme.Colors = colors;
 
+			theme.SlightShade = new Color(0, 0, 0, 40);
+			theme.MinimalShade = new Color(0, 0, 0, 15);
+			theme.Shade = new Color(0, 0, 0, 120);
+			theme.DarkShade = new Color(0, 0, 0, 190);
+
 			theme.ActiveTabColor = theme.ResolveColor(
-				colors.TertiaryBackgroundColor,
+				new Color(darkTheme ? "#3E3E3E" : "#BEBEBE"),
 				new Color(
 					Color.White,
 					(colors.IsDarkTheme) ? 3 : 25));
@@ -120,14 +121,12 @@ namespace MatterHackers.MatterControl
 			theme.AccentMimimalOverlay = new Color(theme.Colors.PrimaryAccentColor, 50);
 			theme.InteractionLayerOverlayColor = new Color(theme.ActiveTabColor, 240);
 			theme.InactiveTabColor = theme.ResolveColor(theme.ActiveTabColor, new Color(Color.White, theme.MinimalShade.alpha));
+
 			theme.SplitterBackground = theme.ActiveTabColor.AdjustLightness(0.87).ToColor();
 
-			theme.PresetColors = new PresetColors();
+			theme.BorderColor = new Color(darkTheme ? "#C8C8C8" : "#333");
 
-			theme.SlightShade = new Color(0, 0, 0, 40);
-			theme.MinimalShade = new Color(0, 0, 0, 15);
-			theme.Shade = new Color(0, 0, 0, 120);
-			theme.DarkShade = new Color(0, 0, 0, 190);
+			theme.PresetColors = new PresetColors();
 
 			return theme;
 		}

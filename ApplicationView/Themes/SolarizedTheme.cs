@@ -73,7 +73,6 @@ namespace MatterHackers.MatterControl
 					Colors = new ThemeColors()
 					{
 						IsDarkTheme = darkTheme,
-						BorderColor = new Color("#C8C8C8"),
 						PrimaryBackgroundColor = new Color("#003F69"),
 						PrimaryTextColor = baseColors.Base0,
 						PrimaryAccentColor = accentColor,
@@ -101,6 +100,7 @@ namespace MatterHackers.MatterControl
 					ToolbarButtonBackground = new Color("#00000000"),
 					ThumbnailBackground = new Color("#00000000"),
 					AccentMimimalOverlay = new Color(accentColor, 80),
+					BorderColor = baseColors.Base0
 				},
 				MenuTheme = (darkTheme) ? this.DarkMenu(baseColors, accentColor) : this.LightMenu(baseColors, accentColor)
 			};
@@ -115,7 +115,6 @@ namespace MatterHackers.MatterControl
 				Colors = new ThemeColors()
 				{
 					IsDarkTheme = false,
-					BorderColor = new Color("#666666"),
 					PrimaryBackgroundColor = backgroundColor,
 					PrimaryTextColor = new Color("#555"),
 					PrimaryAccentColor = accentColor,
@@ -140,6 +139,7 @@ namespace MatterHackers.MatterControl
 				ToolbarButtonBackground = new Color("#00000000"),
 				ThumbnailBackground = new Color("#00000000"),
 				AccentMimimalOverlay = new Color(accentColor, 80),
+				BorderColor = new Color("#666666"),
 			};
 		}
 
@@ -152,7 +152,6 @@ namespace MatterHackers.MatterControl
 				Colors = new ThemeColors()
 				{
 					IsDarkTheme = true,
-					BorderColor = new Color("#666666"),
 					PrimaryBackgroundColor = backgroundColor,
 					PrimaryTextColor = baseColors.Base1,
 					PrimaryAccentColor = accentColor,
@@ -177,6 +176,7 @@ namespace MatterHackers.MatterControl
 				ToolbarButtonBackground = new Color("#00000000"),
 				ThumbnailBackground = new Color("#00000000"),
 				AccentMimimalOverlay = new Color(accentColor, 80),
+				BorderColor = new Color("#c8c8c8"),
 			};
 		}
 

@@ -160,6 +160,8 @@ namespace MatterHackers.MatterControl
 
 			DefaultThumbView.ThumbColor = new Color(themeset.Theme.Colors.PrimaryTextColor, 30);
 			ActiveTheme.Instance = themeset.Theme.Colors;
+
+			(ActiveTheme.Instance as ThemeColors).DisabledColor = themeset.Theme.GetBorderColor(20);
 		}
 
 		public static void SetTheme(ThemeSet themeSet)
@@ -183,6 +185,7 @@ namespace MatterHackers.MatterControl
 
 				//Set new user selected Default
 				ActiveTheme.Instance = themeset.Theme.Colors;
+				(ActiveTheme.Instance as ThemeColors).DisabledColor = themeset.Theme.GetBorderColor(20);
 
 				// Explicitly fire ReloadAll in response to user interaction
 				ApplicationController.Instance.ReloadAll();

@@ -55,18 +55,13 @@ namespace MatterHackers.MatterControl
 			var colors = new ThemeColors
 			{
 				IsDarkTheme = true,
-				Name = "xxx",
-				SourceColor = accentColor,
 				PrimaryBackgroundColor = primaryBackgroundColor,
-				SecondaryBackgroundColor = new Color("#1B511C"),
-				TertiaryBackgroundColor = new Color("#7A1F1F"),
 				PrimaryTextColor = new Color("#FFFFFF"),
-				SecondaryTextColor = new Color("#C8C8C8"),
 
 				PrimaryAccentColor = GetAdjustedAccentColor(accentColor, primaryBackgroundColor)
 			};
 
-			return ClassicColorsTheme.ThemeFromColors(colors);
+			return ClassicColorsTheme.ThemeFromColors(colors, true);
 		}
 
 		public Color GetAdjustedAccentColor(Color accentColor, Color backgroundColor)

@@ -126,7 +126,7 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 			});
 			contentRow.AddChild(new WrappedTextWidget(v2)
 			{
-				TextColor = ActiveTheme.Instance.SecondaryTextColor,
+				TextColor = theme.LightTextColor,
 				Margin = new Agg.BorderDouble(20, 5, 5, 5),
 			});
 		}

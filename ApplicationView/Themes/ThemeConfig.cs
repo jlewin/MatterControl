@@ -171,6 +171,11 @@ namespace MatterHackers.MatterControl
 
 		public ImageBuffer GeneratingThumbnailIcon { get; private set; }
 
+		public Color LightTextColor { get; set; }
+		public Color BorderColor { get; internal set; }
+
+		public Color DisabledColor => new Color(this.LightTextColor, 50);
+
 		public GuiWidget CreateSearchButton()
 		{
 			return new IconButton(AggContext.StaticData.LoadIcon("icon_search_24x24.png", 16, 16, this.InvertIcons), this)
@@ -290,7 +295,7 @@ namespace MatterHackers.MatterControl
 
 		public Color GetBorderColor(int alpha)
 		{
-			return new Color(this.Colors.SecondaryTextColor, alpha);
+			return new Color(this.BorderColor, alpha);
 		}
 
 		// Compute a fixed color from a source and a target alpha
