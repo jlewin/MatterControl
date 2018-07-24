@@ -42,9 +42,6 @@ namespace MatterHackers.MatterControl
 
 			AggContext.Init(embeddedResourceName: "config.json");
 
-			// Make sure we have the right working directory as we assume everything relative to the executable.
-			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
-
 			Datastore.Instance.Initialize();
 
 #if !DEBUG
