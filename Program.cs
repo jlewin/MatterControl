@@ -50,7 +50,7 @@ namespace MatterHackers.MatterControl
 			Console.WriteLine(localPath);
 			Console.WriteLine(startupPath);
 
-			Directory.SetCurrentDirectory(startupPath);
+			// Directory.SetCurrentDirectory(startupPath);
 
 			AggContext.Init(embeddedResourceName: "config.json");
 
