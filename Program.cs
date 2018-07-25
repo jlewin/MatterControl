@@ -40,8 +40,6 @@ namespace MatterHackers.MatterControl
 				_raygunClient = new RaygunClient("hQIlyUUZRGPyXVXbI6l1dA=="); // this is the PC key
 			}
 
-			AggContext.Init(embeddedResourceName: "config.json");
-
 			// Force working directory to startup path - workaround for running under packaged files systems e.g. mkbundle, Finder app packages
 			string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
 			string localPath = new Uri(codeBase).LocalPath;
@@ -53,6 +51,8 @@ namespace MatterHackers.MatterControl
 			Console.WriteLine(startupPath);
 
 			Directory.SetCurrentDirectory(startupPath);
+
+			AggContext.Init(embeddedResourceName: "config.json");
 
 			Datastore.Instance.Initialize();
 
