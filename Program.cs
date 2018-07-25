@@ -43,7 +43,16 @@ namespace MatterHackers.MatterControl
 			AggContext.Init(embeddedResourceName: "config.json");
 
 			// Force working directory to startup path - workaround for running under packaged files systems e.g. mkbundle, Finder app packages
-			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().CodeBase));
+			string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+			string localPath = new Uri(codeBase).LocalPath;
+			string startupPath = Path.GetDirectoryName(localPath);
+
+			Console.WriteLine("CodeBase: " + codeBase);
+			Console.WriteLine("EntryAssemblyCodeBase: " + System.Reflection.Assembly.GetEntryAssembly().CodeBase);
+			Console.WriteLine(localPath);
+			Console.WriteLine(startupPath);
+
+			Directory.SetCurrentDirectory(startupPath);
 
 			Datastore.Instance.Initialize();
 
