@@ -647,6 +647,10 @@
     <Folder Include="SlicerConfiguration\SettingsEditors\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Plugins\MatterHackers.Veldrid\MatterHackers.Veldrid.csproj">
+      <Project>{80bd6c3b-074e-4d01-923e-4812c6f1d75a}</Project>
+      <Name>MatterHackers.Veldrid</Name>
+    </ProjectReference>
     <ProjectReference Include="MatterControl.OpenGL\MatterControl.OpenGL.csproj">
       <Project>{CBDEEC31-D688-417B-9BF2-F0DB2E4FB268}</Project>
       <Name>MatterControl.OpenGL</Name>
