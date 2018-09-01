@@ -55,10 +55,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.PlusTab
 			};
 			this.AddChild(topToBottom);
 
-			if (OemSettings.Instance.ShowShopButton)
-			{
-				topToBottom.AddChild(new ExplorePanel(theme, "banners?sk=ii2gffs6e89c2cdd9er21v", "BannerFeed.json"));
-			}
+			//if (OemSettings.Instance.ShowShopButton)
+			//{
+			//	topToBottom.AddChild(new ExplorePanel(theme, "banners?sk=ii2gffs6e89c2cdd9er21v", "BannerFeed.json"));
+			//}
 
 			var lastProfileID = ProfileManager.Instance.LastProfileID;
 			var lastProfile = ProfileManager.Instance[lastProfileID];
@@ -66,16 +66,16 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.PlusTab
 			topToBottom.AddChild(
 				new PrinterBar(partPreviewContent, lastProfile, theme));
 
-			topToBottom.AddChild(new PartsBar(partPreviewContent, theme)
-			{
-				Margin = new BorderDouble(30, 15)
-			});
+			//topToBottom.AddChild(new PartsBar(partPreviewContent, theme)
+			//{
+			//	Margin = new BorderDouble(30, 15)
+			//});
 
-			if (OemSettings.Instance.ShowShopButton)
-			{
-				// actual feed
-				topToBottom.AddChild(new ExplorePanel(theme, "explore?sk=2lhddgi3q67xoqa53pchpeddl6w1uf", "ExploreFeed.json"));
-			}
+			//if (OemSettings.Instance.ShowShopButton)
+			//{
+			//	// actual feed
+			//	topToBottom.AddChild(new ExplorePanel(theme, "explore?sk=2lhddgi3q67xoqa53pchpeddl6w1uf", "ExploreFeed.json"));
+			//}
 		}
 
 		public override void OnMouseWheel(MouseEventArgs mouseEvent)
