@@ -28,20 +28,17 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using MatterHackers.Agg;
-using MatterHackers.Agg.Image;
 using MatterHackers.Agg.UI;
-using MatterHackers.MatterControl.CustomWidgets;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
+	// Holds the space and draws the trailing tabs LowerLeft notch
 	public class TabTrailer : GuiWidget
 	{
 		private SimpleTabs parentTabControl;
 		private ThemeConfig theme;
 
 		public ITab LastTab { get; set; }
-
-		public IconButton IconButton { get; }
 
 		public TabTrailer(SimpleTabs parentTabControl, ThemeConfig theme)
 		{

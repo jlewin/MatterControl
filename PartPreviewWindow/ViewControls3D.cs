@@ -41,6 +41,7 @@ using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.Library;
+using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
@@ -334,6 +335,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 		}
 
+		private PartPreviewContent partPreviewContent = null;
+
 		private GuiWidget CreateBedButton(BedConfig sceneContext, ThemeConfig theme)
 		{
 			var buttonView = new TextIconButton(
@@ -358,10 +361,36 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				Name = "Bed Options Menu",
 				DynamicPopupContent = () =>
 				{
-					var menuContent = theme.CreateMenuItems(popupMenu, this.MenuActions);
-					menuContent.MinimumSize = new Vector2(200, 0);
+					if (partPreviewContent == null)
+					{
+						partPreviewContent = this.Parents<PartPreviewContent>().FirstOrDefault();
+					}
 
-					return menuContent;
+					var widget = new GuiWidget()
+					{
+						VAnchor = VAnchor.Fit,
+						HAnchor = HAnchor.Fit,
+						BackgroundColor = theme.TabBarBackground,
+						Padding = new BorderDouble(theme.DefaultContainerPadding / 2, 0)
+					};
+
+					var height = view3DWidget.Height - theme.DefaultContainerPadding;
+
+					widget.AddChild(new PrintLibraryWidget(partPreviewContent, theme)
+					{
+						HAnchor = HAnchor.Absolute,
+						VAnchor = VAnchor.Absolute,
+						Height = height,
+						Width = 400,
+						MinimumSize = new Vector2(400, height)
+					});
+
+					return widget;
+
+					//var menuContent = theme.CreateMenuItems(popupMenu, this.MenuActions);
+					//menuContent.MinimumSize = new Vector2(200, 0);
+
+					//return menuContent;
 				},
 				BackgroundColor = theme.ToolbarButtonBackground,
 				HoverColor = theme.ToolbarButtonHover,

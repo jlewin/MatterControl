@@ -34,6 +34,7 @@ using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.PartPreviewWindow.PlusTab;
+using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 using Newtonsoft.Json;
@@ -239,26 +240,61 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			ApplicationController.Instance.NotifyPrintersTabRightElement(extensionArea);
 
-			// Show fixed start page
-			tabControl.AddTab(
-				new ChromeTab("Start".Localize(),  tabControl, tabControl.NewTabPage(), theme, hasClose: false)
-				{
-					MinimumSize = new Vector2(0, theme.TabButtonHeight),
-					Name = "Start Tab",
-					Padding = new BorderDouble(15, 0)
-				});
-
 			// Add a tab for the current printer
 			if (ActiveSliceSettings.Instance.PrinterSelected)
 			{
 				this.CreatePrinterTab(ApplicationController.Instance.ActivePrinter, theme);
 			}
 
+			//// Start page
+			//tabControl.AddTab(
+			//	new ChromeTab("Start".Localize(),  tabControl, tabControl.NewTabPage(), theme, hasClose: false)
+			//	{
+			//		MinimumSize = new Vector2(0, theme.TabButtonHeight),
+			//		Name = "Start Tab",
+			//		Padding = new BorderDouble(15, 0)
+			//	});
+
+			var brandMenu = new BrandMenuButton(theme)
+			{
+				HAnchor = HAnchor.Fit,
+				VAnchor = VAnchor.Fit,
+				BackgroundColor = theme.TabBarBackground,
+				Border = new BorderDouble(right: 1),
+				BorderColor = theme.MinimalShade,
+				Padding = theme.TabbarPadding.Clone(right: 0)
+			};
+
+			tabControl.TabBar.ActionArea.AddChild(brandMenu, 0);
+
+			var libraryWidget = new PrintLibraryWidget(this, theme)
+			{
+				BackgroundColor = theme.ActiveTabColor
+			};
+
+			// Library tab
+			tabControl.AddTab(
+				new ChromeTab("Library".Localize(), tabControl, libraryWidget, theme, hasClose: false)
+				{
+					MinimumSize = new Vector2(0, theme.TabButtonHeight),
+					Name = "Library Tab",
+					Padding = new BorderDouble(15, 0)
+				});
+
 			// Restore active tabs
 			foreach (var bed in ApplicationController.Instance.Workspaces)
 			{
 				this.CreatePartTab("New Part", bed, theme);
 			}
+
+			UiThread.RunOnIdle(() =>
+			{
+				ProfileManager.Instance.LoadPrinter().ContinueWith(task =>
+				{
+					var printer = task.Result;
+					printer.ViewState.ViewMode = PartViewMode.Model;
+				});
+			});
 		}
 
 		public ChromeTabs TabControl => tabControl;
@@ -266,7 +302,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private ChromeTab CreatePrinterTab(PrinterConfig printer, ThemeConfig theme)
 		{
 			// Printer page is in fixed position
-			var tab1 = tabControl.AllTabs.Skip(1).FirstOrDefault();
+			var tab1 = tabControl.AllTabs.Skip(0).FirstOrDefault();
 
 			var printerTabPage = tab1?.TabContent as PrinterTabPage;
 			if (printerTabPage == null
@@ -303,7 +339,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 
 				// Add printer into fixed position
-				tabControl.AddTab(printerTab, 1);
+				tabControl.AddTab(printerTab, 0);
 
 				return printerTab;
 			}
