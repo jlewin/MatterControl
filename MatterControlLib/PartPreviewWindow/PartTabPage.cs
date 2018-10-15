@@ -71,26 +71,23 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 
 			// library popout content
-			var librarySideBar = new DockingTabControl(favoritesBarAndView3DWidget, DockSide.Left, printer, theme)
+			var librarySideBar = new VerticalResizeContainer(theme, GrabBarSide.Right)
 			{
-				Name = "LibraryDockingTabControl",
-				//ControlIsPinned = printer.ViewState.SliceSettingsTabPinned
-				MinDockingWidth = 120 * (int)GuiWidget.DeviceScale
-			};
-			librarySideBar.PinStatusChanged += (s, e) =>
-			{
-				//printer.ViewState.SliceSettingsTabPinned = sideBar.ControlIsPinned;
+				Name = "PrintLibraryContainer",
+				Width = 200
 			};
 
-			var partPreviewContent = this.Parents<PartPreviewContent>().FirstOrDefault();
+			// Load LibraryView if pinned/////////////////
+			if (false)
+			{
+				var partPreviewContent = this.Parents<PartPreviewContent>().FirstOrDefault();
 
-			librarySideBar.AddPage(
-				"Library",
-				"Library".Localize(),
-				new PrintLibraryWidget(
-					partPreviewContent, theme));
+				librarySideBar.AddChild(
+					new PrintLibraryWidget(
+						partPreviewContent, theme));
+			}
 
-			viewControls3D = new ViewControls3D(sceneContext, theme, sceneContext.Scene.UndoBuffer, isPrinterType)
+			viewControls3D = new ViewControls3D(sceneContext, librarySideBar, theme, sceneContext.Scene.UndoBuffer, isPrinterType)
 			{
 				VAnchor = VAnchor.Top | VAnchor.Fit,
 				HAnchor = HAnchor.Left | HAnchor.Stretch,
@@ -167,8 +164,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				AllowContextMenu = false
 			};
 
-			favoritesBarAndView3DWidget.AddChild(librarySideBar);
 			favoritesBarAndView3DWidget.AddChild(favoritesBar);
+			favoritesBarAndView3DWidget.AddChild(librarySideBar);
 			favoritesBarAndView3DWidget.AddChild(view3DWidget);
 			toolbarAndView3DWidget.AddChild(favoritesBarAndView3DWidget);
 

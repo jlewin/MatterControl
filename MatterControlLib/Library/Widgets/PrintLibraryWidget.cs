@@ -68,6 +68,8 @@ namespace MatterHackers.MatterControl.PrintLibrary
 		private OverflowBar navBar;
 		private GuiWidget searchButton;
 
+		public event EventHandler<bool> PinChanged;
+
 		public PrintLibraryWidget(PartPreviewContent partPreviewContent, ThemeConfig theme)
 		{
 			this.theme = theme;
@@ -97,6 +99,16 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			};
 			allControls.AddChild(navBar);
 			theme.ApplyBottomBorder(navBar);
+
+
+			var button = new TextButton("Pin", theme);
+			button.Click += (s, e) =>
+			{
+				// do pin
+				this.PinChanged.Invoke(this, true);
+			};
+
+			navBar.AddChild(button);
 
 			var toolbar = new OverflowBar(AggContext.StaticData.LoadIcon("fa-sort_16.png", 32, 32, theme.InvertIcons), theme)
 			{

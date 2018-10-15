@@ -152,9 +152,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.view3DWidget = view3DWidget;
 		}
 
-		public ViewControls3D(BedConfig sceneContext, ThemeConfig theme, UndoBuffer undoBuffer, bool isPrinterType)
+		public ViewControls3D(BedConfig sceneContext, VerticalResizeContainer librarySideBar, ThemeConfig theme, UndoBuffer undoBuffer, bool isPrinterType)
 			: base(theme)
 		{
+			this.librarySidebar = librarySideBar;
+
 			this.ActionArea.Click += (s, e) =>
 			{
 				view3DWidget.InteractionLayer.Focus();
@@ -345,6 +347,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		}
 
 		private PartPreviewContent partPreviewContent = null;
+		private VerticalResizeContainer librarySidebar;
 
 		private GuiWidget CreateAddButton(BedConfig sceneContext, ThemeConfig theme)
 		{
@@ -397,6 +400,19 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 						Width = 400,
 						MinimumSize = new Vector2(400, 50)
 					};
+
+					printLibraryWidget.PinChanged += (s, e) => UiThread.RunOnIdle(() =>
+					{
+						printLibraryWidget.Parent.RemoveChild(printLibraryWidget);
+						printLibraryWidget.ClearRemovedFlag();
+
+						printLibraryWidget.MinimumSize = Vector2.Zero;
+						printLibraryWidget.VAnchor = VAnchor.Absolute;
+						printLibraryWidget.HAnchor = HAnchor.Stretch;
+
+						librarySidebar.AddChild(printLibraryWidget);
+						librarySidebar.Visible = true;
+					});
 
 					systemWindow.SizeChanged += (s, e) =>
 					{
