@@ -77,7 +77,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 
 			var libraryContext = ApplicationController.Instance.Library;
 
-			libraryView = new LibraryListView(libraryContext, theme)
+			libraryView = new LibraryListView(libraryContext, null, theme)
 			{
 				Name = "LibraryView",
 				// Drop containers if ShowContainers != 1

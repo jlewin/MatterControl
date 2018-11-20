@@ -947,6 +947,16 @@ namespace MatterHackers.MatterControl
 				}
 			}
 
+			this.Library.RegisterContainer(
+				new DynamicContainerLink(
+						() => "Printers".Localize(),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_20x20.png")),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_folder.png")),
+						() => new OpenPrintersContainer())
+				{
+					IsReadOnly = true
+				});
+
 			this.Library.PlatingHistory = new PlatingHistoryContainer();
 
 			this.Library.RegisterContainer(
@@ -3178,7 +3188,7 @@ If you experience adhesion problems, please re-run leveling."
 					LoadMC();
 				}
 			};
-			
+
 			void LoadMC()
 			{
 				ReportStartupProgress(0.02, "First draw->RunOnIdle");

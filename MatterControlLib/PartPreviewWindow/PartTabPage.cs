@@ -143,7 +143,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			bool expanded = UserSettings.Instance.get(UserSettingsKey.FavoritesBarExpansion) != "0";
 
-			favoritesBar = new LibraryListView(favoritesBarContext, theme)
+			favoritesBar = new LibraryListView(favoritesBarContext, null, theme)
 			{
 				Name = "LibraryView",
 				// Drop containers
