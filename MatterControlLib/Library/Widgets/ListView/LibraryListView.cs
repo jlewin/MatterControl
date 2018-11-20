@@ -30,14 +30,17 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
+using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrintQueue;
+using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.CustomWidgets
@@ -62,17 +65,21 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		private Color loadingBackgroundColor;
 		private ImageSequenceWidget loadingIndicator;
 
+		private PrinterConfig printer;
+
 		public List<LibraryAction> MenuActions { get; set; }
 
 		// Default constructor uses IconListView
-		public LibraryListView(ILibraryContext context, ThemeConfig theme)
-			: this(context, new IconListView(theme), theme)
+		public LibraryListView(ILibraryContext context, PrinterConfig printer, ThemeConfig theme)
+			: this(context, new IconListView(theme), printer, theme)
 		{
 		}
 
-		public LibraryListView(ILibraryContext context, GuiWidget libraryView, ThemeConfig theme)
+		public LibraryListView(ILibraryContext context, GuiWidget libraryView, PrinterConfig printer, ThemeConfig theme)
 		{
 			contentView = new IconListView(theme);
+
+			this.printer = printer;
 
 			libraryView.Click += ContentView_Click;
 
@@ -234,6 +241,27 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			IEnumerable<ILibraryItem> containerItems = from item in sourceContainer.ChildContainers
 								 where item.IsVisible && this.ContainerFilter(item)
 								 select item;
+
+			if (sourceContainer == ApplicationController.Instance.Library.RootLibaryContainer
+				&& printer != null)
+			{
+				containerItems = containerItems.Concat(new []
+				{
+					new DynamicContainerLink(
+						() => printer.Settings.GetValue(SettingsKey.printer_name),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_20x20.png")),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_folder.png")),
+						() => new PrinterContainer(printer),
+						() =>
+						{
+							return printer.Settings.GetValue<bool>(SettingsKey.has_sd_card_reader);
+						})
+					{
+						IsReadOnly = true
+					}
+				});
+			}
+
 
 			// Folder items
 			foreach (var childContainer in this.SortItems(containerItems))

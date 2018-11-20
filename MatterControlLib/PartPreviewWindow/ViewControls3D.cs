@@ -603,7 +603,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 					var systemWindow = this.Parents<SystemWindow>().FirstOrDefault();
 
-					var printLibraryWidget = new PrintLibraryWidget(mainViewWidget, theme, libraryPopup)
+					var printLibraryWidget = new PrintLibraryWidget(mainViewWidget, view3DWidget.Printer,  theme, libraryPopup)
 					{
 						HAnchor = HAnchor.Stretch,
 						VAnchor = VAnchor.Absolute,

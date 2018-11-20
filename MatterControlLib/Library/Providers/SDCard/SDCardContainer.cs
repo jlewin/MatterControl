@@ -38,9 +38,91 @@ using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.PrinterCommunication;
+using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.Library
 {
+
+	public class OpenPrintersContainer : LibraryContainer
+	{
+		public OpenPrintersContainer()
+		{
+			this.ChildContainers = new List<ILibraryContainerLink>();
+			this.Items = new List<ILibraryItem>();
+			this.Name = "Printers".Localize();
+		}
+
+		public override void Load()
+		{
+			this.Items.Clear();
+			this.ChildContainers.Clear();
+
+			foreach(var printer in ApplicationController.Instance.ActivePrinters)
+			{
+				this.ChildContainers.Add(
+					new DynamicContainerLink(
+						() => printer.Settings.GetValue(SettingsKey.printer_name),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_20x20.png")),
+						AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_folder.png")),
+						() => new PrinterContainer(printer),
+						() =>
+						{
+							return printer.Settings.GetValue<bool>(SettingsKey.has_sd_card_reader);
+						})
+					{
+						IsReadOnly = true
+					});
+			}
+		}
+	}
+
+	// Printer specific containers
+	public class PrinterContainer : LibraryContainer
+	{
+		private PrinterConfig printer;
+
+		public PrinterContainer(PrinterConfig printer)
+		{
+			this.printer = printer;
+			this.ChildContainers = new List<ILibraryContainerLink>();
+			this.Items = new List<ILibraryItem>();
+			this.Name = "Printers".Localize();
+		}
+
+		public override void Load()
+		{
+			this.Items.Clear();
+			this.ChildContainers.Clear();
+
+			this.ChildContainers.Add(
+				new DynamicContainerLink(
+					() => "SD Card".Localize(),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_20x20.png")),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "sd_folder.png")),
+					() => new SDCardContainer(printer),
+					() =>
+					{
+						return printer.Settings.GetValue<bool>(SettingsKey.has_sd_card_reader);
+					})
+				{
+					IsReadOnly = true
+				});
+
+			this.ChildContainers.Add(
+				new DynamicContainerLink(
+					() => "Calibration Parts".Localize(),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "folder_20x20.png")),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "folder.png")),
+					() => new CalibrationPartsContainer())
+				{
+					IsReadOnly = true
+				});
+
+			// TODO: An enumerable list of serialized container paths (or some other markup) to construct for this printer
+			// printer.Settings.GetValue(SettingsKey.library_containers);
+		}
+	}
+
 	public class SDCardContainer : LibraryContainer
 	{
 		private bool gotBeginFileList;
@@ -51,13 +133,12 @@ namespace MatterHackers.MatterControl.Library
 
 		private AutoResetEvent autoResetEvent;
 
-		public SDCardContainer()
+		public SDCardContainer(PrinterConfig printer)
 		{
 			this.ChildContainers = new List<ILibraryContainerLink>();
 			this.Items = new List<ILibraryItem>();
 			this.Name = "SD Card".Localize();
-
-			printer = ApplicationController.Instance.ActivePrinter;
+			this.printer = printer;
 
 			void CommunicationStateChanged(object s, EventArgs e)
 			{

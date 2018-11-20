@@ -133,6 +133,11 @@ namespace MatterHackers.MatterControl
 			this.Connection.ReadLineReplacementString = this.Settings.GetValue(SettingsKey.read_regex);
 		}
 
+		~PrinterConfig()
+		{
+			Console.WriteLine();
+		}
+
 		public string GetGCodePathAndFileName(string fileLocation)
 		{
 			if (fileLocation.Trim() != "")
