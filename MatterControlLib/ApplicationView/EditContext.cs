@@ -41,12 +41,17 @@ namespace MatterHackers.MatterControl
 	{
 		private ILibraryItem _sourceItem;
 
+		public EditContext()
+		{
+			var i = 2;
+		}
+
 		/// <summary>
 		/// The object responsible for item persistence 
 		/// </summary>
 		public IContentStore ContentStore { get; set; }
 
-		public string SourceFilePath { get; private set; }
+		public string SourceFilePath { get; set; }
 
 		public bool FreezeGCode { get; set; }
 

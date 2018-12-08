@@ -43,6 +43,26 @@ namespace MatterHackers.MatterControl.Library
 		DateTime DateCreated { get; }
 	}
 
+	public class DummyItem : ILibraryItem
+	{
+		public string ID { get; set; }
+
+		public string Name { get; set; }
+
+		public bool IsProtected { get; set; }
+
+		public bool IsVisible { get; set; }
+
+		public DateTime DateModified { get; set; }
+
+		public DateTime DateCreated { get; set; }
+
+		public string Path { get; set; }
+
+		public string AssetPath { get; set; }
+	}
+
+
 	public interface ILibraryObject3D : ILibraryAsset
 	{
 		Task<IObject3D> GetObject3D(Action<double, string> reportProgress);

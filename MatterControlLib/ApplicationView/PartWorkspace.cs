@@ -27,11 +27,43 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using Newtonsoft.Json;
+
 namespace MatterHackers.MatterControl
 {
 	public class PartWorkspace
 	{
+		private BedConfig _sceneContext { get; }
+
+		public PartWorkspace()
+		{
+		}
+
+		public PartWorkspace(PrinterConfig printer)
+			: this (printer.Bed)
+		{
+			this.Printer = printer;
+			this.PrinterID = printer.Settings.ID;
+		}
+
+		public PartWorkspace(BedConfig bedConfig)
+		{
+			_sceneContext = bedConfig;
+			Name = _sceneContext.EditContext?.SourceItem?.Name ?? "Unknown";
+		}
+
+		[JsonIgnore]
+		public BedConfig SceneContext => _sceneContext;
+
 		public string Name { get; set; }
-		public BedConfig SceneContext { get; set; }
+
+		public EditContext EditContext { get; set; }
+
+		public string PrinterID { get; set; }
+
+		[JsonIgnore]
+		public PrinterConfig Printer { get; }
+
+		public string ContentPath { get; set; }
 	}
 }
