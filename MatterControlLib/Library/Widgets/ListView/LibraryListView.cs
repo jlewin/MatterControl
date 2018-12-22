@@ -182,6 +182,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		}
 
 		private bool _ascending = true;
+		private string filterText;
+
 		public bool Ascending
 		{
 			get => _ascending;
@@ -200,12 +202,20 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.Reload().ConfigureAwait(false);
 		}
 
+		private bool ContainsActiveFilter(ILibraryItem item)
+		{
+			return string.IsNullOrWhiteSpace(filterText)
+				|| item.Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0;
+		}
+
 		/// <summary>
 		/// Empties the list children and repopulates the list with the source container content
 		/// </summary>
 		/// <param name="sourceContainer">The container to load</param>
 		private Task DisplayContainerContent(ILibraryContainer sourceContainer)
 		{
+			TraceTiming.StartTracking("DisplayContainerContent");
+
 			if (this.ActiveContainer is ILibraryWritableContainer activeWritable)
 			{
 				activeWritable.ItemContentChanged -= WritableContainer_ItemContentChanged;
@@ -233,6 +243,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 			IEnumerable<ILibraryItem> containerItems = from item in sourceContainer.ChildContainers
 								 where item.IsVisible && this.ContainerFilter(item)
+									&& this.ContainsActiveFilter(item)
 								 select item;
 
 			// Folder items
@@ -254,6 +265,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 									  where item.IsVisible
 											&& (item.IsContentFileType() || item is MissingFileItem)
 											&& this.ItemFilter(item)
+											&& this.ContainsActiveFilter(item)
 									  select item;
 
 				foreach (var item in this.SortItems(filteredResults))
@@ -278,6 +290,10 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.ScrollPositionFromTop = Vector2.Zero;
 
 			this.ContentReloaded?.Invoke(this, null);
+
+			this.Invalidate();
+
+			TraceTiming.ReportAndStop("DisplayContainerContent", "done");
 
 			return Task.CompletedTask;
 		}
@@ -541,6 +557,18 @@ namespace MatterHackers.MatterControl.CustomWidgets
 					},
 					altBounds: popupBounds);
 			}
+		}
+
+		internal void ApplyFilter(string filterText)
+		{
+			this.filterText = filterText;
+			this.Reload().ConfigureAwait(false);
+		}
+
+		internal void ClearFilter()
+		{
+			this.filterText = null;
+			this.Reload().ConfigureAwait(false);
 		}
 
 		public override void OnMouseWheel(MouseEventArgs mouseEvent)
