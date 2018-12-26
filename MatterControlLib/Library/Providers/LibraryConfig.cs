@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
@@ -211,94 +212,117 @@ namespace MatterHackers.MatterControl.Library
 
 		public async Task LoadItemThumbnail(Action<ImageBuffer> thumbnailListener, Action<MeshContentProvider> buildThumbnail, ILibraryItem libraryItem, ILibraryContainer libraryContainer, int thumbWidth, int thumbHeight, ThemeConfig theme)
 		{
-			void setItemThumbnail(ImageBuffer icon)
+			var startMs = UiThread.CurrentTimerMs;
+
+			try
 			{
-				if (icon != null)
+				void setItemThumbnail(ImageBuffer icon)
 				{
-					icon = this.EnsureCorrectThumbnailSizing(icon, thumbWidth, thumbHeight);
-					thumbnailListener?.Invoke(icon);
-				}
-			}
-
-			// Load from cache via LibraryID
-			var thumbnail = ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem, thumbWidth, thumbHeight);
-			if (thumbnail != null)
-			{
-				setItemThumbnail(thumbnail);
-				return;
-			}
-
-			if (thumbnail == null && libraryContainer != null)
-			{
-				try
-				{
-					// Ask the container - allows the container to provide its own interpretation of the item thumbnail
-					thumbnail = await libraryContainer.GetThumbnail(libraryItem, thumbWidth, thumbHeight);
-				}
-				catch
-				{
-				}
-			}
-
-			if (thumbnail == null && libraryItem is IThumbnail)
-			{
-				// If the item provides its own thumbnail, try to collect it
-				thumbnail = await (libraryItem as IThumbnail).GetThumbnail(thumbWidth, thumbHeight);
-			}
-
-			if (thumbnail == null)
-			{
-				// Ask content provider - allows type specific thumbnail creation
-				var contentProvider = ApplicationController.Instance.Library.GetContentProvider(libraryItem);
-				if (contentProvider != null)
-				{
-					// Before we have a thumbnail set to the content specific thumbnail
-					thumbnail = contentProvider.DefaultImage;
-
-					if (contentProvider is MeshContentProvider meshContentProvider)
+					if (icon != null)
 					{
-						buildThumbnail?.Invoke(meshContentProvider);
+						var resizingStart = UiThread.CurrentTimerMs;
+
+						icon = this.EnsureCorrectThumbnailSizing(icon, thumbWidth, thumbHeight);
+						thumbnailListener?.Invoke(icon);
+
+						TraceTiming.LogLongerThan(20, resizingStart, "Slow EnsureCorrectThumbnailSizing");
+					}
+				}
+
+				// Load from cache via LibraryID
+				var thumbnail = ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem, thumbWidth, thumbHeight);
+				if (thumbnail != null)
+				{
+					TraceTiming.LogLongerThan(50, startMs, "Slow LoadCachedImage");
+
+					setItemThumbnail(thumbnail);
+					return;
+				}
+
+				if (thumbnail == null && libraryContainer != null)
+				{
+					try
+					{
+						// Ask the container - allows the container to provide its own interpretation of the item thumbnail
+						thumbnail = await libraryContainer.GetThumbnail(libraryItem, thumbWidth, thumbHeight);
+
+						TraceTiming.LogLongerThan(50, startMs, "Slow libraryContainer.GetThumbnail");
+					}
+					catch
+					{
+					}
+				}
+
+				if (thumbnail == null && libraryItem is IThumbnail)
+				{
+					// If the item provides its own thumbnail, try to collect it
+					thumbnail = await (libraryItem as IThumbnail).GetThumbnail(thumbWidth, thumbHeight);
+
+					TraceTiming.LogLongerThan(50, startMs, "Slow IThumbnail .GetThumbnail");
+				}
+
+				if (thumbnail == null)
+				{
+					// Ask content provider - allows type specific thumbnail creation
+					var contentProvider = ApplicationController.Instance.Library.GetContentProvider(libraryItem);
+					if (contentProvider != null)
+					{
+						// Before we have a thumbnail set to the content specific thumbnail
+						thumbnail = contentProvider.DefaultImage;
+
+						if (contentProvider is MeshContentProvider meshContentProvider)
+						{
+							buildThumbnail?.Invoke(meshContentProvider);
+						}
+						else
+						{
+							// Show processing image
+							setItemThumbnail(theme.GeneratingThumbnailIcon);
+
+							// Ask the provider for a content specific thumbnail
+							thumbnail = await contentProvider.GetThumbnail(libraryItem, thumbWidth, thumbHeight);
+
+							TraceTiming.LogLongerThan(50, startMs, "Slow contentProvider.GetThumbnail");
+						}
+					}
+				}
+
+				if (thumbnail == null)
+				{
+					// Use the listview defaults
+					if (thumbHeight < 24 && thumbWidth < 24)
+					{
+						thumbnail = ((libraryItem is ILibraryContainerLink) ? defaultFolderIconx20 : defaultItemIconx20);
+
+						//if (!theme.InvertIcons)
+						//{
+						//	thumbnail = thumbnail.InvertLightness();
+						//}
+
+						thumbnail = thumbnail.MultiplyWithPrimaryAccent();
 					}
 					else
 					{
-						// Show processing image
-						setItemThumbnail(theme.GeneratingThumbnailIcon);
-
-						// Ask the provider for a content specific thumbnail
-						thumbnail = await contentProvider.GetThumbnail(libraryItem, thumbWidth, thumbHeight);
+						thumbnail = ((libraryItem is ILibraryContainerLink) ? defaultFolderIcon : defaultItemIcon).AlphaToPrimaryAccent();
 					}
 				}
-			}
 
-			if (thumbnail == null)
+				// TODO: Resolve and implement
+				// Allow the container to draw an overlay - use signal interface or add method to interface?
+				//var iconWithOverlay = ActiveContainer.DrawOverlay()
+
+				setItemThumbnail(thumbnail);
+			}
+			finally
 			{
-				// Use the listview defaults
-				if (thumbHeight < 24 && thumbWidth < 24)
-				{
-					thumbnail = ((libraryItem is ILibraryContainerLink) ? defaultFolderIconx20 : defaultItemIconx20);
-
-					//if (!theme.InvertIcons)
-					//{
-					//	thumbnail = thumbnail.InvertLightness();
-					//}
-
-					thumbnail = thumbnail.MultiplyWithPrimaryAccent();
-				}
-				else
-				{
-					thumbnail = ((libraryItem is ILibraryContainerLink) ? defaultFolderIcon : defaultItemIcon).AlphaToPrimaryAccent();
-				}
+				TraceTiming.LogLongerThan(50, startMs, nameof(LibraryConfig.LoadItemThumbnail));
 			}
-
-			// TODO: Resolve and implement
-			// Allow the container to draw an overlay - use signal interface or add method to interface?
-			//var iconWithOverlay = ActiveContainer.DrawOverlay()
-
-			setItemThumbnail(thumbnail);
 		}
 
 		public ImageBuffer EnsureCorrectThumbnailSizing(ImageBuffer thumbnail, int thumbWidth, int thumbHeight)
 		{
+			return thumbnail;
+
 			// Resize canvas to target as fallback
 			if (thumbnail.Width < thumbWidth || thumbnail.Height < thumbHeight)
 			{

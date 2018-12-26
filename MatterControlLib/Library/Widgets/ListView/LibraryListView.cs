@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
@@ -214,6 +215,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		/// <param name="sourceContainer">The container to load</param>
 		private Task DisplayContainerContent(ILibraryContainer sourceContainer)
 		{
+			TraceTiming.Report("DelayedDraw", "DisplayContainerContent Start");
+
 			if (this.ActiveContainer is ILibraryWritableContainer activeWritable)
 			{
 				activeWritable.ItemContentChanged -= WritableContainer_ItemContentChanged;
@@ -238,6 +241,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			int height = itemsContentView.ThumbHeight;
 
 			itemsContentView.BeginReload();
+
+			var layoutLock = contentView.LayoutLock();
 
 			IEnumerable<ILibraryItem> containerItems = from item in sourceContainer.ChildContainers
 								 where item.IsVisible && this.ContainerFilter(item)
@@ -288,6 +293,19 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.ScrollPositionFromTop = Vector2.Zero;
 
 			this.ContentReloaded?.Invoke(this, null);
+
+			this.Invalidate();
+
+			if (itemsContentView is GuiWidget guiWidget)
+			{
+				guiWidget.Invalidate();
+			}
+
+			layoutLock.Dispose();
+
+			contentView.PerformLayout();
+
+			TraceTiming.Report("DelayedDraw", "DisplayContainerContent Completed with invalidate");
 
 			return Task.CompletedTask;
 		}

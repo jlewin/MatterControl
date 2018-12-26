@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
@@ -162,6 +163,14 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			AddColumnAndChild(iconView);
 
 			return iconView;
+		}
+
+		
+		public override void OnDraw(Graphics2D graphics2D)
+		{
+			TraceTiming.Report("DelayedDraw", "IconListView Draw");
+
+			base.OnDraw(graphics2D);
 		}
 
 		private void AddColumnAndChild(IconViewItem iconView)

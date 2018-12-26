@@ -539,6 +539,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					MinimumSize = new Vector2(120, theme.TabButtonHeight)
 				};
 
+				TraceTiming.StartTracking("DelayedDraw");
+
 				printerTab.CloseClicked += (s, e) =>
 				{
 					ApplicationController.Instance.ClosePrinter(printer);
@@ -687,6 +689,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				};
 
 				tasksContainer.AddChild(runningTaskPanel);
+			}
+
+			if (DebugIt)
+			{
+				Console.WriteLine();
 			}
 
 			tasksContainer.Invalidate();

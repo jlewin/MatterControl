@@ -141,6 +141,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 
 					breadCrumbWidget.Visible = false;
 					searchPanel.Visible = true;
+					IconListView.DebugIt = true;
 					searchInput.Focus();
 				}
 			};
@@ -484,6 +485,8 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				}
 				else
 				{
+					TraceTiming.ReportAndRestart("DelayedDraw", "Search Clicked");
+
 					// Do basic filtering
 					// filter the view with a predicate, applying the active sort
 					libraryView.ApplyFilter(searchInput.Text.Trim());
@@ -498,6 +501,8 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				return;
 			}
 
+			TraceTiming.ReportAndRestart("DelayedDraw", "Clear Search");
+
 			UiThread.RunOnIdle(() =>
 			{
 				if (libraryContext.ActiveContainer.CustomSearch is ICustomSearch customSearch)
@@ -510,6 +515,8 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				}
 				else
 				{
+					TraceTiming.Report("DelayedDraw", "UI Thread running ClearFilter");
+
 					// Clear basic filtering
 					libraryView.ClearFilter();
 				}

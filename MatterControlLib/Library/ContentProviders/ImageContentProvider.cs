@@ -79,18 +79,25 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		private async Task<ImageBuffer> LoadImage(ILibraryItem item)
 		{
+			return new ImageBuffer(32, 32);
+
 			// Load the image at its native size, let the caller scale or resize
 			if (item is ILibraryAssetStream streamInterface)
 			{
-				using (var streamAndLength = await streamInterface.GetStream(null))
+				return await Task.Run(async () =>
 				{
-					var imageBuffer = new ImageBuffer();
-					if (AggContext.ImageIO.LoadImageData(streamAndLength.Stream, imageBuffer))
+					using (var streamAndLength = await streamInterface.GetStream(null))
 					{
-						imageBuffer.SetRecieveBlender(new BlenderPreMultBGRA());
-						return imageBuffer;
+						var imageBuffer = new ImageBuffer();
+						if (AggContext.ImageIO.LoadImageData(streamAndLength.Stream, imageBuffer))
+						{
+							imageBuffer.SetRecieveBlender(new BlenderPreMultBGRA());
+							return imageBuffer;
+						}
 					}
-				}
+
+					return null;
+				});
 			}
 
 			return null;
