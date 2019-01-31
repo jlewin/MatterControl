@@ -96,13 +96,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		private PrinterTabPage printerTabPage;
 
-		public View3DWidget(PrinterConfig printer, BedConfig sceneContext, ViewControls3D viewControls3D, ThemeConfig theme, PartTabPage printerTabBase, MeshViewerWidget.EditorType editorType = MeshViewerWidget.EditorType.Part)
+		public View3DWidget(PrinterConfig printer, BedConfig sceneContext, ViewControls3D viewControls3D, ThemeConfig theme, PartTabPage printerTabBase, InteractionLayer.EditorType editorType = InteractionLayer.EditorType.Part)
 		{
 			this.sceneContext = sceneContext;
 			this.printerTabPage = printerTabBase as PrinterTabPage;
 			this.Printer = printer;
 
-			this.InteractionLayer = new InteractionLayer(this.World, Scene.UndoBuffer, Scene)
+			this.InteractionLayer = new InteractionLayer(this.World, Scene.UndoBuffer, sceneContext, theme, editorType)
 			{
 				Name = "InteractionLayer",
 			};
@@ -119,11 +119,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			viewControls3D.TransformStateChanged += ViewControls3D_TransformStateChanged;
 
 			// MeshViewer
-			meshViewerWidget = new MeshViewerWidget(sceneContext, this.InteractionLayer, theme, editorType: editorType);
-			meshViewerWidget.AnchorAll();
-			this.AddChild(meshViewerWidget);
-
-			TrackballTumbleWidget = new TrackballTumbleWidget(sceneContext.World, meshViewerWidget)
+			TrackballTumbleWidget = new TrackballTumbleWidget(sceneContext.World, this)
 			{
 				TransformState = TrackBallTransformType.Rotation
 			};
@@ -134,7 +130,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			// TumbleWidget
 			this.InteractionLayer.AddChild(TrackballTumbleWidget);
 
-			this.InteractionLayer.SetRenderTarget(this.meshViewerWidget);
+			this.InteractionLayer.SetRenderTarget(this);
 
 			// Add splitter support with the InteractionLayer on the left and resize containers on the right
 			var splitContainer = new FlowLayoutWidget()
@@ -359,7 +355,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				interactionVolumes.Add(plugin.CreateInteractionVolume(this.InteractionLayer));
 			}
 
-			meshViewerWidget.AfterDraw += AfterDraw3DContent;
+			this.InteractionLayer.AfterDraw += AfterDraw3DContent;
 
 			Scene.SelectFirstChild();
 
@@ -834,9 +830,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				printer.ViewState.ViewModeChanged -= this.ViewState_ViewModeChanged;
 			}
 
-			if (meshViewerWidget != null)
+			if (this.InteractionLayer != null)
 			{
-				meshViewerWidget.AfterDraw -= AfterDraw3DContent;
+				this.InteractionLayer.AfterDraw -= AfterDraw3DContent;
 			}
 
 			base.OnClosed(e);
@@ -864,7 +860,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 
 			// If the mouse is within the MeshViewer process the Drag move
-			var meshViewerScreenBounds = this.meshViewerWidget.TransformToScreenSpace(meshViewerWidget.LocalBounds);
+			var meshViewerScreenBounds = this.InteractionLayer.TransformToScreenSpace(this.InteractionLayer.LocalBounds);
 			if (meshViewerScreenBounds.Contains(screenSpaceMousePosition))
 			{
 				// If already started, process drag move
@@ -907,7 +903,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				&& selectedItem != null)
 			{
 				// Move the DropDropObject the target item
-				DragSelectedObject(selectedItem, localMousePosition: meshViewerWidget.TransformFromScreenSpace(screenSpaceMousePosition));
+				DragSelectedObject(selectedItem, localMousePosition: this.InteractionLayer.TransformFromScreenSpace(screenSpaceMousePosition));
 			}
 		}
 
@@ -1200,7 +1196,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			if (mouseEvent.Button == MouseButtons.Right ||
 				mouseEvent.Button == MouseButtons.Middle)
 			{
-				meshViewerWidget.SuppressUiVolumes = true;
+				this.InteractionLayer.SuppressUiVolumes = true;
 			}
 
 			base.OnMouseDown(mouseEvent);
@@ -1218,7 +1214,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				{
 					if (!this.InteractionLayer.MouseDownOnInteractionVolume)
 					{
-						meshViewerWidget.SuppressUiVolumes = true;
+						this.InteractionLayer.SuppressUiVolumes = true;
 
 						IntersectInfo info = new IntersectInfo();
 
@@ -1418,8 +1414,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				DragSelectionEndPosition = mouseEvent.Position - OffsetToMeshViewerWidget();
 				DragSelectionEndPosition = new Vector2(
-					Math.Max(Math.Min((double)DragSelectionEndPosition.X, meshViewerWidget.LocalBounds.Right), meshViewerWidget.LocalBounds.Left),
-					Math.Max(Math.Min((double)DragSelectionEndPosition.Y, meshViewerWidget.LocalBounds.Top), meshViewerWidget.LocalBounds.Bottom));
+					Math.Max(Math.Min((double)DragSelectionEndPosition.X, this.InteractionLayer.LocalBounds.Right), this.InteractionLayer.LocalBounds.Left),
+					Math.Max(Math.Min((double)DragSelectionEndPosition.Y, this.InteractionLayer.LocalBounds.Top), this.InteractionLayer.LocalBounds.Bottom));
 				Invalidate();
 			}
 
@@ -1428,10 +1424,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public IntersectInfo GetIntersectPosition(Vector2 screenSpacePosition)
 		{
-			//Vector2 meshViewerWidgetScreenPosition = meshViewerWidget.TransformFromParentSpace(this, new Vector2(mouseEvent.X, mouseEvent.Y));
-
 			// Translate to local
-			Vector2 localPosition = meshViewerWidget.TransformFromScreenSpace(screenSpacePosition);
+			Vector2 localPosition = this.InteractionLayer.TransformFromScreenSpace(screenSpacePosition);
 
 			Ray ray = this.World.GetRayForLocalBounds(localPosition);
 
@@ -1440,7 +1434,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public void DragSelectedObject(IObject3D selectedItem, Vector2 localMousePosition)
 		{
-			Vector2 meshViewerWidgetScreenPosition = meshViewerWidget.TransformFromParentSpace(this, localMousePosition);
+			Vector2 meshViewerWidgetScreenPosition = this.InteractionLayer.TransformFromParentSpace(this, localMousePosition);
 			Ray ray = this.World.GetRayForLocalBounds(meshViewerWidgetScreenPosition);
 
 			if (!PositionWithinLocalBounds(localMousePosition.X, localMousePosition.Y))
@@ -1530,7 +1524,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		Vector2 OffsetToMeshViewerWidget()
 		{
 			List<GuiWidget> parents = new List<GuiWidget>();
-			GuiWidget parent = meshViewerWidget.Parent;
+			GuiWidget parent = this.InteractionLayer.Parent;
 			while (parent != this)
 			{
 				parents.Add(parent);
@@ -1582,7 +1576,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				}
 			}
 
-			meshViewerWidget.SuppressUiVolumes = false;
+			this.InteractionLayer.SuppressUiVolumes = false;
 
 			CurrentSelectInfo.DownOnPart = false;
 
@@ -1907,7 +1901,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			// popupMenu.CreateHorizontalLine();
 		}
 
-		public MeshViewerWidget meshViewerWidget;
 		private bool assigningTreeNode;
 		private FlowLayoutWidget treeNodeContainer;
 		private InlineStringEdit workspaceName;
@@ -1920,7 +1913,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		protected IObject3D FindHitObject3D(Vector2 screenPosition, ref IntersectInfo intersectionInfo)
 		{
-			Vector2 meshViewerWidgetScreenPosition = meshViewerWidget.TransformFromParentSpace(this, screenPosition);
+			Vector2 meshViewerWidgetScreenPosition = this.InteractionLayer.TransformFromParentSpace(this, screenPosition);
 			Ray ray = this.World.GetRayForLocalBounds(meshViewerWidgetScreenPosition);
 
 			intersectionInfo = Scene.TraceData().GetClosestIntersection(ray);
