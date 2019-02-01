@@ -442,7 +442,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.First || d.DrawStage == DrawStage.OpaqueContent).OrderBy(d => d.DrawStage))
 			{
-				drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				if (drawable.Enabled)
+				{
+					drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				}
 			}
 
 			// Draw solid objects, extract transparent
@@ -510,7 +513,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			foreach(var drawable in drawables.Where(d => d.DrawStage == DrawStage.TransparentContent || d.DrawStage == DrawStage.Last).OrderBy(d => d.DrawStage))
 			{
-				drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				if (drawable.Enabled)
+				{
+					drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				}
 			}
 		}
 
