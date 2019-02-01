@@ -1868,6 +1868,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public MeshSelectInfo CurrentSelectInfo { get; } = new MeshSelectInfo();
 
+
 		protected IObject3D FindHitObject3D(Vector2 screenPosition, ref IntersectInfo intersectionInfo)
 		{
 			Vector2 meshViewerWidgetScreenPosition = this.InteractionLayer.TransformFromParentSpace(this, screenPosition);
@@ -1934,6 +1935,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				sceneContext.RenderGCode3D(e);
 			}
 		}
+
+		string IDrawable.Title { get; } = "View3DWidget Extensions";
+
+		string IDrawable.Description { get; } = "Render axis indicators for shift drag and 3D GCode view";
+
+		DrawStage IDrawable.DrawStage { get; } = DrawStage.OpaqueContent;
 	}
 
 	public enum HitQuadrant { LB, LT, RB, RT }
