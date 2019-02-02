@@ -445,7 +445,17 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					break;
 			}
 
-			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.First || d.DrawStage == DrawStage.OpaqueContent).OrderBy(d => d.DrawStage))
+			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.First))
+			{
+				if (drawable.Enabled)
+				{
+					drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				}
+			}
+
+			GLHelper.SetGlContext(this.World, renderSource.TransformToScreenSpace(renderSource.LocalBounds), lighting);
+
+			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.OpaqueContent))
 			{
 				if (drawable.Enabled)
 				{
@@ -516,7 +526,17 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			DrawInteractionVolumes(e);
 
-			foreach(var drawable in drawables.Where(d => d.DrawStage == DrawStage.TransparentContent || d.DrawStage == DrawStage.Last).OrderBy(d => d.DrawStage))
+			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.TransparentContent))
+			{
+				if (drawable.Enabled)
+				{
+					drawable.Draw(this, e, Matrix4X4.Identity, this.World);
+				}
+			}
+
+			GLHelper.UnsetGlContext();
+
+			foreach (var drawable in drawables.Where(d => d.DrawStage == DrawStage.Last))
 			{
 				if (drawable.Enabled)
 				{
