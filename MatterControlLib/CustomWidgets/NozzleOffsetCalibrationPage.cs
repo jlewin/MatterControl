@@ -30,10 +30,10 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
+using MatterHackers.Agg.Transform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Agg.VertexSource;
 using MatterHackers.Localizations;
@@ -101,6 +101,8 @@ namespace MatterHackers.MatterControl
 			this.AddPageAction(nextButton);
 		}
 
+		bool vertical = false;
+
 		public override void OnLoad(EventArgs args)
 		{
 			// Replace with calibration template code
@@ -108,14 +110,22 @@ namespace MatterHackers.MatterControl
 			{
 				var turtle = new GCodeTurtle();
 
+				var vertical = true;
+				if (vertical)
+				{
+					//turtle.Transform = Affine.NewTranslation(90, 160);
+					turtle.Transform = Affine.NewRotation(MathHelper.DegreesToRadians(90)) * Affine.NewTranslation(110, 45);
+				}
+
 				var rect = new RectangleDouble(0, 0, 123, 30);
-				rect.Offset(70, 100);
 
 				var originalRect = rect;
 
 				double nozzleWidth = 0.4;
 
 				int towerSize = 10;
+
+				turtle.Speed = (int)(printer.Settings.GetValue<double>(SettingsKey.first_layer_speed) * 60);
 
 				double y1 = rect.Bottom;
 				turtle.MoveTo(rect.Left, y1);
@@ -173,47 +183,8 @@ namespace MatterHackers.MatterControl
 
 						turtle.Speed = 500;
 
-						if (drawGlpyphs && CalibrationLine.Glyphs.TryGetValue(i, out IVertexSource vertexSource))
-						{
-							var flattened = new FlattenCurves(vertexSource);
+						PrintLineEnd(turtle, drawGlpyphs, i, currentPos);
 
-							var verticies = flattened.Vertices();
-							var firstItem = verticies.First();
-							var position = turtle.CurrentPosition;
-
-							var scale = 0.32;
-
-							if (firstItem.command != ShapePath.FlagsAndCommand.MoveTo)
-							{
-								turtle.MoveTo((firstItem.position * scale) + currentPos);
-							}
-
-							bool closed = false;
-
-							foreach (var item in verticies)
-							{
-								switch (item.command)
-								{
-									case ShapePath.FlagsAndCommand.MoveTo:
-										turtle.MoveTo((item.position * scale) + currentPos);
-										break;
-
-									case ShapePath.FlagsAndCommand.LineTo:
-										turtle.LineTo((item.position * scale) + currentPos);
-										break;
-
-									case ShapePath.FlagsAndCommand.FlagClose:
-										turtle.LineTo((firstItem.position * scale) + currentPos);
-										closed = true;
-										break;
-								}
-							}
-
-							if (!closed)
-							{
-								turtle.LineTo((firstItem.position * scale) + currentPos);
-							}
-						}
 						turtle.Speed = 1800;
 
 						turtle.MoveTo(x, y3);
@@ -300,123 +271,50 @@ namespace MatterHackers.MatterControl
 
 			base.OnLoad(args);
 		}
-	}
 
-	public class GCodeTurtle : IDisposable
-	{
-		private StringBuilder sb;
-		private StringWriter writer;
-		private double currentE = 0;
-
-		public GCodeTurtle()
+		private static void PrintLineEnd(GCodeTurtle turtle, bool drawGlpyphs, int i, Vector2 currentPos)
 		{
-			sb = new StringBuilder();
-			writer = new StringWriter(sb);
-			writer.WriteLine("G92 E0");
-			writer.WriteLine("T0");
-			writer.WriteLine("G1 X50 Y50 Z0.2 F{0}", this.Speed);
-		}
-
-		public Vector2 CurrentPosition { get; private set; }
-
-		private int _speed = 1800;
-
-		public int Speed
-		{
-			get => _speed;
-			set
+			if (drawGlpyphs && CalibrationLine.Glyphs.TryGetValue(i, out IVertexSource vertexSource))
 			{
-				if (value != _speed)
+				var flattened = new FlattenCurves(vertexSource);
+
+				var verticies = flattened.Vertices();
+				var firstItem = verticies.First();
+				var position = turtle.CurrentPosition;
+
+				var scale = 0.32;
+
+				if (firstItem.command != ShapePath.FlagsAndCommand.MoveTo)
 				{
-					_speed = value;
-					writer.WriteLine("G1 F{0}", _speed);
+					turtle.MoveTo((firstItem.position * scale) + currentPos);
+				}
+
+				bool closed = false;
+
+				foreach (var item in verticies)
+				{
+					switch (item.command)
+					{
+						case ShapePath.FlagsAndCommand.MoveTo:
+							turtle.MoveTo((item.position * scale) + currentPos);
+							break;
+
+						case ShapePath.FlagsAndCommand.LineTo:
+							turtle.LineTo((item.position * scale) + currentPos);
+							break;
+
+						case ShapePath.FlagsAndCommand.FlagClose:
+							turtle.LineTo((firstItem.position * scale) + currentPos);
+							closed = true;
+							break;
+					}
+				}
+
+				if (!closed)
+				{
+					turtle.LineTo((firstItem.position * scale) + currentPos);
 				}
 			}
-		}
-
-		public void MoveTo(double x, double y, bool retract = false)
-		{
-			this.MoveTo(new Vector2(x, y), retract);
-		}
-
-		private double retractAmount = 1.2;
-		private bool retracted = false;
-
-		public void MoveTo(Vector2 position, bool retract = false)
-		{
-			if (retract)
-			{
-				currentE -= retractAmount;
-				retracted = true;
-				writer.WriteLine("G1 E{0:0.###}", currentE);
-
-			}
-
-			writer.WriteLine("G1 X{0:0.###} Y{1:0.###}", position.X, position.Y);
-			this.CurrentPosition = position;
-		}
-
-		public void PenUp()
-		{
-			writer.WriteLine("G1 Z0.8 E{0:0.###}", currentE - 1.2);
-		}
-
-		public void PenDown()
-		{
-			writer.WriteLine("G1 Z0.2 E{0:0.###}", currentE);
-		}
-
-		public void LineTo(double x, double y)
-		{
-			this.LineTo(new Vector2(x, y));
-		}
-
-		public void LineTo(Vector2 position)
-		{
-			if (retracted)
-			{
-				// Unretract
-				currentE += retractAmount;
-				writer.WriteLine("G1 E{0:0.###}", currentE);
-			}
-
-			var delta = this.CurrentPosition - position;
-			currentE += delta.Length * 0.06;
-
-			writer.WriteLine("G1 X{0} Y{1} E{2:0.###}", position.X, position.Y, currentE);
-
-			this.CurrentPosition = position;
-		}
-
-		public string ToGCode()
-		{
-			return sb.ToString();
-		}
-
-		public void Dispose()
-		{
-			writer.Dispose();
-		}
-
-		internal void Draw(RectangleDouble rect)
-		{
-			this.MoveTo(rect.Left, rect.Bottom);
-
-			this.LineTo(rect.Left, rect.Top);
-			this.LineTo(rect.Right, rect.Top);
-			this.LineTo(rect.Right, rect.Bottom);
-			this.LineTo(rect.Left, rect.Bottom);
-		}
-
-		public void WriteRaw(string gcode)
-		{
-			writer.WriteLine(gcode);
-		}
-
-		internal void ResetE()
-		{
-			currentE = 0;
-			writer.WriteLine("G92 E0");
 		}
 	}
 
@@ -456,7 +354,7 @@ namespace MatterHackers.MatterControl
 				};
 				calibrationLine.Click += (s, e) =>
 				{
-					activeOffset.Text = activeOffsets[calibrationLine.OffsetIndex].ToString("0.####");
+					activeOffset.Text = (activeOffsets[calibrationLine.OffsetIndex] * -1).ToString("0.####");
 
 				};
 				row.AddChild(calibrationLine);
@@ -488,7 +386,7 @@ namespace MatterHackers.MatterControl
 			nextButton.Click += (s, e) =>
 			{
 				var hotendOffset = printer.Settings.Helpers.ExtruderOffset(1);
-				hotendOffset.X += double.Parse(activeOffset.Text);
+				hotendOffset.Y += double.Parse(activeOffset.Text);
 				printer.Settings.Helpers.SetExtruderOffset(1, hotendOffset);
 			};
 
