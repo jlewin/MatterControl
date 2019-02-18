@@ -49,6 +49,16 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			this.printerSettings = printerSettings;
 			this.SampledPositions = new List<Vector3>(levelingData.SampledPositions);
 
+			var rnd = new Random();
+
+			for (int i = 0; i < this.SampledPositions.Count; i++)
+			{
+				var position = this.SampledPositions[i];
+				position.Z = rnd.Next(12) + rnd.NextDouble();
+
+				this.SampledPositions[i] = position;
+			}
+
 			bedSize = printerSettings.GetValue<Vector2>(SettingsKey.bed_size);
 
 			// get the delaunay triangulation
