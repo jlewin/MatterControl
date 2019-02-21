@@ -337,6 +337,25 @@ namespace MatterHackers.MatterControl.Library.Export
 						nextLine = finalStream.ReadLine();
 					}
 				}
+
+#if DEBUG
+				// "Slice & View".Localize() - Mode
+				{
+					bool launchDebugger = true;
+					string debugFile = @"C:\Data\Source\gCodeViewer\latest.txt";
+					string debugSiteUrl = "http://localhost:63920/"; //"http://localhost/gcode/"
+
+					// Launch local viewer if requested
+					if (launchDebugger)
+					{
+						// Copy the file into place for gcode.ws
+						File.Copy(outputPath, debugFile, true);
+
+						// Launch the browser UI
+						System.Diagnostics.Process.Start(debugSiteUrl);
+					}
+				}
+#endif
 			}
 			catch (Exception e)
 			{
