@@ -299,7 +299,7 @@ namespace MatterHackers.MatterControl.Library.Export
 			if (levelingEnabled
 				&& printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting))
 			{
-				accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 1);
+				accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 100000);
 			}
 			else
 			{

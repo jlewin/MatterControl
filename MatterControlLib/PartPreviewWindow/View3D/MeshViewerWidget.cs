@@ -422,11 +422,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			// Render as solid
 			GLHelper.Render(levelingDataMesh,
-				Color.Blue,
+				Color.Blue.WithAlpha(80),
 				Matrix4X4.Identity,
 				sceneContext.ViewState.RenderType,
 				Matrix4X4.Identity * World.ModelviewMatrix,
-				darkWireframe, 
+				darkWireframe,
 				() => Invalidate());
 
 			transparentMeshes.Sort(BackToFrontXY);

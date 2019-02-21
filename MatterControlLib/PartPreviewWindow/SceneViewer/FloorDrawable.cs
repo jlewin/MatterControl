@@ -28,11 +28,13 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Collections.Generic;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.RenderOpenGl;
 using MatterHackers.RenderOpenGl.OpenGl;
 using MatterHackers.VectorMath;
+using static MatterHackers.MatterControl.PrinterCommunication.Io.PrintLevelingStream;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -76,6 +78,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public bool LookingDownOnBed { get; set; }
 
+		public static List<LevelingPlaneEdge> Lines { get; set; } = new List<LevelingPlaneEdge>();
+		public static List<Vector2> Points { get; internal set; } = new List<Vector2>();
+
 		public void Draw(GuiWidget sender, DrawEventArgs e, Matrix4X4 itemMaxtrix, WorldView world)
 		{
 			if (editorType == InteractionLayer.EditorType.Printer)
@@ -99,6 +104,29 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				{
 					GLHelper.Render(sceneContext.BuildVolumeMesh, buildVolumeColor, RenderTypes.Shaded, world.ModelviewMatrix);
 				}
+
+				GL.Disable(EnableCap.Texture2D);
+				GL.Disable(EnableCap.Blend);
+				GL.Disable(EnableCap.Lighting);
+
+				GL.Begin(BeginMode.Lines);
+				{
+					GL.Color4(Color.Green);
+					foreach (var edge in Lines)
+					{
+						GL.Vertex3(edge.Start.X, edge.Start.Y, 0);
+						GL.Vertex3(edge.End.X, edge.End.Y, 0);
+					}
+
+					GL.Color4(Color.Blue);
+					foreach (var point in Points)
+					{
+						GL.Vertex3(point.X, point.Y, 0);
+						GL.Vertex3(point.X, point.Y, 3);
+					}
+				}
+				GL.End();
+
 			}
 			else
 			{
@@ -134,6 +162,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					GL.Color4(gridColors.Blue);
 					GL.Vertex3(0, 0, 10);
 					GL.Vertex3(0, 0, -10);
+
+					GL.Color4(Color.Green);
+					GL.Vertex3(80, 80, 0);
+					GL.Vertex3(95, 95, 0);
 				}
 				GL.End();
 			}

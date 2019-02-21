@@ -164,6 +164,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			return newLine.ToString();
 		}
 
+		public string ApplyLeveling(string lineBeingSent, PrinterMove currentDestination)
+		{
+			return this.ApplyLeveling(lineBeingSent, currentDestination.position);
+		}
+
 		public Vector3 GetPositionWithZOffset(Vector3 currentDestination)
 		{
 			LevelingTriangle region = GetCorrectRegion(currentDestination);
@@ -171,7 +176,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			return region.GetPositionWithZOffset(currentDestination);
 		}
 
-		private LevelingTriangle GetCorrectRegion(Vector3 currentDestination)
+		public LevelingTriangle GetCorrectRegion(Vector3 currentDestination)
 		{
 			int xIndex = (int)Math.Round(currentDestination.X * 100 / bedSize.X);
 			int yIndex = (int)Math.Round(currentDestination.Y * 100 / bedSize.Y);
