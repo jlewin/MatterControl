@@ -296,15 +296,15 @@ namespace MatterHackers.MatterControl.Library.Export
 
 			bool levelingEnabled = printer.Settings.GetValue<bool>(SettingsKey.print_leveling_enabled) && applyLeveling;
 
-			if (levelingEnabled
-				&& printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting))
-			{
-				accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 1);
-			}
-			else
-			{
-				accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 1000);
-			}
+			//if (levelingEnabled
+			//	&& printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting))
+			//{
+			//	accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 100000);
+			//}
+			//else
+			//{
+			//	accumulatedStream = new BabyStepsStream(printer, accumulatedStream, 1000);
+			//}
 
 			if (levelingEnabled)
 			{

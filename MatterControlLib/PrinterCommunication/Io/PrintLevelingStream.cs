@@ -27,8 +27,15 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using MatterControl.Printing;
 using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.MatterControl.SlicerConfiguration;
+using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
@@ -41,12 +48,20 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		private bool wroteLevelingStatus = false;
 		private bool gcodeAlreadyLeveled = false;
 
+		private StreamWriter writerA;
+
+		private Queue<(string, PrinterMove)> movesToSend = new Queue<(string, PrinterMove)>();
+
+		private static int fileI = 0;
+
 		public PrintLevelingStream(PrinterConfig printer, GCodeStream internalStream, bool activePrinting)
 			: base(printer, internalStream)
 		{
 			// always reset this when we construct
 			AllowLeveling = true;
 			this.activePrinting = activePrinting;
+
+			writerA = new StreamWriter($@"C:\Users\mr_bl\Desktop\source{fileI++}.gcode");
 		}
 
 		public override string DebugInfo
@@ -55,6 +70,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			{
 				return $"Last Destination = {LastDestination}";
 			}
+		}
+
+		public override void Dispose()
+		{
+			writerA.Dispose();
+
+			base.Dispose();
 		}
 
 		public bool AllowLeveling { get; set; }
@@ -71,15 +93,33 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
+		public class DebugLevelingItem
+		{
+			public string SourceText { get; set; }
+			public LevelingPlaneEdge SourceLine { get; set; }
+
+			public List<Vector2> Splits { get; } = new List<Vector2>();
+			public LevelingPlaneEdge Edge { get; internal set; }
+		}
+
+		public static List<DebugLevelingItem> AllDebugItems = new List<DebugLevelingItem>();
+
 		public override string ReadLine()
 		{
-			if(!wroteLevelingStatus && LevelingActive)
+			if (movesToSend.Count > 0)
+			{
+				return this.SendLineFromQueue();
+			}
+
+			if (!wroteLevelingStatus && LevelingActive)
 			{
 				wroteLevelingStatus = true;
 				return "; Software Leveling Applied";
 			}
 
 			string lineToSend = base.ReadLine();
+
+			writerA.WriteLine(lineToSend);
 
 			if (lineToSend != null
 				&& lineToSend.EndsWith("; NO_PROCESSING"))
@@ -99,6 +139,79 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				if (LineIsMovement(lineToSend))
 				{
 					PrinterMove currentDestination = GetPosition(lineToSend, LastDestination);
+
+					var timer = Stopwatch.StartNew();
+
+					var intersections = new List<(LevelingPlaneEdge Edge, Vector2 Position)>();
+
+					foreach(var edge in levelingEdges)
+					{
+						FindIntersection(edge.Start, edge.End, LastDestination.position, currentDestination.position, out bool linesIntersect, out bool segmentsIntersect, out Vector2 intersection);
+
+						if (segmentsIntersect)
+						{
+							intersections.Add((edge, intersection));
+						}
+					}
+
+					if (timer.ElapsedMilliseconds > 0)
+					{
+						Console.WriteLine("edgeTest in " + timer.ElapsedMilliseconds);
+					}
+
+					if (intersections.Count > 0)
+					{
+						// May be update in the loop below to be the last 
+						var localLastDestination = LastDestination;
+
+						var lastPosition = new Vector2(localLastDestination.position);
+
+						foreach (var intersectionInfo in intersections.OrderBy(ix => ix.Position.Distance(lastPosition)))
+						{
+							var debugItem = new DebugLevelingItem()
+							{
+								SourceText = lineToSend,
+								SourceLine = new LevelingPlaneEdge(this.LastDestination.position, currentDestination.position),
+								Edge = intersectionInfo.Edge
+							};
+
+							AllDebugItems.Add(debugItem);
+
+							var intersection = intersectionInfo.Position;
+
+							var destination = new Vector2(currentDestination.position);
+
+							var eDelta = currentDestination.extrusion - LastDestination.extrusion;
+
+							var thisLength = lastPosition.Distance(intersection);
+							var totalLength = lastPosition.Distance(destination);
+
+							var lengthFactor = thisLength / totalLength;
+							var thisE = eDelta * lengthFactor;
+
+							double feedRate = 0;
+							GCodeFile.GetFirstNumberAfter("F", lineToSend, ref feedRate);
+
+							localLastDestination = new PrinterMove(new Vector3(intersection), localLastDestination.extrusion + thisE, feedRate);
+
+							movesToSend.Enqueue((lineToSend, localLastDestination));
+
+							lastPosition = new Vector2(localLastDestination.position);
+							
+							debugItem.Splits.Add(intersection);
+
+							//currentDestination.extrusion = currentDestination.extrusion - revisedE;
+
+						}
+
+						movesToSend.Enqueue((lineToSend, currentDestination));
+
+						if (movesToSend.Count > 0)
+						{
+							return this.SendLineFromQueue();
+						}
+					}
+
 					var leveledLine = GetLeveledPosition(lineToSend, currentDestination);
 
 					// TODO: clamp to 0 - baby stepping - extruder z-offset, so we don't go below the bed (for the active extruder)
@@ -115,6 +228,59 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 
 			return lineToSend;
+		}
+
+		private string SendLineFromQueue()
+		{
+			(string sourceLine, PrinterMove destination) = movesToSend.Dequeue();
+
+			var leveledLine = currentLevelingFunctions.ApplyLeveling(sourceLine, destination);
+			_lastDestination = destination;
+
+			return "  " + leveledLine;
+		}
+
+		// http://csharphelper.com/blog/2014/08/determine-where-two-lines-intersect-in-c/
+		// Find the point of intersection between
+		// the lines p1 --> p2 and p3 --> p4.
+		private void FindIntersection(
+			Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4,
+			out bool lines_intersect, out bool segments_intersect,
+			out Vector2 intersection)
+		{
+			// Get the segments' parameters.
+			double dx12 = p2.X - p1.X;
+			double dy12 = p2.Y - p1.Y;
+			double dx34 = p4.X - p3.X;
+			double dy34 = p4.Y - p3.Y;
+
+			// Solve for t1 and t2
+			double denominator = (dy12 * dx34 - dx12 * dy34);
+
+			double t1 =
+				((p1.X - p3.X) * dy34 + (p3.Y - p1.Y) * dx34)
+					/ denominator;
+			if (double.IsInfinity(t1))
+			{
+				// The lines are parallel (or close enough to it).
+				lines_intersect = false;
+				segments_intersect = false;
+				intersection = new Vector2(float.NaN, float.NaN);
+				return;
+			}
+			lines_intersect = true;
+
+			double t2 =
+				((p3.X - p1.X) * dy12 + (p1.Y - p3.Y) * dx12)
+					/ -denominator;
+
+			// Find the point of intersection.
+			intersection = new Vector2(p1.X + dx12 * t1, p1.Y + dy12 * t1);
+
+			// The segments intersect if t1 and t2 are between 0 and 1.
+			segments_intersect =
+				((t1 >= 0) && (t1 <= 1) &&
+				 (t2 >= 0) && (t2 <= 1));
 		}
 
 		public override void SetPrinterPosition(PrinterMove position)
@@ -142,6 +308,48 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
+		public class LevelingPlaneEdge : IEquatable<LevelingPlaneEdge>
+		{
+			public LevelingPlaneEdge(Vector3 start, Vector3 end)
+			{
+				bool swap = start.Length > end.Length;
+
+				this.Start = swap ? end : start;
+				this.End = swap ? start: end;
+			}
+
+			public Vector3 Start { get; }
+
+			public Vector3 End { get; }
+
+			public bool Equals(LevelingPlaneEdge other)
+			{
+				return (this.Start == other.Start && this.End == other.End)
+					|| (this.Start == other.End && this.End == other.Start);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked // Overflow is fine, just wrap
+				{
+					int hash = 17;
+
+					// Suitable nullity checks etc, of course :)
+					hash = hash * 23 + Start.GetHashCode();
+					hash = hash * 23 + End.GetHashCode();
+
+					return hash;
+				}
+			}
+
+			public override string ToString()
+			{
+				return $"{Start}-{End}";
+			}
+		}
+
+		private HashSet<LevelingPlaneEdge> levelingEdges = new HashSet<LevelingPlaneEdge>();
+
 		private string GetLeveledPosition(string lineBeingSent, PrinterMove currentDestination)
 		{
 			PrintLevelingData levelingData = printer.Settings.Helpers.GetPrintLevelingData();
@@ -156,6 +364,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				{
 					currentProbeOffset = printer.Settings.GetValue<double>(SettingsKey.z_probe_z_offset);
 					currentLevelingFunctions = new LevelingFunctions(printer, levelingData);
+
+					foreach (var region in currentLevelingFunctions.Regions)
+					{
+						levelingEdges.Add(new LevelingPlaneEdge(region.V0, region.V1));
+						levelingEdges.Add(new LevelingPlaneEdge(region.V1, region.V2));
+						levelingEdges.Add(new LevelingPlaneEdge(region.V2, region.V0));
+					}
 				}
 
 				lineBeingSent = currentLevelingFunctions.ApplyLeveling(lineBeingSent, currentDestination.position);
