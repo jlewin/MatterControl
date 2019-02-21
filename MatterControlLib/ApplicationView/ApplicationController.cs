@@ -73,6 +73,7 @@ namespace MatterHackers.MatterControl
 	using MatterHackers.MatterControl.PartPreviewWindow;
 	using MatterHackers.MatterControl.PartPreviewWindow.View3D;
 	using MatterHackers.MatterControl.Plugins;
+	using MatterHackers.MatterControl.PrinterCommunication.Io;
 	using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 	using MatterHackers.MatterControl.Tour;
 	using MatterHackers.PolygonMesh;
@@ -82,6 +83,7 @@ namespace MatterHackers.MatterControl
 	using Newtonsoft.Json.Converters;
 	using Newtonsoft.Json.Linq;
 	using SettingsManagement;
+	using static MatterHackers.MatterControl.PrinterCommunication.Io.PrintLevelingStream;
 
 	[JsonConverter(typeof(StringEnumConverter))]
 	public enum NamedTypeFace
@@ -3130,6 +3132,8 @@ If you experience adhesion problems, please re-run leveling."
 		public static bool EnableF5Collect { get; set; }
 		public static bool EnableNetworkTraffic { get; set; } = true;
 
+		private static int ix = 0;
+
 		public static SystemWindow LoadRootWindow(int width, int height)
 		{
 			timer = Stopwatch.StartNew();
@@ -3411,8 +3415,19 @@ If you experience adhesion problems, please re-run leveling."
 							}
 							else
 							{
+								var lines = new List<LevelingPlaneEdge>();
+
+								var xxx = PrintLevelingStream.AllDebugItems[ix++];
+								lines.Add(xxx.SourceLine);
+								lines.Add(xxx.Edge);
+
+								systemWindow.PlatformWindow.Caption = xxx.SourceText;
+								FloorDrawable.Lines = lines;
+								FloorDrawable.Points = xxx.Splits;
+			 					systemWindow.Invalidate();
+
 								// move or rotate view right
-								Offset3DView(view3D, new Vector2(offsetDist, 0), arrowKeyOpperation);
+								//Offset3DView(view3D, new Vector2(offsetDist, 0), arrowKeyOpperation);
 							}
 
 							keyEvent.Handled = true;

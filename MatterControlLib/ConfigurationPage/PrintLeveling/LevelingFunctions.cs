@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MatterControl.Printing;
+using MatterHackers.MatterControl.PrinterCommunication.Io;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 using MIConvexHull;
@@ -120,7 +121,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public List<LevelingTriangle> Regions { get; } = new List<LevelingTriangle>();
 
-		public string ApplyLeveling(string lineBeingSent, Vector3 destination)
+		public string ApplyLeveling(string lineBeingSent, Vector3 destination, double eOverride = -1)
 		{
 			bool hasMovement = lineBeingSent.Contains("X") || lineBeingSent.Contains("Y") || lineBeingSent.Contains("Z");
 			if (!hasMovement)
@@ -131,6 +132,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 			double extruderDelta = 0;
 			GCodeFile.GetFirstNumberAfter("E", lineBeingSent, ref extruderDelta);
+
+			if (eOverride != -1)
+			{
+				extruderDelta = eOverride;
+			}
+
 			double feedRate = 0;
 			GCodeFile.GetFirstNumberAfter("F", lineBeingSent, ref feedRate);
 
@@ -178,6 +185,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			return newLine.ToString();
 		}
 
+		public string ApplyLeveling(string lineBeingSent, PrinterMove currentDestination)
+		{
+			return this.ApplyLeveling(lineBeingSent, currentDestination.position, currentDestination.extrusion);
+		}
+
 		public Vector3 GetPositionWithZOffset(Vector3 currentDestination)
 		{
 			LevelingTriangle region = GetCorrectRegion(currentDestination);
@@ -185,7 +197,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			return region.GetPositionWithZOffset(currentDestination);
 		}
 
-		private LevelingTriangle GetCorrectRegion(Vector3 currentDestination)
+		public LevelingTriangle GetCorrectRegion(Vector3 currentDestination)
 		{
 			int xIndex = (int)Math.Round(currentDestination.X * 100 / bedSize.X);
 			int yIndex = (int)Math.Round(currentDestination.Y * 100 / bedSize.Y);
