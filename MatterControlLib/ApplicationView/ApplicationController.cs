@@ -3381,7 +3381,7 @@ If you experience adhesion problems, please re-run leveling."
 
 							var lines = new List<LevelingPlaneEdge>();
 
-							var xxx = PrintLevelingStream.AllXXX[ix++];
+							var xxx = PrintLevelingStream.AllDebugItems[ix++];
 							lines.Add(xxx.SourceLine);
 							lines.Add(xxx.Edge);
 

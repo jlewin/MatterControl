@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MatterControl.Printing;
+using MatterHackers.MatterControl.PrinterCommunication.Io;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 using MIConvexHull;
@@ -120,10 +121,16 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public List<LevelingTriangle> Regions { get; } = new List<LevelingTriangle>();
 
-		public string ApplyLeveling(string lineBeingSent, Vector3 destination)
+		public string ApplyLeveling(string lineBeingSent, Vector3 destination, double eOverride = -1)
 		{
 			double extruderDelta = 0;
 			GCodeFile.GetFirstNumberAfter("E", lineBeingSent, ref extruderDelta);
+
+			if (eOverride != -1)
+			{
+				extruderDelta = eOverride;
+			}
+
 			double feedRate = 0;
 			GCodeFile.GetFirstNumberAfter("F", lineBeingSent, ref feedRate);
 
@@ -166,7 +173,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public string ApplyLeveling(string lineBeingSent, PrinterMove currentDestination)
 		{
-			return this.ApplyLeveling(lineBeingSent, currentDestination.position);
+			return this.ApplyLeveling(lineBeingSent, currentDestination.position, currentDestination.extrusion);
 		}
 
 		public Vector3 GetPositionWithZOffset(Vector3 currentDestination)

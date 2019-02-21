@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using MatterControl.Printing;
 using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.MatterControl.SlicerConfiguration;
@@ -84,7 +85,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
-		public class XXX
+		public class DebugLevelingItem
 		{
 			public string SourceText { get; set; }
 			public LevelingPlaneEdge SourceLine { get; set; }
@@ -93,7 +94,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			public LevelingPlaneEdge Edge { get; internal set; }
 		}
 
-		public static List<XXX> AllXXX = new List<XXX>();
+		public static List<DebugLevelingItem> AllDebugItems = new List<DebugLevelingItem>();
 
 		public override string ReadLine()
 		{
@@ -152,31 +153,47 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 					if (intersections.Count > 0)
 					{
-						foreach (var intersectionInfo in intersections)
-						{
+						// May be update in the loop below to be the last 
+						var localLastDestination = LastDestination;
 
-							var xxx = new XXX()
+						var lastPosition = new Vector2(localLastDestination.position);
+
+						foreach (var intersectionInfo in intersections.OrderBy(ix => ix.Position.Distance(lastPosition)))
+						{
+							var debugItem = new DebugLevelingItem()
 							{
 								SourceText = lineToSend,
 								SourceLine = new LevelingPlaneEdge(this.LastDestination.position, currentDestination.position),
 								Edge = intersectionInfo.Edge
 							};
-							AllXXX.Add(xxx);
+
+							AllDebugItems.Add(debugItem);
 
 							var intersection = intersectionInfo.Position;
-							var lengthFactor = intersection.Length / currentDestination.position.Length;
-							var revisedE = currentDestination.extrusion * lengthFactor;
+
+							var destination = new Vector2(currentDestination.position);
+
+							var eDelta = currentDestination.extrusion - LastDestination.extrusion;
+
+							var thisLength = lastPosition.Distance(intersection);
+							var totalLength = lastPosition.Distance(destination);
+
+							var lengthFactor = thisLength / totalLength;
+							var thisE = eDelta * lengthFactor;
 
 							double feedRate = 0;
 							GCodeFile.GetFirstNumberAfter("F", lineToSend, ref feedRate);
 
-							movesToSend.Enqueue(
-								(lineToSend,
-								new PrinterMove(new Vector3(intersection), revisedE, feedRate)));
+							localLastDestination = new PrinterMove(new Vector3(intersection), localLastDestination.extrusion + thisE, feedRate);
 
-							xxx.Splits.Add(intersection);
+							movesToSend.Enqueue((lineToSend, localLastDestination));
+
+							lastPosition = new Vector2(localLastDestination.position);
+							
+							debugItem.Splits.Add(intersection);
 
 							//currentDestination.extrusion = currentDestination.extrusion - revisedE;
+
 						}
 
 						movesToSend.Enqueue((lineToSend, currentDestination));
@@ -206,7 +223,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			(string sourceLine, PrinterMove destination) = movesToSend.Dequeue();
 
-			var leveledLine = GetLeveledPosition(sourceLine, destination);
+			var leveledLine = currentLevelingFunctions.ApplyLeveling(sourceLine, destination);
 			_lastDestination = destination;
 
 			return "  " + leveledLine;
@@ -345,7 +362,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 					}
 				}
 
-				lineBeingSent = currentLevelingFunctions.ApplyLeveling(lineBeingSent, currentDestination);
+				lineBeingSent = currentLevelingFunctions.ApplyLeveling(lineBeingSent, currentDestination.position);
 			}
 
 			return lineBeingSent;
