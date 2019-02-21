@@ -173,18 +173,23 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 							var destination = new Vector2(currentDestination.position);
 
-							var eDelta = currentDestination.extrusion - LastDestination.extrusion;
+							var eDelta = currentDestination.extrusion - localLastDestination.extrusion;
+							var zDelta = currentDestination.position.Z - localLastDestination.position.Z;
 
 							var thisLength = lastPosition.Distance(intersection);
 							var totalLength = lastPosition.Distance(destination);
 
 							var lengthFactor = thisLength / totalLength;
-							var thisE = eDelta * lengthFactor;
+
+							var thisE = localLastDestination.extrusion + (eDelta * lengthFactor);
+							var thisZ = localLastDestination.position.Z + (zDelta * lengthFactor);
 
 							double feedRate = 0;
 							GCodeFile.GetFirstNumberAfter("F", lineToSend, ref feedRate);
 
-							localLastDestination = new PrinterMove(new Vector3(intersection), localLastDestination.extrusion + thisE, feedRate);
+							localLastDestination = new PrinterMove(
+								new Vector3(intersection.X, intersection.Y, thisZ), 
+								thisE, feedRate);
 
 							movesToSend.Enqueue((lineToSend, localLastDestination));
 
