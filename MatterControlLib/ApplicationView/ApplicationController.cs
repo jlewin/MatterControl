@@ -3371,28 +3371,38 @@ If you experience adhesion problems, please re-run leveling."
 							break;
 
 						case Keys.Left:
-							// move or rotate view left
-							Offset3DView(view3D, new Vector2(-offsetDist, 0), arrowKeyOpperation);
+							if (keyEvent.Control 
+								&& !printerTabPage.sceneContext.ViewState.ModelView)
+							{
+								// Decrement slider
+								printerTabPage.LayerFeaturesIndex -= 1;
+							}
+							else
+							{
+								// move or rotate view left
+								Offset3DView(view3D, new Vector2(-offsetDist, 0), arrowKeyOpperation);
+							}
+
 							keyEvent.Handled = true;
 							keyEvent.SuppressKeyPress = true;
 							break;
 
 						case Keys.Right:
 
-							var lines = new List<LevelingPlaneEdge>();
+							if (keyEvent.Control
+								&& !printerTabPage.sceneContext.ViewState.ModelView)
+							{
+								// Increment slider
+								printerTabPage.LayerFeaturesIndex += 1;
+							}
+							else
+							{
+								// move or rotate view right
+								Offset3DView(view3D, new Vector2(offsetDist, 0), arrowKeyOpperation);
+							}
 
-							var xxx = PrintLevelingStream.AllDebugItems[ix++];
-							lines.Add(xxx.SourceLine);
-							lines.Add(xxx.Edge);
-
-							systemWindow.PlatformWindow.Caption = xxx.SourceText;
-							FloorDrawable.Lines = lines;
-							FloorDrawable.Points = xxx.Splits;
-							systemWindow.Invalidate();
-
-							//Offset3DView(view3D, new Vector2(offsetDist, 0), arrowKeyOpperation);
-							//keyEvent.Handled = true;
-							//keyEvent.SuppressKeyPress = true;
+							keyEvent.Handled = true;
+							keyEvent.SuppressKeyPress = true;
 							break;
 
 						case Keys.Up:
