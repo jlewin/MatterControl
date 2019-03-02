@@ -159,7 +159,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 					if (intersections.Count > 0)
 					{
-						// May be update in the loop below to be the last
 						var localLastDestination = _lastDestination;
 
 						var lastPosition = new Vector2(localLastDestination.position);

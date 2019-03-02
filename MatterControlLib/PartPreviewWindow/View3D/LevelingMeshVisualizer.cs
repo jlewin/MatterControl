@@ -33,6 +33,7 @@ using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.PolygonMesh;
 using MatterHackers.VectorMath;
+using static MatterHackers.MatterControl.ConfigurationPage.PrintLeveling.LevelingFunctions;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -134,6 +135,43 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 				faces.Add(new Face(points[0], points[1], points[2], vertices));
 			}
+
+			return new Mesh(vertices, faces);
+		}
+
+		public static Mesh BuildMeshFromRegion(LevelingTriangle region)
+		{
+			var vertices = new List<Vector3Float>();
+
+			var pointCounts = new Dictionary<Vector3Float, int>();
+
+			var points = new int[3];
+
+			var faces = new FaceList();
+
+			// Add top faces
+			int i = 0;
+
+			foreach (var point in new[] { new Vector3Float(region.V0), new Vector3Float(region.V1), new Vector3Float(region.V2) })
+			{
+				int index = vertices.IndexOf(point);
+				if (index == -1)
+				{
+					index = vertices.Count;
+					vertices.Add(point);
+				}
+
+				if (!pointCounts.TryGetValue(point, out int pointCount))
+				{
+					pointCount = 0;
+				}
+
+				pointCounts[point] = pointCount + 1;
+
+				points[i++] = index;
+			}
+
+			faces.Add(new Face(points[0], points[2], points[1], vertices));
 
 			return new Mesh(vertices, faces);
 		}

@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
+using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.PolygonMesh;
 using MatterHackers.RenderOpenGl;
 using MatterHackers.VectorMath;
@@ -41,6 +42,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private Mesh levelingDataMesh;
 		private ISceneContext sceneContext;
 		private Color darkWireframe = new Color("#3334");
+		private LevelingFunctions.LevelingTriangle lastRegion;
+		private Mesh activeRegionMesh;
+		private Mesh cube;
 
 		public LevelingDataDrawable(ISceneContext sceneContext)
 		{
@@ -50,6 +54,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				levelingDataMesh = LevelingMeshVisualizer.BuildMeshFromLevelingData(printer);
 			}
+
+			cube = PlatonicSolids.CreateCube(.25, .25, 3);
 		}
 
 		public string Title => "Leveling Data Visualizer".Localize();
@@ -62,6 +68,29 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public void Draw(GuiWidget sender, DrawEventArgs e, Matrix4X4 itemMaxtrix, WorldView world)
 		{
+			if (ApplicationController.Instance.LastLevelRegion != this.lastRegion)
+			{
+				this.lastRegion = ApplicationController.Instance.LastLevelRegion;
+				this.activeRegionMesh = LevelingMeshVisualizer.BuildMeshFromRegion(lastRegion);
+			}
+
+			if (activeRegionMesh != null)
+			{
+				GLHelper.Render(activeRegionMesh,
+					Color.Blue.Blend(Color.White, 0.3),
+					Matrix4X4.CreateTranslation(0, 0, 0.1),
+					sceneContext.ViewState.RenderType,
+					Matrix4X4.Identity * world.ModelviewMatrix,
+					darkWireframe);
+
+				GLHelper.Render(cube,
+					Color.Red,
+					Matrix4X4.CreateTranslation(ApplicationController.Instance.LastLevelPosition),
+					sceneContext.ViewState.RenderType,
+					Matrix4X4.Identity * world.ModelviewMatrix,
+					darkWireframe);
+			}
+
 			if (levelingDataMesh != null)
 			{
 				GLHelper.Render(levelingDataMesh,
