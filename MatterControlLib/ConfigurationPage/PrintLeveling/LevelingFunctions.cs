@@ -202,6 +202,16 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			int xIndex = (int)Math.Round(currentDestination.X * 100 / bedSize.X);
 			int yIndex = (int)Math.Round(currentDestination.Y * 100 / bedSize.Y);
 
+			var point2D = new Vector2(currentDestination);
+			foreach(var region in Regions)
+			{
+				if (region.Contains2(point2D))
+				{
+					return region;
+				}
+			}
+
+
 			int bestIndex;
 			if (!positionToRegion.TryGetValue((xIndex, yIndex), out bestIndex))
 			{
@@ -232,6 +242,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				this.V0 = v0;
 				this.V1 = v1;
 				this.V2 = v2;
+
+				this.p0 = new Vector2(v0);
+				this.p1 = new Vector2(v1);
+				this.p2 = new Vector2(v2);
+
 				this.Center = (V0 + V1 + V2) / 3;
 				this.Plane = new Plane(V0, V1, V2);
 			}
@@ -242,6 +257,10 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			public Vector3 V1 { get; }
 			public Vector3 V2 { get; }
 
+			private Vector2 p0;
+			private Vector2 p1;
+			private Vector2 p2;
+
 			public Vector3 GetPositionWithZOffset(Vector3 currentDestination)
 			{
 				var destinationAtZ0 = new Vector3(currentDestination.X, currentDestination.Y, 0);
@@ -250,6 +269,90 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				currentDestination.Z += hitDistance;
 
 				return currentDestination;
+			}
+
+			public bool Contains(Vector2 p)
+			{
+				var s = p0.Y * p2.X - p0.X * p2.Y + (p2.Y - p0.Y) * p.X + (p0.X - p2.X) * p.Y;
+				var t = p0.X * p1.Y - p0.Y * p1.X + (p0.Y - p1.Y) * p.X + (p1.X - p0.X) * p.Y;
+
+				if ((s < 0) != (t < 0))
+					return false;
+
+				var A = -p1.Y * p2.X + p0.Y * (p2.X - p1.X) + p0.X * (p1.Y - p2.Y) + p1.X * p2.Y;
+
+				return A < 0 ?
+						(s <= 0 && s + t >= A) :
+						(s >= 0 && s + t <= A);
+			}
+
+			public bool Contains2(Vector2 p)
+			{
+				double x1 = p0.X;
+				double y1 = p0.Y;
+
+				double x2 = p1.X;
+				double y2 = p1.Y;
+
+				double x3 = p2.X;
+				double y3 = p2.Y;
+
+				double x, y;
+				x = p.X;
+				y = p.Y;
+
+				double a = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+				double b = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+				double c = 1 - a - b;
+
+				if (a == 0 || b == 0 || c == 0)
+				{
+					Console.WriteLine("Point is on the side of the triangle");
+					return isInside(x1, y1, x2, y2, x3, y3, x, y);
+				}
+				else if (a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1)
+				{
+					Console.WriteLine("Point is inside of the triangle.");
+					return true;
+				}
+				else
+				{
+					Console.WriteLine("Point is outside of the triangle.");
+					return false;
+				}
+			}
+
+			/* A utility function to calculate area of triangle  
+    formed by (x1, y1) (x2, y2) and (x3, y3) */
+			static double area(double x1, double y1, double x2,
+							   double y2, double x3, double y3)
+			{
+				return Math.Abs((x1 * (y2 - y3) +
+								 x2 * (y3 - y1) +
+								 x3 * (y1 - y2)) / 2.0);
+			}
+
+			/* A function to check whether point P(x, y) lies 
+			inside the triangle formed by A(x1, y1), 
+			B(x2, y2) and C(x3, y3) */
+			static bool isInside(double x1, double y1, double x2,
+								 double y2, double x3, double y3,
+								 double x, double y)
+			{
+				/* Calculate area of triangle ABC */
+				double A = area(x1, y1, x2, y2, x3, y3);
+
+				/* Calculate area of triangle PBC */
+				double A1 = area(x, y, x2, y2, x3, y3);
+
+				/* Calculate area of triangle PAC */
+				double A2 = area(x1, y1, x, y, x3, y3);
+
+				/* Calculate area of triangle PAB */
+				double A3 = area(x1, y1, x2, y2, x, y);
+
+				/* Check if sum of A1, A2 and A3 is same as A */
+				return (A == A1 + A2 + A3);
 			}
 		}
 	}
