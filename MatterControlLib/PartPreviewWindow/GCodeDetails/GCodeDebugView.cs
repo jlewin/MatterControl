@@ -28,10 +28,14 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Linq;
 using MatterControl.Printing;
+using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.GCodeVisualizer;
 using MatterHackers.Localizations;
+using MatterHackers.MatterControl.ConfigurationPage;
+using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
@@ -46,6 +50,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private TextWidget lengthWidget;
 		private TextWidget yInterceptWidget;
 		private TextWidget xInterceptWidget;
+		private LevelingFunctions levelingFunctions;
 
 		public GCodeDebugView(PrinterTabPage printerTabPage, GCodeFile gCodeMemoryFile, ISceneContext sceneContext, ThemeConfig theme)
 			: base(theme)
@@ -62,6 +67,39 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			// Register listeners
 			printerTabPage.LayerFeaturesScrollbar.SecondValueChanged += this.LayerFeaturesScrollbar_SecondValueChanged;
+		}
+
+		private void ShowRegionForLevelingData(string pointText)
+		{
+			if (levelingFunctions == null)
+			{
+				var printer = printerTabPage.printer;
+				var levelingData = printer.Settings.Helpers.GetPrintLevelingData();
+
+				levelingFunctions = new LevelingFunctions(printerTabPage.printer, levelingData);
+			}
+
+			if (pointText.Contains(','))
+			{
+				var segments = pointText.Trim('[', ']').Split(',').Select(v => Double.Parse(v)).ToArray();
+
+				var position = new Vector3(segments);
+				position.Z = 0;
+
+				var region = levelingFunctions.GetCorrectRegion(position);
+
+				var result = region.GetPositionWithZOffset(position);
+
+				//if (ApplicationController.Instance.LastLevelRegion != region)
+				{
+					ApplicationController.Instance.LastLevelRegion = region;
+
+					position.Z += segments[2];
+
+					ApplicationController.Instance.LastLevelPosition = position;
+					ApplicationController.Instance.MainView.Invalidate();
+				}
+			}
 		}
 
 		public override void OnClosed(EventArgs e)
@@ -108,6 +146,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				// x_1 - y_1*(x_2-x_1)/(y_2-y_1)
 				var xIntercept = start.X - start.Y * (end.X - start.X) / (end.Y - start.Y);
 				xInterceptWidget.Text = $"{xIntercept}";
+
+				this.ShowRegionForLevelingData(startPointWidget.Text);
 			}
 		}
 	}

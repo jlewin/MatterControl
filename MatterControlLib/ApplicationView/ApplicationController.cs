@@ -2671,6 +2671,10 @@ If you experience adhesion problems, please re-run leveling."
 			}
 		}
 
+		public LevelingFunctions.LevelingTriangle LastLevelRegion { get; internal set; }
+
+		public Vector3 LastLevelPosition { get; set; }
+
 		/// <summary>
 		/// Archives MCX and validates GCode results before starting a print operation
 		/// </summary>
