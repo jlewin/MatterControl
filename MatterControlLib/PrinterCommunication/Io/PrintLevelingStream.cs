@@ -68,7 +68,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			get
 			{
-				return $"Last Destination = {LastDestination}";
+				return $"Last Destination = {_lastDestination}";
 			}
 		}
 
@@ -80,8 +80,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		}
 
 		public bool AllowLeveling { get; set; }
-
-		public PrinterMove LastDestination => _lastDestination;
 
 		bool LevelingActive
 		{
@@ -138,7 +136,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			{
 				if (LineIsMovement(lineToSend))
 				{
-					PrinterMove currentDestination = GetPosition(lineToSend, LastDestination);
+					PrinterMove currentDestination = GetPosition(lineToSend, _lastDestination);
 
 					var timer = Stopwatch.StartNew();
 
@@ -146,7 +144,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 					foreach(var edge in levelingEdges)
 					{
-						FindIntersection(edge.Start, edge.End, LastDestination.position, currentDestination.position, out bool linesIntersect, out bool segmentsIntersect, out Vector2 intersection);
+						FindIntersection(edge.Start, edge.End, _lastDestination.position, currentDestination.position, out bool linesIntersect, out bool segmentsIntersect, out Vector2 intersection);
 
 						if (segmentsIntersect)
 						{
@@ -161,8 +159,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 					if (intersections.Count > 0)
 					{
-						// May be update in the loop below to be the last 
-						var localLastDestination = LastDestination;
+						// May be update in the loop below to be the last
+						var localLastDestination = _lastDestination;
 
 						var lastPosition = new Vector2(localLastDestination.position);
 
@@ -171,7 +169,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 							var debugItem = new DebugLevelingItem()
 							{
 								SourceText = lineToSend,
-								SourceLine = new LevelingPlaneEdge(this.LastDestination.position, currentDestination.position),
+								SourceLine = new LevelingPlaneEdge(_lastDestination.position, currentDestination.position),
 								Edge = intersectionInfo.Edge
 							};
 
@@ -196,13 +194,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 							GCodeFile.GetFirstNumberAfter("F", lineToSend, ref feedRate);
 
 							localLastDestination = new PrinterMove(
-								new Vector3(intersection.X, intersection.Y, thisZ), 
+								new Vector3(intersection.X, intersection.Y, thisZ),
 								thisE, feedRate);
 
 							movesToSend.Enqueue((lineToSend, localLastDestination));
 
 							lastPosition = new Vector2(localLastDestination.position);
-							
+
 							debugItem.Splits.Add(intersection);
 
 							//currentDestination.extrusion = currentDestination.extrusion - revisedE;
