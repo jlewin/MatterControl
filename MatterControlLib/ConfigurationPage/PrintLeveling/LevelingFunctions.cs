@@ -31,10 +31,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MatterControl.Printing;
+using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrinterCommunication.Io;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 using MIConvexHull;
+using static MatterHackers.MatterControl.PrinterCommunication.Io.PrintLevelingStream;
 
 namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 {
@@ -52,50 +54,126 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			bedSize = printer.Settings.GetValue<Vector2>(SettingsKey.bed_size);
 
 			// get the delaunay triangulation
-			var vertices = new List<DefaultVertex>();
+			var vertices = new List<BedPoint>();
 
 			if (SampledPositions.Count > 2)
 			{
 				foreach (var sample in SampledPositions)
 				{
-					vertices.Add(new DefaultVertex()
-					{
-						Position = new double[] { sample.X, sample.Y, sample.Z }
-					});
+					vertices.Add(new BedPoint(sample.X, sample.Y, sample.Z));
 				};
 			}
 			else
 			{
-				vertices.Add(new DefaultVertex()
-				{
-					Position = new double[] { 0, 0, 0 }
-				});
-
-				vertices.Add(new DefaultVertex()
-				{
-					Position = new double[] { 200, 0, 0 }
-				});
-
-				vertices.Add(new DefaultVertex()
-				{
-					Position = new double[] { 100, 200, 0 }
-				});
+				vertices.Add(new BedPoint(0, 0, 0));
+				vertices.Add(new BedPoint(200, 0, 0));
+				vertices.Add(new BedPoint(100, 200, 0));
 			}
 
 			int extraXPosition = -50000;
-			vertices.Add(new DefaultVertex()
-			{
-				Position = new double[] { extraXPosition, vertices[0].Position[1] }
-			});
+			vertices.Add(new BedPoint(extraXPosition, vertices[0].Vector3.Y, 0));
 
 			List<LevelingTriangle> regions = CreateLevelingRegions(printer, vertices, extraXPosition);
 
-			this.Regions = regions;
+			InferRegionsToBedBounds(printer, vertices, regions);
+
+			// Redo triangulation with inferred points for bed
+			this.Regions = CreateLevelingRegions(printer, vertices, extraXPosition);
 		}
 
-		private static List<LevelingTriangle> CreateLevelingRegions(PrinterConfig printer, List<DefaultVertex> vertices, int extraXPosition)
+		private class BedPoint : DefaultVertex
 		{
-			var triangles = DelaunayTriangulation<DefaultVertex, DefaultTriangulationCell<DefaultVertex>>.Create(vertices, .001);
+			public BedPoint(Vector3 vector3)
+			{
+				this.Vector3 = vector3;
+				this.Position = new[] { vector3.X, vector3.Y };
+			}
+
+			public BedPoint(double x, double y, double z)
+				: this(new Vector3(x, y, z))
+			{
+			}
+
+			public Vector3 Vector3 { get; }
+		}
+
+		private static void InferRegionsToBedBounds(PrinterConfig printer, List<BedPoint> vertices, List<LevelingTriangle> regions)
+		{
+			var vertices2 = new List<Vector3Float>();
+			var pointCounts = new Dictionary<Vector3Float, int>();
+
+			foreach (var region in regions)
+			{
+				foreach (var point in new[] { new Vector3Float(region.V0), new Vector3Float(region.V1), new Vector3Float(region.V2) })
+				{
+					int index = vertices2.IndexOf(point);
+					if (index == -1)
+					{
+						index = vertices.Count;
+						vertices2.Add(point);
+					}
+
+					if (!pointCounts.TryGetValue(point, out int pointCount))
+					{
+						pointCount = 0;
+					}
+
+					pointCounts[point] = pointCount + 1;
+				}
+			}
+
+			List<Vector3Float> outerPoints = LevelingMeshVisualizer.GetOuterPoints(vertices2, pointCounts, printer.Bed.BedCenter);
+
+			var bedCenter = printer.Bed.BedCenter;
+
+			var bedEdges = new HashSet<LevelingPlaneEdge>();
+
+			var bounds = printer.Bed.Bounds;
+
+			var topLeft = new Vector3(bounds.Left, bounds.Top, 0);
+			var topRight = new Vector3(bounds.Right, bounds.Top, 0);
+			var bottomLeft = new Vector3(bounds.Left, bounds.Bottom, 0);
+			var bottomRight = new Vector3(bounds.Right, bounds.Bottom, 0);
+
+			bedEdges.Add(new LevelingPlaneEdge(topLeft, topRight));
+			bedEdges.Add(new LevelingPlaneEdge(topRight, bottomRight));
+			bedEdges.Add(new LevelingPlaneEdge(bottomRight, bottomLeft));
+			bedEdges.Add(new LevelingPlaneEdge(bottomLeft, topLeft));
+
+			var center = new Vector3(bedCenter);
+
+			foreach (var point in outerPoints)
+			{
+				// Get a ray from bed center to outer point and extend past bed bounds
+				var point2D = new Vector2(point);
+				var normal = (bedCenter - point2D).GetNormal();
+
+				var extended = bedCenter + normal * 1000;
+
+				// Find the intercept
+				foreach (var edge in bedEdges)
+				{
+					PrintLevelingStream.FindIntersection(edge.Start, edge.End, center, new Vector3(extended), out bool linesIntersect, out bool segmentsIntersect, out Vector2 intersection);
+
+					if (segmentsIntersect)
+					{
+						var newPoint = new Vector3(intersection, point.Z);
+
+						vertices.Add(new BedPoint(newPoint.X, newPoint.Y, newPoint.Z));
+					}
+				}
+			}
+
+			// Add bed extents
+			vertices.Add(new BedPoint(topLeft.X, topLeft.Y, 0));
+			vertices.Add(new BedPoint(topRight.X, topRight.Y, 0));
+			vertices.Add(new BedPoint(bottomRight.X, bottomRight.Y, 0));
+			vertices.Add(new BedPoint(bottomLeft.X, bottomLeft.Y, 0));
+		}
+
+		private static List<LevelingTriangle> CreateLevelingRegions(PrinterConfig printer, List<BedPoint> vertices, int extraXPosition)
+		{
+			var triangles = DelaunayTriangulation<BedPoint, DefaultTriangulationCell<BedPoint>>.Create(vertices, .001);
 
 			var probeOffset = new Vector3(0, 0, printer.Settings.GetValue<double>(SettingsKey.z_probe_z_offset));
 
@@ -104,17 +182,17 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			// make the triangle planes
 			foreach (var triangle in triangles.Cells)
 			{
-				var p0 = triangle.Vertices[0].Position;
-				var p1 = triangle.Vertices[1].Position;
-				var p2 = triangle.Vertices[2].Position;
-				if (p0[0] != extraXPosition && p1[0] != extraXPosition && p2[0] != extraXPosition)
+				var p0 = triangle.Vertices[0];
+				var p1 = triangle.Vertices[1];
+				var p2 = triangle.Vertices[2];
+				if (p0.Vector3.X != extraXPosition && p1.Vector3.X != extraXPosition && p2.Vector3.X != extraXPosition)
 				{
-					var v0 = new Vector3(p0[0], p0[1], p0[2]);
-					var v1 = new Vector3(p1[0], p1[1], p1[2]);
-					var v2 = new Vector3(p2[0], p2[1], p2[2]);
-
 					// add all the regions
-					regions.Add(new LevelingTriangle(v0 - probeOffset, v1 - probeOffset, v2 - probeOffset));
+					regions.Add(
+						new LevelingTriangle(
+							p0.Vector3 - probeOffset,
+							p1.Vector3 - probeOffset,
+							p2.Vector3 - probeOffset));
 				}
 			}
 

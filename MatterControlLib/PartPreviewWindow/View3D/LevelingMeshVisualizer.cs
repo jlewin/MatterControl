@@ -181,7 +181,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			return new Vector3Float(point.X, point.Y, (point.Z > 0) ? 0 : point.Z);
 		}
 
-		private static List<Vector3Float> GetOuterPoints(List<Vector3Float> vertices, Dictionary<Vector3Float, int> pointCounts, Vector2 bedCenter)
+		public static List<Vector3Float> GetOuterPoints(List<Vector3Float> vertices, Dictionary<Vector3Float, int> pointCounts, Vector2 bedCenter)
 		{
 			// Filter to only outer points
 			var outerPointsOnly = pointCounts.Where(kvp => kvp.Value <= 3).Select(kvp => kvp.Key).ToList();

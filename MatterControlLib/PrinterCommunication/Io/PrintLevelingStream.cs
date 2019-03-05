@@ -245,7 +245,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		// http://csharphelper.com/blog/2014/08/determine-where-two-lines-intersect-in-c/
 		// Find the point of intersection between
 		// the lines p1 --> p2 and p3 --> p4.
-		private void FindIntersection(
+		public static void FindIntersection(
 			Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4,
 			out bool lines_intersect, out bool segments_intersect,
 			out Vector2 intersection)
