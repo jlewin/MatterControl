@@ -88,9 +88,19 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				Position = new double[] { extraXPosition, vertices[0].Position[1] }
 			});
 
+			List<LevelingTriangle> regions = CreateLevelingRegions(printer, vertices, extraXPosition);
+
+			this.Regions = regions;
+		}
+
+		private static List<LevelingTriangle> CreateLevelingRegions(PrinterConfig printer, List<DefaultVertex> vertices, int extraXPosition)
+		{
 			var triangles = DelaunayTriangulation<DefaultVertex, DefaultTriangulationCell<DefaultVertex>>.Create(vertices, .001);
 
 			var probeOffset = new Vector3(0, 0, printer.Settings.GetValue<double>(SettingsKey.z_probe_z_offset));
+
+			var regions = new List<LevelingTriangle>();
+
 			// make the triangle planes
 			foreach (var triangle in triangles.Cells)
 			{
@@ -104,9 +114,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					var v2 = new Vector3(p2[0], p2[1], p2[2]);
 
 					// add all the regions
-					Regions.Add(new LevelingTriangle(v0 - probeOffset, v1 - probeOffset, v2 - probeOffset));
+					regions.Add(new LevelingTriangle(v0 - probeOffset, v1 - probeOffset, v2 - probeOffset));
 				}
 			}
+
+			return regions;
 		}
 
 		public List<Vector3> SampledPositions { get; }
