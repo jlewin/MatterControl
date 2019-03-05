@@ -52,7 +52,6 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			bedSize = printer.Settings.GetValue<Vector2>(SettingsKey.bed_size);
 
 			// get the delaunay triangulation
-			var zDictionary = new Dictionary<(double, double), double>();
 			var vertices = new List<DefaultVertex>();
 
 			if (SampledPositions.Count > 2)
@@ -61,34 +60,26 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				{
 					vertices.Add(new DefaultVertex()
 					{
-						Position = new double[] { sample.X, sample.Y }
+						Position = new double[] { sample.X, sample.Y, sample.Z }
 					});
-					var key = (sample.X, sample.Y);
-					if (!zDictionary.ContainsKey(key))
-					{
-						zDictionary.Add(key, sample.Z);
-					}
 				};
 			}
 			else
 			{
 				vertices.Add(new DefaultVertex()
 				{
-					Position = new double[] { 0, 0 }
+					Position = new double[] { 0, 0, 0 }
 				});
-				zDictionary.Add((0, 0), 0);
 
 				vertices.Add(new DefaultVertex()
 				{
-					Position = new double[] { 200, 0 }
+					Position = new double[] { 200, 0, 0 }
 				});
-				zDictionary.Add((200, 0), 0);
 
 				vertices.Add(new DefaultVertex()
 				{
-					Position = new double[] { 100, 200 }
+					Position = new double[] { 100, 200, 0 }
 				});
-				zDictionary.Add((100, 200), 0);
 			}
 
 			int extraXPosition = -50000;
@@ -100,7 +91,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			var triangles = DelaunayTriangulation<DefaultVertex, DefaultTriangulationCell<DefaultVertex>>.Create(vertices, .001);
 
 			var probeOffset = new Vector3(0, 0, printer.Settings.GetValue<double>(SettingsKey.z_probe_z_offset));
-			// make all the triangle planes for these triangles
+			// make the triangle planes
 			foreach (var triangle in triangles.Cells)
 			{
 				var p0 = triangle.Vertices[0].Position;
@@ -108,9 +99,10 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				var p2 = triangle.Vertices[2].Position;
 				if (p0[0] != extraXPosition && p1[0] != extraXPosition && p2[0] != extraXPosition)
 				{
-					var v0 = new Vector3(p0[0], p0[1], zDictionary[(p0[0], p0[1])]);
-					var v1 = new Vector3(p1[0], p1[1], zDictionary[(p1[0], p1[1])]);
-					var v2 = new Vector3(p2[0], p2[1], zDictionary[(p2[0], p2[1])]);
+					var v0 = new Vector3(p0[0], p0[1], p0[2]);
+					var v1 = new Vector3(p1[0], p1[1], p1[2]);
+					var v2 = new Vector3(p2[0], p2[1], p2[2]);
+
 					// add all the regions
 					Regions.Add(new LevelingTriangle(v0 - probeOffset, v1 - probeOffset, v2 - probeOffset));
 				}
