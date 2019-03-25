@@ -52,6 +52,13 @@ namespace MatterHackers.MatterControl.Library
 			long index = DateTime.Now.Ticks;
 			var libraryItems = new List<GeneratorItem>()
 			{
+// Debugging tool until this can be integrated into a new wizard
+#if DEBUG
+				new GeneratorItem(
+					() => "Lithophane Calibration".Localize(),
+					async () => await LithophaneCalibrationObject3D.Create(0, 0.4, .2, 3, 0.4, 6, 4))
+					{ DateCreated = new System.DateTime(index++) },
+#endif
 				new GeneratorItem(
 					() => "Cube".Localize(),
 					async () => await CubeObject3D.Create())

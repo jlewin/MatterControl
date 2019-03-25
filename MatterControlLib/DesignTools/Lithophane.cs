@@ -43,8 +43,6 @@ namespace MatterHackers.MatterControl.Plugins.Lithophane
 
 			var progressStatus = new ProgressStatus();
 
-
-
 			// Build an array of PixelInfo objects from each pixel
 			// Collapse from 4 bytes per pixel to one - makes subsequent processing more logical and has minimal cost
 			var pixels = pixelData.Where((x, i) => i % 4 == 0)
