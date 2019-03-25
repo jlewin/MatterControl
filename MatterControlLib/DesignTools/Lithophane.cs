@@ -9,18 +9,27 @@ using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.PolygonMesh;
 using MatterHackers.VectorMath;
+using static MatterHackers.MatterControl.Plugins.Lithophane.Lithophane;
 
 namespace MatterHackers.MatterControl.Plugins.Lithophane
 {
 	public static class Lithophane
 	{
+		public enum ProjectionMode
+		{
+			ZAxis,
+			Curved,
+			Cylinder,
+			Spherical
+		}
+
 		class PixelInfo
 		{
 			public Vector3 Top { get; set; }
 			public Vector3 Bottom { get; set; }
 		}
 
-		public static Mesh Generate(IImageData resizedImage, double maxZ, double nozzleWidth, double pixelsPerMM, bool invert, IProgress<ProgressStatus> reporter)
+		public static Mesh Generate(IImageData resizedImage, double maxZ, double nozzleWidth, double pixelsPerMM, bool invert, ProjectionMode projectionMode, IProgress<ProgressStatus> reporter)
 		{
 			// TODO: Move this to a user supplied value
 			double baseThickness = nozzleWidth;     // base thickness (in mm)
@@ -39,7 +48,7 @@ namespace MatterHackers.MatterControl.Plugins.Lithophane
 			var mesh = new Mesh();
 
 			//var rescale = (double)onPlateWidth / imageData.Width;
-			var rescale = 1;
+			double rescale = 0.8;
 
 			var progressStatus = new ProgressStatus();
 
@@ -152,9 +161,68 @@ namespace MatterHackers.MatterControl.Plugins.Lithophane
 				}
 			}
 
+			switch(projectionMode)
+			{
+				case ProjectionMode.ZAxis:
+					// Nothing to do, natural layout
+					break;
+
+				case ProjectionMode.Cylinder:
+				case ProjectionMode.Curved:
+					// Flip into vertical position
+					mesh.Transform(Matrix4X4.CreateRotationX(MathHelper.DegreesToRadians(90)));
+
+					// Translate to lay flat position
+					var aabb = mesh.GetAxisAlignedBoundingBox();
+					mesh.Translate(
+						new Vector3(-aabb.GetCenterX(), 0, aabb.ZSize));
+
+					// Mess with points, push by computed amounts
+
+					var cx = 2.0;
+					var cy = 3.0;
+
+					double r;
+
+					if (projectionMode == ProjectionMode.Cylinder)
+					{
+						r = aabb.MaxXYZ.X / Math.PI / 2;
+					}
+					else
+					{
+						r = aabb.MaxXYZ.X / 2;
+					}
+
+					for (int i = 0; i < mesh.Vertices.Count; i++)
+					{
+						var v = mesh.Vertices[i];
+						AdjustPoint(ref v, cx, cy, r);
+
+						mesh.Vertices[i] = v;
+					}
+
+					break;
+			}
+
 			Console.WriteLine("ElapsedTime - Face Generation: {0}", stopwatch.ElapsedMilliseconds);
 
 			return mesh;
+		}
+
+		private static void AdjustPoint(ref Vector3Float vertex, double cx, double cy, double r)
+		{
+			var dotR = 1;
+			var y = vertex.Y;
+			var x = vertex.X;
+
+			var d = r + (y - dotR);
+			var theta = (x + dotR) / r;
+
+			var x1 = cx + d * Math.Cos(theta);
+			var y1 = cy - d * Math.Sin(theta);
+
+			vertex.X = (float) x1;
+			vertex.Y = (float) y1;
 		}
 
 		public interface IImageData

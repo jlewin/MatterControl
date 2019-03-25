@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, John Lewin
+Copyright (c) 2019, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using MatterHackers.Agg.Platform;
-using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.DesignTools;
-using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.VectorMath;
 using Newtonsoft.Json;
 
@@ -64,6 +62,18 @@ namespace MatterHackers.MatterControl.Plugins.Lithophane
 		public bool Invert { get; set; } = true;
 
 		public Vector3 ImageOffset { get; private set; } = Vector3.Zero;
+
+		private Lithophane.ProjectionMode _projectionMode;
+
+		public Lithophane.ProjectionMode ProjectionMode
+		{
+			get => _projectionMode;
+			set
+			{
+				_projectionMode = value;
+				// this.ApplyTextures();
+			}
+		}
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
@@ -97,22 +107,13 @@ namespace MatterHackers.MatterControl.Plugins.Lithophane
 				var generatedMesh = Lithophane.Generate(
 					new Lithophane.ImageBufferImageData(activeImage, this.Width),
 					this.Height,
-					0.4,
+					0.805,
 					this.PixelsPerMM,
 					this.Invert,
+					this.ProjectionMode,
 					reporter);
 
 				this.Mesh = generatedMesh;
-
-				// Remove old offset
-				this.Matrix *= Matrix4X4.CreateTranslation(this.ImageOffset);
-
-				// Set and store new offset
-				var imageBounds = generatedMesh.GetAxisAlignedBoundingBox();
-				this.ImageOffset = imageBounds.Center + new Vector3(0, 0, -imageBounds.Center.Z);
-
-				// Apply offset
-				this.Matrix *= Matrix4X4.CreateTranslation(-this.ImageOffset);
 
 				Parent?.Invalidate(new InvalidateArgs(this, InvalidateType.Children));
 
