@@ -37,6 +37,7 @@ using MatterHackers.DataConverters3D;
 using MatterHackers.MatterControl.DesignTools;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.MeshVisualizer;
+using MatterHackers.Plugins.EditorTools;
 using MatterHackers.RayTracer;
 using MatterHackers.RayTracer.Traceable;
 using MatterHackers.RenderOpenGl;
@@ -115,6 +116,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 
 			iavMappings.Add(typeof(ImageObject3D), new List<InteractionVolume> { new MoveInZControl(this) });
+			iavMappings.Add(typeof(PathObject3D), new List<InteractionVolume> { new PathControl(this) });
 
 			// Register listeners
 			sceneContext.Scene.SelectionChanged += this.Scene_SelectionChanged;
@@ -405,6 +407,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					IPrimitive traceData = interactionVolume.CollisionVolume;
 					uiTraceables.Add(new Transform(traceData, interactionVolume.TotalTransform));
 				}
+			}
+
+			if (uiTraceables.Count <= 0)
+			{
+				info = null;
+				return false;
 			}
 
 			IPrimitive allUiObjects = BoundingVolumeHierarchy.CreateNewHierachy(uiTraceables);
