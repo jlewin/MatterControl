@@ -35,50 +35,50 @@ using MatterHackers.Agg.UI;
 using MatterHackers.Agg.VertexSource;
 using MatterHackers.DataConverters3D;
 using MatterHackers.MatterControl;
-using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.DesignTools;
 using MatterHackers.MeshVisualizer;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.Plugins.EditorTools
 {
-	public class PathControl : InteractionVolume
+	public class PathControl : IInteractionElement
 	{
+		private IInteractionVolumeContext interactionContext;
+
 		private ThemeConfig theme;
+
 		private WorldView world;
-
-		private bool controlsRegistered = false;
-
-		public PathControl(IInteractionVolumeContext context)
-			: base(context)
-		{
-			theme = MatterControl.AppContext.Theme;
-
-			world = InteractionContext.World;
-		}
-
-		public override void DrawGlContent(DrawGlContentEventArgs e)
-		{
-			//lines.Add(InteractionContext.World.GetScreenPosition(bottomPosition + new Vector3(distToStart * distBetweenPixelsWorldSpace, 0, 0)));
-
-			var xxx = world.GetScreenPosition(new Vector3(5, 0, 0));
-
-			base.DrawGlContent(e);
-		}
 
 		private IObject3D lastItem;
 
 		private List<PointWidget> targets = new List<PointWidget>();
 
-		public override void SetPosition(IObject3D selectedItem)
+		private bool controlsRegistered = false;
+
+		public PathControl(IInteractionVolumeContext context)
+		{
+			interactionContext = context;
+			theme = MatterControl.AppContext.Theme;
+
+			world = context.World;
+		}
+
+		public string Name => "Path Control";
+
+		public void CancelOperation()
+		{
+			var a = 1;
+		}
+
+		public void SetPosition(IObject3D selectedItem)
 		{
 			if (selectedItem != lastItem)
 			{
 				lastItem = selectedItem;
 
-				foreach (var x in targets)
+				foreach (var widget in targets)
 				{
-					x.Close();
+					widget.Close();
 				}
 
 				targets.Clear();
@@ -95,17 +95,15 @@ namespace MatterHackers.Plugins.EditorTools
 
 						targets.Add(widget);
 
-						InteractionContext.GuiSurface.AddChild(widget);
+						interactionContext.GuiSurface.AddChild(widget);
 					}
 				}
 			}
 
-			foreach(var item in targets)
+			foreach (var item in targets)
 			{
 				item.UpdatePosition();
 			}
-
-			base.SetPosition(selectedItem);
 		}
 
 		private class PointWidget : GuiWidget

@@ -52,12 +52,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		/// <summary>
 		/// Contains type to IAVolume mappings
 		/// </summary>
-		private Dictionary<Type, List<InteractionVolume>> iavMappings = new Dictionary<Type, List<InteractionVolume>>();
+		private Dictionary<Type, List<IInteractionElement>> iavMappings = new Dictionary<Type, List<IInteractionElement>>();
 
 		/// <summary>
 		/// Interaction Volume Overrides for the selected scene item
 		/// </summary>
-		private List<InteractionVolume> iavOverrides = null;
+		private List<IInteractionElement> iavOverrides = null;
 
 		private Type selectedItemType;
 
@@ -67,15 +67,15 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public bool DrawOpenGLContent { get; set; } = true;
 
-		private List<InteractionVolume> registeredIAVolumes = new List<InteractionVolume>();
+		private List<IInteractionElement> registeredIAVolumes = new List<IInteractionElement>();
 
-		public IEnumerable<InteractionVolume> InteractionVolumes
+		public IEnumerable<IInteractionElement> InteractionVolumes
 		{
 			get
 			{
 				if (selectedItemType == null)
 				{
-					return Enumerable.Empty<InteractionVolume>();
+					return Enumerable.Empty<IInteractionElement>();
 				}
 				else
 				{
@@ -115,8 +115,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				});
 			}
 
-			iavMappings.Add(typeof(ImageObject3D), new List<InteractionVolume> { new MoveInZControl(this) });
-			iavMappings.Add(typeof(PathObject3D), new List<InteractionVolume> { new PathControl(this) });
+			iavMappings.Add(typeof(ImageObject3D), new List<IInteractionElement> { new MoveInZControl(this) });
+			iavMappings.Add(typeof(PathObject3D), new List<IInteractionElement> { new PathControl(this) });
 
 			// Register listeners
 			sceneContext.Scene.SelectionChanged += this.Scene_SelectionChanged;
@@ -145,12 +145,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			drawables.Add(drawable);
 		}
 
-		public void RegisterIAVolume(InteractionVolume interactionVolume)
+		public void RegisterIAVolume(IInteractionElement interactionVolume)
 		{
 			registeredIAVolumes.Add(interactionVolume);
 		}
 
-		public void RegisterIAVolumes(IEnumerable<InteractionVolume> interactionVolumes)
+		public void RegisterIAVolumes(IEnumerable<IInteractionElement> interactionVolumes)
 		{
 			registeredIAVolumes.AddRange(interactionVolumes);
 		}
@@ -194,7 +194,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				iavMappings.TryGetValue(selectedItemType, out iavOverrides);
 			}
 		}
-
 
 		public static void RenderBounds(DrawEventArgs e, WorldView world, IEnumerable<BvhIterator> allResults)
 		{
@@ -250,17 +249,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 		}
 
-
-
 		public override void OnMouseDown(MouseEventArgs mouseEvent)
 		{
 			base.OnMouseDown(mouseEvent);
 
 			Ray ray = this.World.GetRayForLocalBounds(mouseEvent.Position);
-			IntersectInfo info;
 			if (this.Scene.SelectedItem != null
 				&& !SuppressUiVolumes
-				&& FindInteractionVolumeHit(ray, out mouseDownIAVolume, out info))
+				&& FindInteractionVolumeHit(ray, out mouseDownIAVolume, out IntersectInfo info))
 			{
 				mouseDownIAVolume.OnMouseDown(new MouseEvent3DArgs(mouseEvent, ray, info));
 				SelectedInteractionVolume = mouseDownIAVolume;
@@ -295,7 +291,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 				var iaVolumes = this.InteractionVolumes;
 
-				foreach (var iaVolume in iaVolumes)
+				foreach (var iaVolume in iaVolumes.OfType<InteractionVolume>())
 				{
 					if (hitIAVolume == iaVolume)
 					{
@@ -325,9 +321,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			}
 
 			Ray ray = this.World.GetRayForLocalBounds(mouseEvent.Position);
-			IntersectInfo info;
-			bool anyInteractionVolumeHit = FindInteractionVolumeHit(ray, out InteractionVolume iaVolume, out info);
-			MouseEvent3DArgs mouseEvent3D = new MouseEvent3DArgs(mouseEvent, ray, info);
+			bool anyInteractionVolumeHit = FindInteractionVolumeHit(ray, out InteractionVolume iaVolume, out IntersectInfo info);
+			var mouseEvent3D = new MouseEvent3DArgs(mouseEvent, ray, info);
 
 			if (MouseDownOnInteractionVolume && mouseDownIAVolume != null)
 			{
@@ -344,6 +339,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				{
 					iaVolume.OnMouseUp(mouseEvent3D);
 				}
+
 				SelectedInteractionVolume = null;
 			}
 
@@ -400,7 +396,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			// - Looks like the extra list is always required as CreateNewHierachy requires a List and we can only produce an IEnumerable without the list overhead
 			// - var uiTraceables = iaVolumes.Where(ia => ia.CollisionVolume != null).Select(ia => new Transform(ia.CollisionVolume, ia.TotalTransform)).ToList<IPrimitive>();
 			var uiTraceables = new List<IPrimitive>();
-			foreach (InteractionVolume interactionVolume in iaVolumes)
+			foreach (var interactionVolume in iaVolumes.OfType<InteractionVolume>())
 			{
 				if (interactionVolume.CollisionVolume != null)
 				{
@@ -420,7 +416,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			info = allUiObjects.GetClosestIntersection(ray);
 			if (info != null)
 			{
-				foreach (var iaVolume in iaVolumes)
+				foreach (var iaVolume in iaVolumes.OfType<InteractionVolume>())
 				{
 					var insideBounds = new List<IBvhItem>();
 					if (iaVolume.CollisionVolume != null)
@@ -443,16 +439,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		public bool MouseDownOnInteractionVolume => SelectedInteractionVolume != null;
 
 		public InteractionVolume SelectedInteractionVolume { get; set; } = null;
+
 		public InteractionVolume HoveredInteractionVolume { get; set; } = null;
 
 		public double SnapGridDistance
 		{
 			get
 			{
-				if(string.IsNullOrEmpty(UserSettings.Instance.get(UserSettingsKey.SnapGridDistance)))
+				if (string.IsNullOrEmpty(UserSettings.Instance.get(UserSettingsKey.SnapGridDistance)))
 				{
 					return 1;
 				}
+
 				return UserSettings.Instance.GetValue<double>(UserSettingsKey.SnapGridDistance);
 			}
 
