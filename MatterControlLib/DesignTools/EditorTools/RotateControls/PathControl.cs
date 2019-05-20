@@ -57,6 +57,7 @@ namespace MatterHackers.Plugins.EditorTools
 
 		private bool controlsRegistered = false;
 		private IEnumerable<VertexData> activePoints;
+		private bool m_visible;
 
 		public PathControl(IInteractionVolumeContext context)
 		{
@@ -67,6 +68,23 @@ namespace MatterHackers.Plugins.EditorTools
 		}
 
 		public string Name => "Path Control";
+
+		public bool Visible
+		{
+			get => m_visible;
+			set
+			{
+				if (m_visible != value)
+				{
+					m_visible = value;
+
+					foreach(var widget in targets)
+					{
+						widget.Visible = m_visible;
+					}
+				}
+			}
+		}
 
 		public bool DrawOnTop => false;
 
