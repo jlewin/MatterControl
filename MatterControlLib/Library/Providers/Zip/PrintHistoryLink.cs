@@ -27,92 +27,42 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg;
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Threading.Tasks;
+using MatterHackers.Agg.Image;
+using MatterHackers.Agg.Platform;
 
 namespace MatterHackers.MatterControl.Library
 {
-	/// <summary>
-	/// A library item rooted to a local file system path
-	/// </summary>
-	public class FileSystemItem : ILibraryItem
+
+	public class PrintHistoryLink : LocalZipContainerLink, IThumbnail
 	{
-		private string fileName;
+		private string filePath;
 
-		public string Path { get; set; }
-		public string Category { get; set; }
-		public virtual bool IsProtected => false;
-		public virtual bool IsVisible => true;
-		public virtual bool LocalContentExists => true;
-
-		public FileSystemItem(string path)
+		public PrintHistoryLink(string filePath, string nameOverride = null)
+			: base(filePath, nameOverride)
 		{
-			this.Path = path;
-
-			var type = GetType();
-
-			try
-			{
-				if (type == typeof(FileSystemFileItem))
-				{
-					var fileInfo = new FileInfo(path);
-
-					this.DateCreated = fileInfo.CreationTime;
-					this.DateModified = fileInfo.LastWriteTime;
-				}
-				else
-				{
-					var directoryInfo = new DirectoryInfo(path);
-
-					this.DateCreated = directoryInfo.CreationTime;
-					this.DateModified = directoryInfo.LastWriteTime;
-				}
-			}
-			catch
-			{
-				this.DateCreated = DateTime.Now;
-				this.DateModified = DateTime.Now;
-			}
+			this.filePath = filePath;
 		}
 
-		public virtual string ID => agg_basics.GetLongHashCode(this.Path).ToString();
-
-		public DateTime DateCreated { get; }
-
-		public DateTime DateModified { get; }
-
-		public virtual string Name
+		public Task<ImageBuffer> GetThumbnail(int width, int height)
 		{
-			get
+			var zipItem = new ZipMemoryItem(filePath, "PrinterPlate.mcx", 0);
+
+			// Ask content provider - allows type specific thumbnail creation
+			var contentProvider = ApplicationController.Instance.Library.GetContentProvider("mcx");
+			if (contentProvider != null)
 			{
-				if (fileName == null)
+				if (contentProvider is MeshContentProvider meshContentProvider)
 				{
-					fileName = System.IO.Path.GetFileName(this.Path);
+					return meshContentProvider.GetThumbnail(zipItem, width, height);
 				}
-
-				return fileName;
 			}
 
-			set
-			{
-				fileName = value;
-			}
+			return Task.FromResult<ImageBuffer>(null);
 		}
-	}
-
-	public class MockLibraryItem : ILibraryItem
-	{
-		public string ID { get; set; }
-
-		public string Name { get; set; }
-
-		public bool IsProtected => true;
-
-		public bool IsVisible => true;
-
-		public DateTime DateCreated { get; } = DateTime.Now;
-
-		public DateTime DateModified { get; } = DateTime.Now;
 	}
 }

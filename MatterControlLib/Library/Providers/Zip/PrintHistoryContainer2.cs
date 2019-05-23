@@ -27,66 +27,34 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Threading.Tasks;
-using MatterHackers.Agg.Image;
-using MatterHackers.Agg.Platform;
+using MatterHackers.MatterControl.DataStorage;
 
 namespace MatterHackers.MatterControl.Library
 {
-	public class LocalLibraryZipContainerLink : LocalZipContainerLink
+	public class PrintHistoryContainer2 : LibraryContainer
 	{
-		public int RowID { get; }
+		private static char[] pathSeparators = new[] { '/', '\\' };
 
-		public LocalLibraryZipContainerLink(int id, string filePath, string nameOverride = null)
-			: base(filePath, nameOverride)
+		public string RelativeDirectory { get; set; }
+
+		public string Path { get; set; }
+
+		private string pathSeparator = null;
+
+		public override void Load()
 		{
-			this.RowID = id;
-		}
-	}
+			var allFiles = Directory.GetFiles(ApplicationDataStorage.Instance.PrintHistoryPath, "*.zip", SearchOption.AllDirectories);
 
-	public class LocalZipContainerLink : FileSystemItem, ILibraryContainerLink
-	{
-		private string _currentDirectory = "";
-
-		static LocalZipContainerLink()
-		{
-		}
-
-		public bool IsReadOnly { get; } = true;
-
-		public override bool IsProtected { get; } = false;
-
-		public LocalZipContainerLink(string filePath, string nameOverride = null)
-			: base(filePath)
-		{
-			if (nameOverride != null)
-			{
-				this.Name = nameOverride;
-			}
+			// Matched files projected onto FileSystemFileItem
+			this.ChildContainers = allFiles.OrderBy(f => f).Select(f => new PrintHistoryLink(f)).ToList<ILibraryContainerLink>();
 		}
 
-		public string CurrentDirectory
+		public override void Dispose()
 		{
-			get => _currentDirectory;
-			set
-			{
-				_currentDirectory = value;
-				this.Name = _currentDirectory.Split('/').Last();
-			}
-		}
-
-		public Task<ILibraryContainer> GetContainer(Action<double, string> reportProgress)
-		{
-			return Task.FromResult<ILibraryContainer>(
-				new ZipMemoryContainer()
-				{
-					RelativeDirectory = this._currentDirectory,
-					Path = this.Path
-				});
 		}
 	}
 }

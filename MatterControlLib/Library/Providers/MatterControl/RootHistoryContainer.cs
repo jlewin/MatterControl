@@ -66,6 +66,17 @@ namespace MatterHackers.MatterControl.Library
 				{
 					IsReadOnly = true
 				});
+
+
+			this.ChildContainers.Add(
+				new DynamicContainerLink(
+					() => "Print History2".Localize(),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "history_20x20.png")),
+					AggContext.StaticData.LoadIcon(Path.Combine("Library", "history_folder.png")),
+					() => new PrintHistoryContainer2())
+				{
+					IsReadOnly = true
+				});
 		}
 	}
 }
