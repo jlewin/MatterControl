@@ -123,8 +123,7 @@ namespace MatterHackers.MatterControl.Library
 									var storage = new VertexStorage();
 									storage.MoveTo(5, 5);
 									storage.LineTo(10, 5);
-									storage.LineTo(7.5, 10);
-									storage.ClosePolygon();
+									//storage.LineTo(15, 5);
 
 									var path = new PathObject3D()
 									{

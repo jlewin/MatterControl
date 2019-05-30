@@ -123,11 +123,22 @@ namespace MatterHackers.Plugins.EditorTools
 				//	theme.PrimaryAccentColor,
 				//	false);
 
+				var stroke1 = new Stroke(flattened, pixelWidth);
+				var stroke2 = new Stroke(flattened, 1);
+
+				var vertices1 = stroke1.Vertices().ToList();
+				var vertices2 = stroke2.Vertices().ToList();
+
 				glGraphics.RenderTransformedPath(
 					Matrix4X4.Identity,
-					new Stroke(flattened, pixelWidth * 1),
+					stroke2,
 					Color.Black,
 					false);
+
+				foreach(var point in vertices2)
+				{
+					glGraphics.Circle(point.position, 0.2, Color.Red);
+				}
 
 				GL.Begin(BeginMode.Lines);
 				{

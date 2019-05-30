@@ -53,6 +53,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 		private Color bedCircleColor;
 		private Color simpleBedCircleColor;
 		private RectangleDouble bedBounds;
+		private RectangleDouble scaledBedBounds;
 
 		private bool circularBed;
 		private Color lightColor;
@@ -100,6 +101,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				scalingFactor = this.Width / bedBounds.Width;
 			}
 
+			// scaledBedRect
+			if (this.Height > 0 && this.Width > 0)
+			{
+				scaledBedBounds = new RectangleDouble(0, 0, bedBounds.Width * scalingFactor, bedBounds.Height * scalingFactor);
+			}
+
 			base.OnBoundsChanged(e);
 		}
 
@@ -117,20 +124,16 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			// Center
 			if (this.Width > this.Height)
 			{
-				offset.X += (this.Width / 2) - (bedBounds.Width * scalingFactor / 2);
+				offset.X += (this.Width / 2) - (scaledBedBounds.Width / 2);
 			}
 			else
 			{
-				offset.Y += (this.Height / 2) - (bedBounds.Height * scalingFactor / 2);
+				offset.Y += (this.Height / 2) - (scaledBedBounds.Height / 2);
 			}
 
 			// Offset considering bed bounds
-			offset.X -= bedBounds.Left * scalingFactor;
-			offset.Y -= bedBounds.Bottom * scalingFactor;
-
-			// Apply transform
-			graphics2D.PushTransform();
-			graphics2D.SetTransform(Affine.NewScaling(scalingFactor) * Affine.NewTranslation(offset));
+			offset.X -= scaledBedBounds.Left;
+			offset.Y -= scaledBedBounds.Bottom;
 
 			// Draw the bed
 			this.RenderBed(graphics2D);
@@ -161,7 +164,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				}
 
 				graphics2D.Render(
-					new Stroke(levelingTriangles),
+					new Stroke(levelingTriangles.Scale(scalingFactor)),
 					opaqueMinimumAccent);
 			}
 
@@ -169,7 +172,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			int i = 0;
 			foreach (var position in probePoints)
 			{
-				var center = new Vector2(position.X, position.Y);
+				var center = new Vector2(position.X * scalingFactor, position.Y * scalingFactor);
 
 				var textColor = lightText;
 				var circleColor = bedCircleColor;
@@ -177,7 +180,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				if (this.SimplePoints)
 				{
 					graphics2D.Render(
-						new Ellipse(center, 4 * inverseScale),
+						new Ellipse(center, 4),
 						simpleBedCircleColor);
 				}
 				else
@@ -197,19 +200,19 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					{
 						graphics2D.Circle(
 							center,
-							9 * inverseScale,
+							9,
 							i == this.ActiveProbeIndex ? circleText : lightText);
 
 						graphics2D.Circle(
 							center,
-							8 * inverseScale,
+							8,
 							circleColor);
 					}
 					else
 					{
 						graphics2D.Circle(
 							center,
-							9 * inverseScale,
+							9,
 							circleColor);
 					}
 
@@ -219,14 +222,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 						center.Y,
 						justification: Justification.Center,
 						baseline: Baseline.BoundsCenter,
-						pointSize: theme.FontSize7 * inverseScale,
+						pointSize: theme.FontSize7,
 						color: textColor);
 
 					i++;
 				}
 			}
-
-			graphics2D.PopTransform();
 
 			base.OnDraw(graphics2D);
 		}
@@ -236,11 +237,12 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			var firstPosition = probePoints.First();
 
 			var path = new VertexStorage();
-			path.MoveTo(firstPosition.X, firstPosition.Y);
+			path.MoveTo(firstPosition.X * scalingFactor, firstPosition.Y * scalingFactor);
 
 			foreach (var position in probePoints)
 			{
-				path.LineTo(position.X, position.Y);
+				var center = new Vector2(position.X * scalingFactor, position.Y * scalingFactor);
+				path.LineTo(center);
 			}
 
 			// Render total path before probe points
@@ -255,9 +257,9 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 			if (circularBed)
 			{
-				var radius = bedBounds.Width / 2;
+				var radius = scaledBedBounds.Width / 2;
 
-				var lineCount = bedBounds.Width / 2 / 10;
+				var lineCount = scaledBedBounds.Width / 2 / 10;
 				var steps = radius / lineCount;
 
 				var bedShape = new Ellipse(Vector2.Zero, radius);
@@ -274,25 +276,28 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			}
 			else
 			{
-				graphics2D.FillRectangle(bedBounds, theme.BedColor);
-				graphics2D.Rectangle(bedBounds, lineColor);
+				graphics2D.FillRectangle(scaledBedBounds, theme.BedColor);
 
-				var x = bedBounds.Left;
-				var y = bedBounds.Bottom;
+				var x = scaledBedBounds.Left;
+				var y = scaledBedBounds.Bottom;
 
-				var steps = bedBounds.Width / 20;
+				int interval = 20;
+
+				var steps = bedBounds.Width / interval;
 				for (var j = 1; j < steps; j++)
 				{
-					var step = j * 20;
-					graphics2D.Line(x + step, y, x + step, y + bedBounds.Height, lineColor); // X
+					var step = j * interval * scalingFactor;
+					graphics2D.Line(x + step, y, x + step, y + scaledBedBounds.Height, lineColor); // X
 				}
 
-				steps = bedBounds.Height / 20;
+				steps = bedBounds.Height / interval;
 				for (var j = 1; j < steps; j++)
 				{
-					var step = j * 20;
-					graphics2D.Line(x, y + step, x + bedBounds.Width, y + step, lineColor); // Y
+					var step = j * interval * scalingFactor;
+					graphics2D.Line(x, y + step, x + scaledBedBounds.Width, y + step, lineColor); // Y
 				}
+
+				graphics2D.Rectangle(scaledBedBounds, lineColor);
 			}
 		}
 	}
