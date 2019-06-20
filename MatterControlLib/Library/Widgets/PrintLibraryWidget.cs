@@ -69,7 +69,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			this.Padding = 0;
 			this.AnchorAll();
 
-			var allControls = new FlowLayoutWidget(FlowDirection.TopToBottom);
+			var column = new FlowLayoutWidget(FlowDirection.TopToBottom);
 
 			libraryContext = workspace.LibraryView;
 
@@ -87,7 +87,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Fit,
 			};
-			allControls.AddChild(navBar);
+			column.AddChild(navBar);
 			theme.ApplyBottomBorder(navBar);
 
 			var toolbar = new OverflowBar(AggContext.StaticData.LoadIcon("fa-sort_16.png", 32, 32, theme.InvertIcons), theme)
@@ -146,7 +146,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 					siblingRadioButtonList: siblingList);
 			};
 
-			allControls.AddChild(toolbar);
+			column.AddChild(toolbar);
 
 			var showFolders = new ExpandCheckboxButton("Folders".Localize(), theme)
 			{
@@ -295,7 +295,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 			};
 			navBar.AddChild(searchButton);
 
-			allControls.AddChild(libraryView);
+			column.AddChild(libraryView);
 
 			buttonPanel = new FlowLayoutWidget()
 			{
@@ -303,11 +303,11 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				Padding = theme.ToolbarPadding,
 			};
 			AddLibraryButtonElements();
-			allControls.AddChild(buttonPanel);
+			column.AddChild(buttonPanel);
 
-			allControls.AnchorAll();
+			column.AnchorAll();
 
-			this.AddChild(allControls);
+			this.AddChild(column);
 
 			// Register listeners
 			libraryView.SelectedItems.CollectionChanged += SelectedItems_CollectionChanged;
