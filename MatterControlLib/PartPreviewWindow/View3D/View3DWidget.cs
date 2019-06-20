@@ -156,25 +156,16 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				VAnchor = VAnchor.Stretch,
 			};
 
-			modelViewSidePanel = new VerticalResizeContainer(theme, GrabBarSide.Left)
+			modelViewSidePanel = new VerticalTreeSplitPanel(theme, GrabBarSide.Left, sceneContext.ViewState.SceneTreeRatio)
 			{
 				Width = printer?.ViewState.SelectedObjectPanelWidth ?? 250,
-				VAnchor = VAnchor.Stretch,
-				HAnchor = HAnchor.Absolute,
-				BackgroundColor = theme.InteractionLayerOverlayColor,
-				SplitterBarColor = theme.SplitterBackground,
-				SplitterWidth = theme.SplitterWidth,
-				MinimumSize = new Vector2(theme.SplitterWidth, 0)
 			};
 			modelViewSidePanel.BoundsChanged += UpdateRenderView;
 
 			modelViewSidePanel.Resized += ModelViewSidePanel_Resized;
 
-			// add the tree view
-			treeView = new TreeView(theme)
-			{
-				Margin = new BorderDouble(left: theme.DefaultContainerPadding + 12),
-			};
+			treeView = modelViewSidePanel.TreeView;
+
 			treeView.NodeMouseClick += (s, e) =>
 			{
 				if (e is MouseEventArgs sourceEvent
@@ -209,49 +200,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					}
 				}
 			};
-			treeView.ScrollArea.ChildAdded += (s, e) =>
-			{
-				if (e is GuiWidgetEventArgs childEventArgs
-					&& childEventArgs.Child is TreeNode treeNode)
+
+			modelViewSidePanel.InsertAfter(
+				workspaceName = new InlineStringEdit(sceneContext.Scene.Name ?? "", theme, "WorkspaceName", editable: false)
 				{
-					treeNode.AlwaysExpandable = true;
-				}
-			};
-
-			treeView.ScrollArea.HAnchor = HAnchor.Stretch;
-
-			treeNodeContainer = new FlowLayoutWidget(FlowDirection.TopToBottom)
-			{
-				HAnchor = HAnchor.Stretch,
-				VAnchor = VAnchor.Fit,
-				Margin = new BorderDouble(12, 3)
-			};
-			treeView.AddChild(treeNodeContainer);
-
-			var historyAndProperties = new Splitter()
-			{
-				Orientation = Orientation.Horizontal,
-				Panel1Ratio = sceneContext.ViewState.SceneTreeRatio,
-				SplitterSize = theme.SplitterWidth,
-				SplitterBackground = theme.SplitterBackground
-			};
-			historyAndProperties.Panel1.MinimumSize = new Vector2(0, 60);
-			historyAndProperties.Panel2.MinimumSize = new Vector2(0, 60);
-
-			modelViewSidePanel.AddChild(historyAndProperties);
-
-			var titleAndTreeView = new FlowLayoutWidget(FlowDirection.TopToBottom)
-			{
-				HAnchor = HAnchor.Stretch,
-				VAnchor = VAnchor.Stretch
-			};
-
-			titleAndTreeView.AddChild(workspaceName = new InlineStringEdit(sceneContext.Scene.Name ?? "", theme, "WorkspaceName", editable: false)
-			{
-				Border = new BorderDouble(top: 1),
-				BorderColor = theme.SplitterBackground
-			});
-			titleAndTreeView.AddChild(treeView);
+					Border = new BorderDouble(top: 1),
+					BorderColor = theme.SplitterBackground
+				},
+				modelViewSidePanel.TreeView);
 
 			workspaceName.ActionArea.AddChild(
 				new IconButton(AggContext.StaticData.LoadIcon("fa-angle-right_12.png", theme.InvertIcons), theme)
@@ -272,14 +228,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			workspaceName.Margin = workspaceName.Margin.Clone(bottom: 0);
 
-			historyAndProperties.Panel1.AddChild(titleAndTreeView);
-
-			historyAndProperties.DistanceChanged += (s, e) =>
+			modelViewSidePanel.Splitter.DistanceChanged += (s, e) =>
 			{
-				sceneContext.ViewState.SceneTreeRatio = historyAndProperties.Panel1Ratio;
+				sceneContext.ViewState.SceneTreeRatio = modelViewSidePanel.Splitter.Panel1Ratio;
 			};
 
-			historyAndProperties.Panel2.AddChild(selectedObjectPanel);
+			modelViewSidePanel.ContentPanel.AddChild(selectedObjectPanel);
+
 			splitContainer.AddChild(modelViewSidePanel);
 
 			var tumbleCubeControl = new TumbleCubeControl(this.InteractionLayer, theme)
@@ -436,7 +391,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			workspaceName.Text = sceneContext.Scene.Name ?? "";
 
 			// Top level selection only - rebuild tree
-			treeNodeContainer.CloseAllChildren();
+			modelViewSidePanel.TreeNodeContainer.CloseAllChildren();
 
 			treeNodesByObject.Clear();
 
@@ -448,7 +403,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				}
 
 				var rootNode = Object3DTreeBuilder.BuildTree(child, treeNodesByObject, theme);
-				treeNodeContainer.AddChild(rootNode);
+				modelViewSidePanel.TreeNodeContainer.AddChild(rootNode);
 				rootNode.TreeView = treeView;
 			}
 
@@ -1683,10 +1638,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		private SelectedObjectPanel selectedObjectPanel;
 
-		internal VerticalResizeContainer modelViewSidePanel;
+		internal VerticalTreeSplitPanel modelViewSidePanel;
 
 		public Vector2 DragSelectionStartPosition { get; private set; }
+
 		public bool DragSelectionInProgress { get; private set; }
+
 		public Vector2 DragSelectionEndPosition { get; private set; }
 
 		internal GuiWidget ShowOverflowMenu(PopupMenu popupMenu)
@@ -1703,7 +1660,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		}
 
 		private bool assigningTreeNode;
-		private FlowLayoutWidget treeNodeContainer;
 		private InlineStringEdit workspaceName;
 
 		public InteractiveScene Scene => sceneContext.Scene;
