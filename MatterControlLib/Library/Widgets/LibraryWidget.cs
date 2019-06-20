@@ -65,6 +65,7 @@ namespace MatterHackers.MatterControl.PrintLibrary
 		private OverflowBar navBar;
 		private GuiWidget searchButton;
 		private TreeView libraryTreeView;
+		private Splitter horizontalSplitter;
 
 		public LibraryWidget(MainViewWidget mainViewWidget, ThemeConfig theme)
 		{
@@ -288,9 +289,9 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				return popupMenu;
 			};
 
-			var horizontalSplitter = new Splitter()
+			horizontalSplitter = new Splitter()
 			{
-				SplitterDistance = UserSettings.Instance.LibraryViewWidth,
+				SplitterDistance = Math.Max(UserSettings.Instance.LibraryViewWidth, 30),
 				SplitterSize = theme.SplitterWidth,
 				SplitterBackground = theme.SplitterBackground
 			};
@@ -298,7 +299,10 @@ namespace MatterHackers.MatterControl.PrintLibrary
 
 			horizontalSplitter.DistanceChanged += (s, e) =>
 			{
-				UserSettings.Instance.LibraryViewWidth = horizontalSplitter.SplitterDistance;
+				if (horizontalSplitter.Orientation == Orientation.Vertical)
+				{
+					UserSettings.Instance.LibraryViewWidth = horizontalSplitter.SplitterDistance;
+				}
 			};
 
 			allControls.AddChild(horizontalSplitter);
@@ -605,11 +609,22 @@ namespace MatterHackers.MatterControl.PrintLibrary
 				PointSize = 8,
 				HAnchor = HAnchor.Right,
 				VAnchor = VAnchor.Bottom,
-				TextColor =  theme.BorderColor,
+				TextColor = theme.BorderColor,
 				Margin = new BorderDouble(6),
 				AutoExpandBoundsToText = true,
 			};
 			providerMessageContainer.AddChild(providerMessageWidget);
+		}
+
+		public override void OnBoundsChanged(EventArgs e)
+		{
+			if (this.Parent != null)
+			{
+				bool compactMode = this.Width < 700;
+				horizontalSplitter.Orientation = compactMode ? Orientation.Horizontal : Orientation.Vertical;
+			}
+
+			base.OnBoundsChanged(e);
 		}
 
 		public static void CreateMenuActions(LibraryListView libraryView, List<LibraryAction> menuActions, ILibraryContext libraryContext, MainViewWidget mainViewWidget, ThemeConfig theme, bool allowPrint)
