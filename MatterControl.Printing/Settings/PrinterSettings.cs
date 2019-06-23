@@ -33,6 +33,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using MatterHackers.Agg;
+using MatterHackers.DataConverters3D;
 using MatterHackers.VectorMath;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -71,6 +72,9 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 	public class PrinterSettings
 	{
+		// TODO: Move to more appropriate location after more consideration
+		public static IObjectSlicer ExternalSlicer { get; set; }
+
 		// Latest version should be in the form of:
 		// Year|month|day|versionForDay (to support multiple revisions on a given day)
 		public static int LatestVersion { get; } = 201606271;
