@@ -89,7 +89,7 @@ namespace MatterHackers.MatterControl
 			};
 			this.AddChild(bodyRow);
 
-			textScrollWidget = new TextScrollWidget(printer, printer.Connection.TerminalLog.PrinterLines)
+			textScrollWidget = new TextScrollWidget(printer, printer.TerminalLog.PrinterLines)
 			{
 				BackgroundColor = theme.MinimalShade,
 				TextColor = theme.TextColor,
@@ -247,7 +247,7 @@ namespace MatterHackers.MatterControl
 			clearButton.Margin = theme.ButtonSpacing;
 			clearButton.Click += (s, e) =>
 			{
-				printer.Connection.TerminalLog.Clear();
+				printer.TerminalLog.Clear();
 			};
 			footerRow.AddChild(clearButton);
 

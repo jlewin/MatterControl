@@ -356,6 +356,13 @@ namespace MatterHackers.MatterControl.Library.Export
 		{
 			try
 			{
+
+				var shim = new PrinterCommunication.SettingsShim.PrinterConfig()
+				{
+					Settings = printer.Settings,
+					Connection = printer.Connection
+				};
+
 				var settings = printer.Settings;
 				var maxAcceleration = settings.GetValue<double>(SettingsKey.max_acceleration);
 				var maxVelocity = settings.GetValue<double>(SettingsKey.max_velocity);
@@ -371,7 +378,7 @@ namespace MatterHackers.MatterControl.Library.Export
 							new Vector4(jerkVelocity, jerkVelocity, jerkVelocity, jerkVelocity),
 							new Vector4(multiplier, multiplier, multiplier, multiplier),
 							CancellationToken.None),
-						printer),
+						shim),
 					outputPath);
 			}
 			catch (Exception e)
