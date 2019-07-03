@@ -150,8 +150,11 @@ namespace MatterHackers.MatterControl.Library.Export
 				{
 					using (var gcodeStream = await assetStream.GetStream(progress: null))
 					{
+						// TODO: Review
+						var printerShim = ApplicationController.Instance.Shim(printer);
+
 						this.ApplyStreamPipelineAndExport(
-							new GCodeFileStream(new GCodeFileStreamed(gcodeStream.Stream), printer),
+							new GCodeFileStream(new GCodeFileStreamed(gcodeStream.Stream), printerShim),
 							outputPath);
 
 						return null;
