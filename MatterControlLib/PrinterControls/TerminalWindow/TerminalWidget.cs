@@ -280,10 +280,10 @@ namespace MatterHackers.MatterControl
 									{
 										Debug.Print(ex.Message);
 
-										printer.Connection.TerminalLog.WriteLine("");
-										printer.Connection.TerminalLog.WriteLine("WARNING: Write Failed!".Localize());
-										printer.Connection.TerminalLog.WriteLine("Can't access".Localize() + " " + filePathToSave);
-										printer.Connection.TerminalLog.WriteLine("");
+										ApplicationController.Instance.LogError("");
+										ApplicationController.Instance.LogError("WARNING: Write Failed!".Localize());
+										ApplicationController.Instance.LogError("Can't access".Localize() + " " + filePathToSave);
+										ApplicationController.Instance.LogError("");
 
 										UiThread.RunOnIdle(() =>
 										{
