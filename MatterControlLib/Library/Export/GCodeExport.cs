@@ -34,14 +34,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterControl.Printing;
+using MatterControl.Printing.Pipelines;
+using MatterControl.Printing.PrintLeveling;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
-using MatterHackers.MatterControl.PrinterCommunication.Io;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 
@@ -151,7 +151,7 @@ namespace MatterHackers.MatterControl.Library.Export
 					using (var gcodeStream = await assetStream.GetStream(progress: null))
 					{
 						this.ApplyStreamPipelineAndExport(
-							new GCodeFileStream(new GCodeFileStreamed(gcodeStream.Stream), printer),
+							new GCodeFileStream(new GCodeFileStreamed(gcodeStream.Stream), printer.Settings),
 							outputPath);
 
 						return null;
@@ -271,47 +271,51 @@ namespace MatterHackers.MatterControl.Library.Export
 
 		public static GCodeStream GetExportStream(PrinterConfig printer, GCodeStream gCodeBaseStream, bool applyLeveling)
 		{
-			var queuedCommandStream = new QueuedCommandsStream(printer, gCodeBaseStream);
+			var settings = printer.Settings;
+			System.Diagnostics.Debugger.Break();
+			var connection = printer.Connection as PrinterConnection;
+
+			var queuedCommandStream = new QueuedCommandsStream(settings, gCodeBaseStream);
 			GCodeStream accumulatedStream = queuedCommandStream;
 
-			accumulatedStream = new RelativeToAbsoluteStream(printer, accumulatedStream);
+			accumulatedStream = new RelativeToAbsoluteStream(settings, accumulatedStream);
 
-			if (printer.Settings.GetValue<int>(SettingsKey.extruder_count) > 1)
+			if (settings.GetValue<int>(SettingsKey.extruder_count) > 1)
 			{
 				var gCodeFileStream = gCodeBaseStream as GCodeFileStream;
-				accumulatedStream = new ToolChangeStream(printer, accumulatedStream, queuedCommandStream, gCodeFileStream);
-				accumulatedStream = new ToolSpeedMultiplierStream(printer, accumulatedStream);
+				accumulatedStream = new ToolChangeStream(settings, connection, accumulatedStream, queuedCommandStream, gCodeFileStream);
+				accumulatedStream = new ToolSpeedMultiplierStream(settings, connection, accumulatedStream);
 			}
 
-			bool levelingEnabled = printer.Settings.GetValue<bool>(SettingsKey.print_leveling_enabled) && applyLeveling;
+			bool levelingEnabled = settings.GetValue<bool>(SettingsKey.print_leveling_enabled) && applyLeveling;
 
-			accumulatedStream = new BabyStepsStream(printer, accumulatedStream);
+			accumulatedStream = new BabyStepsStream(settings, connection, accumulatedStream);
 
 			if (levelingEnabled
-				&& printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting))
+				&& settings.GetValue<bool>(SettingsKey.enable_line_splitting))
 			{
-				accumulatedStream = new MaxLengthStream(printer, accumulatedStream, 1);
+				accumulatedStream = new MaxLengthStream(settings, accumulatedStream, 1);
 			}
 			else
 			{
-				accumulatedStream = new MaxLengthStream(printer, accumulatedStream, 1000);
+				accumulatedStream = new MaxLengthStream(settings, accumulatedStream, 1000);
 			}
 
 			if (levelingEnabled
-				&& !LevelingValidation.NeedsToBeRun(printer))
+				&& !LevelingValidation.NeedsToBeRun(settings))
 			{
-				accumulatedStream = new PrintLevelingStream(printer, accumulatedStream);
+				accumulatedStream = new PrintLevelingStream(settings, connection, accumulatedStream);
 			}
 
-			if (printer.Settings.GetValue<bool>(SettingsKey.emulate_endstops))
+			if (settings.GetValue<bool>(SettingsKey.emulate_endstops))
 			{
-				var softwareEndstopsExStream12 = new SoftwareEndstopsStream(printer, accumulatedStream);
+				var softwareEndstopsExStream12 = new SoftwareEndstopsStream(settings, connection, accumulatedStream);
 				accumulatedStream = softwareEndstopsExStream12;
 			}
 
-			accumulatedStream = new RemoveNOPsStream(printer, accumulatedStream);
+			accumulatedStream = new RemoveNOPsStream(settings, accumulatedStream);
 
-			accumulatedStream = new ProcessWriteRegexStream(printer, accumulatedStream, queuedCommandStream);
+			accumulatedStream = new ProcessWriteRegexStream(settings, accumulatedStream, queuedCommandStream);
 
 			return accumulatedStream;
 		}
@@ -350,6 +354,13 @@ namespace MatterHackers.MatterControl.Library.Export
 		{
 			try
 			{
+				var shim = new PrintHostConfig()
+				{
+					Settings = printer.Settings,
+					// TODO: Review why an export stream would need a printer connection - break dependency if needed
+					Connection = null // printer.Connection
+				};
+
 				var settings = printer.Settings;
 				var maxAcceleration = settings.GetValue<double>(SettingsKey.max_acceleration);
 				var maxVelocity = settings.GetValue<double>(SettingsKey.max_velocity);
@@ -365,7 +376,7 @@ namespace MatterHackers.MatterControl.Library.Export
 							new Vector4(jerkVelocity, jerkVelocity, jerkVelocity, jerkVelocity),
 							new Vector4(multiplier, multiplier, multiplier, multiplier),
 							CancellationToken.None),
-						printer),
+						settings),
 					outputPath);
 			}
 			catch (Exception e)

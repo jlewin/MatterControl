@@ -29,10 +29,10 @@ either expressed or implied, of the FreeBSD Project.
 
 using System.IO;
 using System.Linq;
+using MatterControl.Printing;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.DataStorage;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrintHistory
@@ -77,7 +77,15 @@ namespace MatterHackers.MatterControl.PrintHistory
 									if (printer.Connection.CommunicationState == CommunicationStates.Connected)
 									{
 										printer.Connection.CommunicationState = CommunicationStates.PreparingToPrint;
-										await printer.Connection.StartPrint(lastPrint.PrintingGCodeFileName, lastPrint);
+
+										// TODO: Reimplement
+										//await printer.Connection.StartPrint(lastPrint.PrintingGCodeFileName, lastPrint);
+
+										// This needs to be reworked to support the PrintServer owning the PrintTask/Job 
+
+										System.Diagnostics.Debugger.Break();
+										//printer.Connection.StartPrint(lastPrint.PrintingGCodeFileName);
+
 										ApplicationController.Instance.MonitorPrintTask(printer);
 									}
 								});

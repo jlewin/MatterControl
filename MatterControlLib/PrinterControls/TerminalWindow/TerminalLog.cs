@@ -29,8 +29,8 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using MatterControl.Printing;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.PrinterCommunication;
 
 namespace MatterHackers.MatterControl
 {
@@ -40,16 +40,16 @@ namespace MatterHackers.MatterControl
 
 		private int maxLinesToBuffer = int.MaxValue - 1;
 
-		private PrinterConnection printerConnection;
+		private PrinterConfig printer;
 
-		public TerminalLog(PrinterConnection printerConnection)
+		public TerminalLog(PrinterConfig printer)
 		{
 			// Register event listeners
-			printerConnection.ConnectionFailed += Instance_ConnectionFailed;
-			printerConnection.LineReceived += Printer_LineReceived;
-			printerConnection.LineSent += Printer_LineSent;
+			printer.Connection.ConnectionFailed += Instance_ConnectionFailed;
+			printer.Connection.LineReceived += Printer_LineReceived;
+			printer.Connection.LineSent += Printer_LineSent;
 
-			this.printerConnection = printerConnection;
+			this.printer = printer;
 
 			if (Is32Bit)
 			{
@@ -113,39 +113,36 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-		private void Instance_ConnectionFailed(object sender, EventArgs e)
+		private void Instance_ConnectionFailed(object sender, ConnectFailedEventArgs e)
 		{
-			if (e is ConnectFailedEventArgs args)
+			string message;
+
+			switch (e.Reason)
 			{
-				string message;
-
-				switch (args.Reason)
-				{
-					case ConnectionFailure.AlreadyConnected:
-						message = "You can only connect when not currently connected".Localize();
-						break;
-					case ConnectionFailure.UnsupportedBaudRate:
-						message = "Unsupported Baud Rate".Localize();
-						break;
-					case ConnectionFailure.PortInUse:
-						message = "Serial port in use".Localize();
-						break;
-					case ConnectionFailure.PortNotFound:
-						message = "Port not found".Localize();
-						break;
-					case ConnectionFailure.PortUnavailable:
-						message = "Port not available".Localize();
-						break;
-					case ConnectionFailure.ConnectionTimeout:
-						message = "Connection timed out".Localize();
-						break;
-					default:
-						message = "Unknown Reason".Localize();
-						break;
-				}
-
-				this.WriteLine("Connection Failed".Localize() + ": " + message);
+				case ConnectionFailure.AlreadyConnected:
+					message = "You can only connect when not currently connected".Localize();
+					break;
+				case ConnectionFailure.UnsupportedBaudRate:
+					message = "Unsupported Baud Rate".Localize();
+					break;
+				case ConnectionFailure.PortInUse:
+					message = "Serial port in use".Localize();
+					break;
+				case ConnectionFailure.PortNotFound:
+					message = "Port not found".Localize();
+					break;
+				case ConnectionFailure.PortUnavailable:
+					message = "Port not available".Localize();
+					break;
+				case ConnectionFailure.ConnectionTimeout:
+					message = "Connection timed out".Localize();
+					break;
+				default:
+					message = "Unknown Reason".Localize();
+					break;
 			}
+
+			this.WriteLine("Connection Failed".Localize() + ": " + message);
 
 			this.WriteLine("Lost connection to printer");
 		}
@@ -163,11 +160,12 @@ namespace MatterHackers.MatterControl
 		public void Dispose()
 		{
 			// Unregister event listeners
-			printerConnection.ConnectionFailed -= Instance_ConnectionFailed;
-			printerConnection.LineReceived -= Printer_LineReceived;
-			printerConnection.LineSent -= Printer_LineSent;
+			printer.Connection.ConnectionFailed -= Instance_ConnectionFailed;
+			printer.Connection.LineReceived -= Printer_LineReceived;
+			printer.Connection.LineSent -= Printer_LineSent;
 
-			printerConnection = null;
+			// TODO: Review why TerminalLog nulls printer.Connection rather than the connection itself?
+			// printer.Connection = null;
 		}
 	}
 }

@@ -27,10 +27,8 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg;
-using MatterHackers.MatterControl.PrinterCommunication;
 using System;
-using System.IO;
+using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.EeProm
 {
@@ -67,7 +65,7 @@ namespace MatterHackers.MatterControl.EeProm
 			}
 		}
 
-		public void Save(PrinterConnection printerConnection)
+		public void Save(PrinterConfig printer)
 		{
 			if (!changed)
 			{
@@ -77,7 +75,7 @@ namespace MatterHackers.MatterControl.EeProm
 			string cmd = "M206 T" + type + " P" + position + " ";
 			if (type == 3) cmd += "X" + value;
 			else cmd += "S" + value;
-			printerConnection.QueueLine(cmd);
+			printer.Connection.QueueLine(cmd);
 			changed = false;
 		}
 

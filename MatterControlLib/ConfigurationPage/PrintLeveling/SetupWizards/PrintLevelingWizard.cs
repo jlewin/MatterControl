@@ -30,10 +30,10 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Markdig.Agg;
+using MatterControl.Printing;
+using MatterControl.Printing.PrintLeveling;
 using MatterHackers.Agg;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 
@@ -66,9 +66,9 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public override bool Enabled => !hasHardwareLeveling;
 
-		public override bool Completed => !hasHardwareLeveling && !LevelingValidation.NeedsToBeRun(printer);
+		public override bool Completed => !hasHardwareLeveling && !LevelingValidation.NeedsToBeRun(printer.Settings);
 
-		public override bool SetupRequired => LevelingValidation.NeedsToBeRun(printer);
+		public override bool SetupRequired => LevelingValidation.NeedsToBeRun(printer.Settings);
 
 		private void Initialize()
 		{
@@ -79,7 +79,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, "0");
 
 			// turn off print leveling
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 
 			// clear any data that we are going to be acquiring (sampled positions, after z home offset)
 			var levelingData = new PrintLevelingData()
@@ -92,35 +92,35 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			switch (levelingData.LevelingSystem)
 			{
 				case LevelingSystem.Probe3Points:
-					LevelingPlan = new LevelWizard3Point(printer);
+					LevelingPlan = new LevelWizard3Point(printer.Settings);
 					break;
 
 				case LevelingSystem.Probe7PointRadial:
-					LevelingPlan = new LevelWizard7PointRadial(printer);
+					LevelingPlan = new LevelWizard7PointRadial(printer.Settings);
 					break;
 
 				case LevelingSystem.Probe13PointRadial:
-					LevelingPlan = new LevelWizard13PointRadial(printer);
+					LevelingPlan = new LevelWizard13PointRadial(printer.Settings);
 					break;
 
 				case LevelingSystem.Probe100PointRadial:
-					LevelingPlan = new LevelWizard100PointRadial(printer);
+					LevelingPlan = new LevelWizard100PointRadial(printer.Settings);
 					break;
 
 				case LevelingSystem.Probe3x3Mesh:
-					LevelingPlan = new LevelWizardMesh(printer, 3, 3);
+					LevelingPlan = new LevelWizardMesh(printer.Settings, 3, 3);
 					break;
 
 				case LevelingSystem.Probe5x5Mesh:
-					LevelingPlan = new LevelWizardMesh(printer, 5, 5);
+					LevelingPlan = new LevelWizardMesh(printer.Settings, 5, 5);
 					break;
 
 				case LevelingSystem.Probe10x10Mesh:
-					LevelingPlan = new LevelWizardMesh(printer, 10, 10);
+					LevelingPlan = new LevelWizardMesh(printer.Settings, 10, 10);
 					break;
 
 				case LevelingSystem.ProbeCustom:
-					LevelingPlan = new LevelWizardCustom(printer);
+					LevelingPlan = new LevelWizardCustom(printer.Settings);
 					break;
 
 				default:
@@ -131,7 +131,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 		public override void Dispose()
 		{
 			// If leveling was on when we started, make sure it is on when we are done.
-			printer.Connection.AllowLeveling = true;
+			printer.Connection.AllowLeveling(true);
 
 			// set the baby stepping back to the last known good value
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, babySteppingValue.ToString());
@@ -272,7 +272,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 						if (printer.Settings.GetValue<bool>(SettingsKey.z_homes_to_max))
 						{
-							printer.Connection.HomeAxis(PrinterConnection.Axis.XYZ);
+							printer.Connection.HomeAxis(PrinterAxis.XYZ);
 						}
 
 						yield break;

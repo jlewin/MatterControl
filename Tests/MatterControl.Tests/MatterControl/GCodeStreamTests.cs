@@ -31,11 +31,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using MatterControl.Printing;
+using MatterControl.Printing.Pipelines;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.MatterControl;
 using MatterHackers.MatterControl.Library.Export;
-using MatterHackers.MatterControl.PrinterCommunication.Io;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.MatterControl.Tests.Automation;
 using MatterHackers.VectorMath;
@@ -79,9 +79,7 @@ namespace MatterControl.Tests.MatterControl
 				"G1 X0 Y0 Z0 E0 F500",
 			};
 
-			PrinterConfig printer = null;
-
-			MaxLengthStream maxLengthStream = new MaxLengthStream(printer, new TestGCodeStream(printer, lines), 6);
+			MaxLengthStream maxLengthStream = new MaxLengthStream(null, new TestGCodeStream(null, lines), 6);
 			ValidateStreamResponse(expected, maxLengthStream);
 		}
 
@@ -125,8 +123,8 @@ namespace MatterControl.Tests.MatterControl
 			};
 
 			var printer = new PrinterConfig(new PrinterSettings());
-
-			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, inputLines), true);
+			
+			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, inputLines), true);
 			ValidateStreamResponse(expected, testStream);
 		}
 
@@ -159,7 +157,7 @@ namespace MatterControl.Tests.MatterControl
 			write_filter += "\\n\"^(M119)\", \"M119,switch filament; WRITE_RAW\"";
 			printer.Settings.SetValue(SettingsKey.write_regex, write_filter);
 
-			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, inputLines), true);
+			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, inputLines), true);
 			ValidateStreamResponse(expected, testStream);
 		}
 
@@ -183,7 +181,7 @@ namespace MatterControl.Tests.MatterControl
 			var printer = new PrinterConfig(new PrinterSettings());
 			printer.Settings.SetValue(SettingsKey.has_hardware_leveling, "1");
 
-			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, inputLines), true);
+			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, inputLines), true);
 			ValidateStreamResponse(expected, testStream);
 		}
 
@@ -233,7 +231,7 @@ namespace MatterControl.Tests.MatterControl
 			printer.Settings.SetValue(SettingsKey.probe_offset, "0,0,-.1");
 			printer.Settings.SetValue(SettingsKey.print_leveling_enabled, "1");
 
-			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, inputLines), true);
+			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, inputLines), true);
 			ValidateStreamResponse(expected, testStream);
 		}
 
@@ -280,22 +278,25 @@ namespace MatterControl.Tests.MatterControl
 			printer.Settings.SetValue(SettingsKey.probe_offset, "0,0,-.1");
 			printer.Settings.SetValue(SettingsKey.print_leveling_enabled, "1");
 
-			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, inputLines), true);
+			var testStream = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, inputLines), true);
 			ValidateStreamResponse(expected, testStream);
 		}
 
 		public static GCodeStream CreateTestGCodeStream(PrinterConfig printer, string[] inputLines, out List<GCodeStream> streamList)
 		{
+			var connection = new PrinterConnection(printer.Shim());
+			var settings = printer.Settings;
+
 			streamList = new List<GCodeStream>();
-			streamList.Add(new TestGCodeStream(printer, inputLines));
-			streamList.Add(new PauseHandlingStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new QueuedCommandsStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new RelativeToAbsoluteStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new WaitForTempStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new BabyStepsStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new MaxLengthStream(printer, streamList[streamList.Count - 1], 1));
-			streamList.Add(new ExtrusionMultiplierStream(printer, streamList[streamList.Count - 1]));
-			streamList.Add(new FeedRateMultiplierStream(printer, streamList[streamList.Count - 1]));
+			streamList.Add(new TestGCodeStream(printer.Settings, inputLines));
+			streamList.Add(new PauseHandlingStream(printer.Settings, null, streamList[streamList.Count - 1]));
+			streamList.Add(new QueuedCommandsStream(printer.Settings, streamList[streamList.Count - 1]));
+			streamList.Add(new RelativeToAbsoluteStream(printer.Settings, streamList[streamList.Count - 1]));
+			streamList.Add(new WaitForTempStream(printer.Settings, connection, streamList[streamList.Count - 1]));
+			streamList.Add(new BabyStepsStream(printer.Settings, connection, streamList[streamList.Count - 1]));
+			streamList.Add(new MaxLengthStream(printer.Settings, streamList[streamList.Count - 1], 1));
+			streamList.Add(new ExtrusionMultiplierStream(printer.Settings, streamList[streamList.Count - 1]));
+			streamList.Add(new FeedRateMultiplierStream(printer.Settings, streamList[streamList.Count - 1]));
 			GCodeStream totalGCodeStream = streamList[streamList.Count - 1];
 
 			return totalGCodeStream;
@@ -305,7 +306,7 @@ namespace MatterControl.Tests.MatterControl
 		public void RegexReplacementStreamIsLast()
 		{
 			var printer = new PrinterConfig(new PrinterSettings());
-			var context = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer, new []{ "" }), true);
+			var context = GCodeExport.GetExportStream(printer, new TestGCodeStream(printer.Settings, new []{ "" }), true);
 
 			var streamProcessors = new List<GCodeStream>();
 
@@ -517,8 +518,11 @@ namespace MatterControl.Tests.MatterControl
 				"G1 X100E30", // move back on
 			};
 
-			var printer = new PrinterConfig(new PrinterSettings());
-			var pauseHandlingStream = new SoftwareEndstopsStream(printer, new TestGCodeStream(printer, inputLines));
+			var printer = new PrinterConfig(new PrinterSettings()).Shim();
+			var connection = new PrinterConnection(printer);
+			var settings = printer.Settings;
+
+			var pauseHandlingStream = new SoftwareEndstopsStream(settings, connection, new TestGCodeStream(settings, inputLines));
 			ValidateStreamResponse(expected, pauseHandlingStream);
 		}
 
@@ -677,10 +681,10 @@ namespace MatterControl.Tests.MatterControl
 			var printer = new PrinterConfig(new PrinterSettings());
 			printer.Settings.SetValue(SettingsKey.write_regex, "\"^(G28)\",\"G28,M115\"\\n\"^(M107)\",\"; none\"");
 
-			var inputLinesStream = new TestGCodeStream(printer, inputLines);
-			var queueStream = new QueuedCommandsStream(printer, inputLinesStream);
+			var inputLinesStream = new TestGCodeStream(printer.Settings, inputLines);
+			var queueStream = new QueuedCommandsStream(printer.Settings, inputLinesStream);
 
-			var writeStream = new ProcessWriteRegexStream(printer, queueStream, queueStream);
+			var writeStream = new ProcessWriteRegexStream(printer.Settings, queueStream, queueStream);
 			ValidateStreamResponse(expected, writeStream);
 		}
 
@@ -691,8 +695,10 @@ namespace MatterControl.Tests.MatterControl
 
 			Assert.AreEqual(1, (int)FeedRateMultiplierStream.FeedRateRatio, "FeedRateRatio should default to 1");
 
-			PrinterConfig printer = null;
-			var gcodeStream = new FeedRateMultiplierStream(printer, new TestGCodeStream(printer, new string[] { "G1 X10 F1000", "G1 Y5 F1000" }));
+			PrintHostConfig printer = null;
+			var settings = printer.Settings;
+
+			var gcodeStream = new FeedRateMultiplierStream(settings, new TestGCodeStream(settings, new string[] { "G1 X10 F1000", "G1 Y5 F1000" }));
 
 			line = gcodeStream.ReadLine();
 
@@ -711,8 +717,7 @@ namespace MatterControl.Tests.MatterControl
 
 			Assert.AreEqual(1, (int)ExtrusionMultiplierStream.ExtrusionRatio, "ExtrusionRatio should default to 1");
 
-			PrinterConfig printer = null;
-			var gcodeStream = new ExtrusionMultiplierStream(printer, new TestGCodeStream(printer, new string[] { "G1 E10", "G1 E0 ; Move back to 0", "G1 E12" }));
+			var gcodeStream = new ExtrusionMultiplierStream(null, new TestGCodeStream(null, new string[] { "G1 E10", "G1 E0 ; Move back to 0", "G1 E12" }));
 
 			line = gcodeStream.ReadLine();
 			// Move back to E0
@@ -733,8 +738,8 @@ namespace MatterControl.Tests.MatterControl
 		private int index = 0;
 		private string[] lines;
 
-		public TestGCodeStream(PrinterConfig printer, string[] lines)
-			: base(printer)
+		public TestGCodeStream(PrinterSettings settings, string[] lines)
+			: base(settings)
 		{
 			this.lines = lines;
 		}

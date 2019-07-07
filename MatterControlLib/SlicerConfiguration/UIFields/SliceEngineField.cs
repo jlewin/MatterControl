@@ -39,8 +39,8 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 	public class SliceEngineField : UIField
 	{
 		private DropDownList dropdownList;
-		private readonly ThemeConfig theme;
-		private readonly PrinterConfig printer;
+		private ThemeConfig theme;
+		private PrinterConfig printer;
 
 		public SliceEngineField(PrinterConfig printer, ThemeConfig theme)
 		{
@@ -78,9 +78,10 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				dropdownList.Enabled = !printer.Connection.Printing;
 
-				if (printer.Connection.ComPort != dropdownList.SelectedLabel)
+				string comPort = printer.Settings.Helpers.ComPort();
+				if (comPort != dropdownList.SelectedLabel)
 				{
-					dropdownList.SelectedLabel = printer.Connection.ComPort;
+					dropdownList.SelectedLabel = comPort;
 				}
 			}
 
@@ -92,6 +93,19 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				unregisterEvents?.Invoke(null, null);
 			};
+
+			var configureIcon = new IconButton(AggContext.StaticData.LoadIcon("fa-cog_16.png", theme.InvertIcons), theme)
+			{
+				VAnchor = VAnchor.Center,
+				Margin = theme.ButtonSpacing,
+				ToolTipText = "Port Wizard".Localize()
+			};
+			configureIcon.Click += (s, e) =>
+			{
+				DialogWindow.Show(new SetupStepComPortOne(printer));
+			};
+
+			panel.AddChild(configureIcon);
 
 			panel.AddChild(dropdownList);
 
@@ -134,4 +148,5 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			dropdownList.SelectedLabel = this.Value;
 		}
 	}
+
 }

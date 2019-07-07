@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
 using MatterHackers.MatterControl.PartPreviewWindow;
-using MatterHackers.MatterControl.PrinterCommunication.Io;
-using MatterHackers.MeshVisualizer;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl
@@ -513,8 +510,9 @@ namespace MatterHackers.MatterControl
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			var context = ApplicationController.Instance.ActivePrinters.First().Connection.TotalGCodeStream;
-			textBox1.Text = context.GetDebugState();
+			System.Diagnostics.Debugger.Break();
+			//var context = ApplicationController.Instance.ActivePrinters.First().Connection.TotalGCodeStream;
+			//textBox1.Text = context.GetDebugState();
 		}
 	}
 }

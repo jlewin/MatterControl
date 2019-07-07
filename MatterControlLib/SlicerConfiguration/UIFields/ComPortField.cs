@@ -28,12 +28,12 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using MatterControl.Printing;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 using MatterHackers.SerialPortCommunication.FrostedSerial;
 
@@ -88,12 +88,13 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				canChangeComPort = !printer.Connection.IsConnected && printer.Connection.CommunicationState != CommunicationStates.AttemptingToConnect;
 				dropdownList.Enabled = canChangeComPort;
-
-				if (printer.Connection.ComPort != dropdownList.SelectedLabel)
+				string comPort = printer.Settings.Helpers.ComPort();
+				if (comPort != dropdownList.SelectedLabel)
 				{
-					dropdownList.SelectedLabel = printer.Connection.ComPort;
+					dropdownList.SelectedLabel = comPort;
 				}
 			}
+
 			printer.Connection.CommunicationStateChanged += CommunicationStateChanged;
 			dropdownList.Closed += (s, e) => printer.Connection.CommunicationStateChanged -= CommunicationStateChanged;
 

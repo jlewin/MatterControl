@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using MatterControl.Printing.PrintLeveling;
 using MatterHackers.Agg;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.SlicerConfiguration;
@@ -69,7 +70,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 		public override void Dispose()
 		{
 			// If leveling was on when we started, make sure it is on when we are done.
-			printer.Connection.AllowLeveling = true;
+			printer.Connection.AllowLeveling(true);
 
 			// set the baby stepping back to the last known good value
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, babySteppingValue.ToString());
@@ -128,7 +129,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				};
 
 			// Initialize - turn off print leveling
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 
 			// remember the current baby stepping values
 			babySteppingValue = printer.Settings.GetValue<double>(SettingsKey.baby_step_z_offset);
@@ -144,7 +145,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				this,
 				levelingStrings.HomingPageInstructions(true, false));
 
-			if (LevelingValidation.NeedsToBeRun(printer))
+			if (LevelingValidation.NeedsToBeRun(printer.Settings))
 			{
 				// start heating up the bed as that will be needed next
 				var bedTemperature = printer.Settings.GetValue<bool>(SettingsKey.has_heated_bed) ?
@@ -176,7 +177,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				temps);
 
 			double startProbeHeight = printer.Settings.GetValue<double>(SettingsKey.print_leveling_probe_start);
-			Vector2 probePosition = LevelingPlan.ProbeOffsetSamplePosition(printer);
+			Vector2 probePosition = LevelingPlan.ProbeOffsetSamplePosition(printer.Settings);
 			var probeStartPosition = new Vector3(probePosition, startProbeHeight);
 
 			int extruderPriorToMeasure = printer.Connection.ActiveExtruderIndex;

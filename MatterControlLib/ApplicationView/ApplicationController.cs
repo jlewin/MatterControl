@@ -44,6 +44,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using global::MatterControl.Printing;
+using global::MatterControl.Common.Repository;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Font;
 using MatterHackers.Agg.Image;
@@ -62,7 +63,6 @@ using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PartPreviewWindow.View3D;
 using MatterHackers.MatterControl.Plugins;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrinterControls.PrinterConnections;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.MatterControl.SettingsManagement;
@@ -1458,11 +1458,6 @@ namespace MatterHackers.MatterControl
 		{
 			this.Thumbnails = new ThumbnailsConfig();
 
-			ProfileManager.UserChanged += (s, e) =>
-			{
-				//_activePrinters = new List<PrinterConfig>();
-			};
-
 			this.BuildSceneOperations();
 
 			this.Extensions = new ExtensionsConfig(this.Library);
@@ -1888,18 +1883,19 @@ namespace MatterHackers.MatterControl
 			this.Graph.PrimaryOperations.Add(typeof(Object3D), new List<NodeOperation> { this.Graph.Operations["Scale"] });
 		}
 
-		public void Connection_ErrorReported(object sender, string line)
+		public void Connection_ErrorReported(object sender, DeviceErrorArgs e)
 		{
-			if (line != null)
+			if (sender is IPrinterConnection printerConnection)
 			{
-				string message = "Your printer is reporting a HARDWARE ERROR and has been paused. Check the error and cancel the print if required.".Localize()
-					+ "\n"
-					+ "\n"
-					+ "Error Reported".Localize() + ":"
-					+ $" \"{line}\".";
-
-				if (sender is PrinterConnection printerConnection)
+				if (e.Source == ErrorSource.Firmware
+					&& e.Message != null)
 				{
+					string message = "Your printer is reporting a HARDWARE ERROR and has been paused. Check the error and cancel the print if required.".Localize()
+						+ "\n"
+						+ "\n"
+						+ "Error Reported".Localize() + ":"
+						+ $" \"{e.Message}\".";
+
 					UiThread.RunOnIdle(() =>
 						StyledMessageBox.ShowMessageBox(
 							(clickedOk) =>
@@ -1913,77 +1909,90 @@ namespace MatterHackers.MatterControl
 							"Printer Hardware Error".Localize(),
 							StyledMessageBox.MessageType.YES_NO,
 							"Resume".Localize(),
-							"OK".Localize())
-					);
+							"OK".Localize()));
+				}
+				else if (ActivePrinters.FirstOrDefault(p => p.Connection == printerConnection) is PrinterConfig printer)
+				{
+					printer.TerminalLog.WriteLine(e.Message);
+				}
+				else
+				{
+					this.LogError(e.Message);
 				}
 			}
 		}
 
 		public void Connection_TemporarilyHoldingTemp(object sender, EventArgs e)
 		{
-			if (sender is PrinterConnection printerConnection)
+			if (sender is IPrinterConnection printerConnection)
 			{
 				if (printerConnection.AnyHeatIsOn)
 				{
 					var paused = false;
-					Tasks.Execute("", printerConnection.Printer, (reporter, cancellationToken) =>
-					{
-						var progressStatus = new ProgressStatus();
-
-						while (printerConnection.SecondsToHoldTemperature > 0
-							&& !cancellationToken.IsCancellationRequested
-							&& printerConnection.ContinueHoldingTemperature)
+					Tasks.Execute(
+						"",
+						printerConnection.Printer,
+						(reporter, cancellationToken) =>
 						{
-							if (paused)
+							var progressStatus = new ProgressStatus();
+
+							while (printerConnection.SecondsToHoldTemperature > 0
+								&& !cancellationToken.IsCancellationRequested
+								&& printerConnection.ContinueHoldingTemperature)
 							{
-								progressStatus.Status = "Holding Temperature".Localize();
-							}
-							else
-							{
-								if (printerConnection.SecondsToHoldTemperature > 60)
+								if (paused)
 								{
-									progressStatus.Status = string.Format(
-										"{0} {1:0}m {2:0}s",
-										"Automatic Heater Shutdown in".Localize(),
-										(int)(printerConnection.SecondsToHoldTemperature) / 60,
-										(int)(printerConnection.SecondsToHoldTemperature) % 60);
+									progressStatus.Status = "Holding Temperature".Localize();
 								}
 								else
 								{
-									progressStatus.Status = string.Format(
-										"{0} {1:0}s",
-										"Automatic Heater Shutdown in".Localize(),
-										printerConnection.SecondsToHoldTemperature);
+									if (printerConnection.SecondsToHoldTemperature > 60)
+									{
+										progressStatus.Status = string.Format(
+											"{0} {1:0}m {2:0}s",
+											"Automatic Heater Shutdown in".Localize(),
+											(int)printerConnection.SecondsToHoldTemperature / 60,
+											(int)printerConnection.SecondsToHoldTemperature % 60);
+									}
+									else
+									{
+										progressStatus.Status = string.Format(
+											"{0} {1:0}s",
+											"Automatic Heater Shutdown in".Localize(),
+											printerConnection.SecondsToHoldTemperature);
+									}
 								}
+
+								progressStatus.Progress0To1 = printerConnection.SecondsToHoldTemperature / printerConnection.TimeToHoldTemperature;
+								reporter.Report(progressStatus);
+								Thread.Sleep(20);
 							}
 
-							progressStatus.Progress0To1 = printerConnection.SecondsToHoldTemperature / printerConnection.TimeToHoldTemperature;
-							reporter.Report(progressStatus);
-							Thread.Sleep(20);
-						}
 
-						return Task.CompletedTask;
-					},
-					taskActions: new RunningTaskOptions()
-					{
-						PauseAction = () => UiThread.RunOnIdle(() =>
+							return Task.CompletedTask;
+						},
+						taskActions: new RunningTaskOptions()
 						{
-							paused = true;
-							printerConnection.TimeHaveBeenHoldingTemperature.Stop();
-						}),
-						PauseToolTip = "Pause automatic heater shutdown".Localize(),
-						ResumeAction = () => UiThread.RunOnIdle(() =>
-						{
-							paused = false;
-							printerConnection.TimeHaveBeenHoldingTemperature.Start();
-						}),
-						ResumeToolTip = "Resume automatic heater shutdown".Localize(),
-						StopAction = (abortCancel) => UiThread.RunOnIdle(() =>
-						{
-							printerConnection.TurnOffBedAndExtruders(TurnOff.Now);
-						}),
-						StopToolTip = "Immediately turn off heaters".Localize()
-					});
+							PauseAction = () => UiThread.RunOnIdle(() =>
+							{
+								paused = true;
+								Debugger.Break();
+								//printerConnection.TimeHaveBeenHoldingTemperature.Stop();
+							}),
+							PauseToolTip = "Pause automatic heater shutdown".Localize(),
+							ResumeAction = () => UiThread.RunOnIdle(() =>
+							{
+								paused = false;
+								Debugger.Break();
+								//printerConnection.TimeHaveBeenHoldingTemperature.Start();
+							}),
+							ResumeToolTip = "Resume automatic heater shutdown".Localize(),
+							StopAction = (abortCancel) => UiThread.RunOnIdle(() =>
+							{
+								printerConnection.TurnOffBedAndExtruders(TurnOff.Now);
+							}),
+							StopToolTip = "Immediately turn off heaters".Localize()
+						});
 				}
 			}
 		}
@@ -2328,6 +2337,9 @@ namespace MatterHackers.MatterControl
 				&& printer.Settings.PrinterSelected
 				&& printer.Settings.GetValue<bool>(SettingsKey.auto_connect))
 			{
+				// Clear log before starting connection
+				printer.TerminalLog.Clear();
+
 				printer.Connection.Connect();
 			}
 
@@ -2669,8 +2681,6 @@ namespace MatterHackers.MatterControl
 					return;
 				}
 
-				printer.Connection.PrintingItemName = printItemName;
-
 				var errors = printer.ValidateSettings(validatePrintBed: !printer.Bed.EditContext.IsGGCodeSource);
 				if (errors.Any(e => e.ErrorLevel == ValidationErrorLevel.Error))
 				{
@@ -2679,7 +2689,7 @@ namespace MatterHackers.MatterControl
 				else // there are no errors continue printing
 				{
 					// clear the output cache prior to starting a print
-					printer.Connection.TerminalLog.Clear();
+					printer.TerminalLog.Clear();
 
 					string hideGCodeWarning = ApplicationSettings.Instance.get(ApplicationSettingsKey.HideGCodeWarning);
 
@@ -2916,7 +2926,18 @@ namespace MatterHackers.MatterControl
 
 					if (originalIsGCode)
 					{
-						await printer.Connection.StartPrint(gcodeFilePath);
+						var printTask = new PrintJob()
+						{
+							PrintStart = DateTime.Now,
+							PrinterId = printer.Settings.ID.GetHashCode(),
+							PrintName = "hello", // activePrintItem.PrintItem.Name,
+							GCodeFile = gcodeFilePath,
+							PrintComplete = false
+						};
+
+						// TODO: Reimplement
+						//await printer.Connection.StartPrint(gcodeFilePath);
+						printer.Connection.StartPrint(printTask);
 
 						MonitorPrintTask(printer);
 
@@ -2927,7 +2948,18 @@ namespace MatterHackers.MatterControl
 						// Ask for slicer specific gcode validation
 						if (printer.Settings.Slicer.ValidateFile(gcodeFilePath))
 						{
-							await printer.Connection.StartPrint(gcodeFilePath);
+							var printTask = new PrintJob()
+							{
+								PrintStart = DateTime.Now,
+								PrinterId = printer.Settings.ID.GetHashCode(),
+								PrintName = "hello", // activePrintItem.PrintItem.Name,
+								GCodeFile = gcodeFilePath,
+								PrintComplete = false
+							};
+
+							// TODO: Reimplement
+							// await printer.Connection.StartPrint(gcodeFilePath);
+							printer.Connection.StartPrint(printTask);
 							MonitorPrintTask(printer);
 							return;
 						}
@@ -3136,7 +3168,7 @@ namespace MatterHackers.MatterControl
 
 		public void Connection_PrintFinished(object sender, string e)
 		{
-			if (sender is PrinterConnection printerConnection
+			if (sender is IPrinterConnection printerConnection
 				&& !printerConnection.CalibrationPrint)
 			{
 				// show a long running task asking about print feedback and up-selling more materials
@@ -3162,7 +3194,7 @@ Support and tutorials:
 
 		public void Connection_PrintCanceled(object sender, EventArgs e)
 		{
-			if (sender is PrinterConnection printerConnection
+			if (sender is IPrinterConnection printerConnection
 				&& !printerConnection.CalibrationPrint)
 			{
 				// show a long running task showing support options
@@ -3225,12 +3257,16 @@ Support and tutorials:
 				return;
 			}
 
+			// Clear log before starting connection
+			printer.TerminalLog.Clear();
+
 			bool listenForConnectFailed = true;
 			long connectStartMs = UiThread.CurrentTimerMs;
 
-			void Connection_Failed(object s, EventArgs e)
+			void Connection_Failed(object sender, ConnectFailedEventArgs e)
 			{
-#if !__ANDROID__
+// TODO: Disable conditional comp on Android until 'Preprocessor directive expected' error message due to 'sudo gpasswd' statement can be resolved
+// #if !__ANDROID__
 				// TODO: Someday this functionality should be revised to an awaitable Connect() call in the Connect button that
 				// shows troubleshooting on failed attempts, rather than hooking the failed event and trying to determine if the
 				// Connect button started the task
@@ -3243,7 +3279,107 @@ Support and tutorials:
 						DialogWindow.Show(new SetupStepComPortOne(printer));
 					});
 				}
-#endif
+
+				// Log Error
+				printer.TerminalLog.WriteLine($"{e.Reason}: {e.Message}");
+
+				switch (e.Reason)
+				{
+					case ConnectionFailure.ConnectionTimeout:
+						UiThread.RunOnIdle(() =>
+						{
+							StyledMessageBox.ShowMessageBox(
+								@"MatterControl tried to communicate with your printer, but never received a response.
+
+Make sure that your printer is turned on. Some printers will appear to be connected, even when they are turned off.".Localize(),
+								"Connection Timeout".Localize(),
+								useMarkdown: true);
+						});
+						break;
+
+					case ConnectionFailure.Unknown:
+						UiThread.RunOnIdle(() =>
+						{
+							StyledMessageBox.ShowMessageBox(e.Message, e.ExceptionType);
+						});
+						break;
+
+					case ConnectionFailure.IOException:
+						if (AggContext.OperatingSystem == OSType.X11 && e.Message == "Permission denied")
+						{
+							UiThread.RunOnIdle(() =>
+							{
+								string message =
+@"In order for MatterControl to access the serial ports on Linux, you will need to give your user account the appropriate permissions. Run these commands in a terminal to add yourself to the correct group.
+
+Ubuntu/Debian
+--------------
+
+```
+# sudo gpasswd -a $USER dialout
+```
+
+Arch
+----
+
+```
+# sudo gpasswd -a $USER uucp
+# sudo gpasswd -a $USER lock
+```
+
+You will then need to logout and log back in to the computer for the changes to take effect. ";
+								StyledMessageBox.ShowMessageBox(message, "Permission Denied".Localize(), useMarkdown: true);
+							});
+						}
+						else if (e.Message == "The semaphore timeout period has expired." || e.Message == "A device attached to the system is not functioning.")
+						{
+							UiThread.RunOnIdle(() => 
+							{
+								string message =
+@"The operating system has reported that your printer is malfunctioning. MatterControl cannot communicate with it. Contact your printer's manufacturer for assistance.
+
+Details
+-------
+
+" + e.Message;
+								StyledMessageBox.ShowMessageBox(message, "Hardware Error".Localize(), useMarkdown: true);
+							});
+						}
+						else
+						{
+							UiThread.RunOnIdle(() =>
+							{
+								StyledMessageBox.ShowMessageBox(e.Message, e.ExceptionType);
+							});
+						}
+
+						break;
+
+					case ConnectionFailure.UnsupportedBaudRate:
+						UiThread.RunOnIdle(() =>
+						{
+							string message = "The chosen baud rate is not supported by your operating system. Use a different baud rate, if possible.";
+							if (AggContext.OperatingSystem == OSType.X11)
+							{
+								message += "On Linux, MatterControl requires a serial helper library in order to use certain baud rates. It is possible that this component is missing or not installed properly. ";
+							}
+
+							StyledMessageBox.ShowMessageBox(message, "Unsupported Baud Rate".Localize(), useMarkdown: true);
+						});
+						break;
+
+					case ConnectionFailure.PortInUse:
+						UiThread.RunOnIdle(() =>
+						{
+							StyledMessageBox.ShowMessageBox(
+								"MatterControl cannot connect to your printer because another program on your computer is already connected. Close any other 3D printing programs or other other programs which access serial ports and try again.",
+								"Port In Use".Localize(),
+								useMarkdown: true);
+						});
+						break;
+				}
+// #endif
+
 				ClearEvents();
 			}
 
@@ -3317,6 +3453,15 @@ Support and tutorials:
 			tabControl.ActiveTab = helpDocsTab;
 
 			return helpDocsTab;
+		}
+
+		internal PrintHostConfig Shim(PrinterConfig printer)
+		{
+			return new PrintHostConfig()
+			{
+				Settings = printer.Settings,
+				Connection = printer.Connection
+			};
 		}
 
 		public class CloudSyncEventArgs : EventArgs

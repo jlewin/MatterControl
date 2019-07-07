@@ -30,10 +30,10 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MatterControl.Printing;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
@@ -96,11 +96,11 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public override void OnLoad(EventArgs args)
 		{
-			this.Parents<SystemWindow>().First().KeyDown -= TopWindowKeyDown;
+			this.DialogWindow.KeyDown -= TopWindowKeyDown;
 			probePositions[probePositionsBeingEditedIndex].Position = printer.Connection.LastReportedPosition;
 
 			// always make sure we don't have print leveling turned on
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 			NextButton.ToolTipText = string.Format("[{0}]", "Right Arrow".Localize());
 
 			this.DialogWindow.KeyDown += TopWindowKeyDown;
@@ -159,13 +159,13 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		private void ZMinusControl_Click(object sender, EventArgs mouseEvent)
 		{
-			printer.Connection.MoveRelative(PrinterConnection.Axis.Z, -moveAmount, printer.Settings.Helpers.ManualMovementSpeeds().Z);
+			printer.Connection.MoveRelative(PrinterAxis.Z, -moveAmount, printer.Settings.Helpers.ManualMovementSpeeds().Z);
 			printer.Connection.ReadPosition();
 		}
 
 		private void ZPlusControl_Click(object sender, EventArgs mouseEvent)
 		{
-			printer.Connection.MoveRelative(PrinterConnection.Axis.Z, moveAmount, printer.Settings.Helpers.ManualMovementSpeeds().Z);
+			printer.Connection.MoveRelative(PrinterAxis.Z, moveAmount, printer.Settings.Helpers.ManualMovementSpeeds().Z);
 			printer.Connection.ReadPosition();
 		}
 	}

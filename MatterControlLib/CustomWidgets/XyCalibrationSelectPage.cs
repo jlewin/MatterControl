@@ -29,6 +29,8 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Threading.Tasks;
+using MatterControl.Common.Repository;
+using MatterControl.Printing;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
@@ -37,7 +39,6 @@ using MatterHackers.MatterControl.ConfigurationPage.PrintLeveling;
 using MatterHackers.MatterControl.DesignTools;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.PartPreviewWindow;
-using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 using static MatterHackers.MatterControl.ConfigurationPage.PrintLeveling.XyCalibrationWizard;
@@ -188,7 +189,18 @@ namespace MatterHackers.MatterControl
 					ContentStore = null // No content store for GCode
 				});
 
-				await printer.Connection.StartPrint(finalGCodePath, calibrationPrint: true);
+				var printTask = new PrintJob()
+				{
+					PrintStart = DateTime.Now,
+					PrinterId = printer.Settings.ID.GetHashCode(),
+					PrintName = "hello", // activePrintItem.PrintItem.Name,
+					GCodeFile = gcodePath,
+					PrintComplete = false
+				};
+
+				// TODO: Reimplement
+				// await printer.Connection.StartPrint(finalGCodePath, calibrationPrint: true);
+				printer.Connection.StartPrint(printTask, calibrationPrint: true);
 				ApplicationController.Instance.MonitorPrintTask(printer);
 			}
 			else

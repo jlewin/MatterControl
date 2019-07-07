@@ -27,18 +27,18 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.MatterControl.PrinterCommunication;
+using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
 	public static class GCodeMacroExtensions
 	{
-		public static void Run(this GCodeMacro macro, PrinterConnection printerConnection)
+		public static void Run(this GCodeMacro macro, PrinterConfig printer)
 		{
-			if (printerConnection.IsConnected)
+			if (printer.Connection.IsConnected)
 			{
-				printerConnection.MacroStart();
-				printerConnection.QueueLine(macro.GCode);
+				printer.Connection.MacroStart();
+				printer.Connection.QueueLine(macro.GCode);
 			}
 		}
 	}

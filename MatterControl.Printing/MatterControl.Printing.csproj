@@ -7,6 +7,9 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.6" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
   </ItemGroup>
 
@@ -15,10 +18,7 @@
       <Project>{2af30557-fc50-4de3-ad1c-7eb57131a9c5}</Project>
       <Name>MatterControl.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Submodules\agg-sharp\agg\Agg.csproj">
-    </ProjectReference>
     <ProjectReference Include="..\Submodules\agg-sharp\DataConverters3D\DataConverters3D.csproj" />
-    <ProjectReference Include="..\Submodules\agg-sharp\Localizations\Localizations.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\VectorMath\VectorMath.csproj">
     </ProjectReference>
   </ItemGroup>

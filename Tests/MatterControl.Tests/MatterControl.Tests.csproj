@@ -53,6 +53,7 @@
     <Compile Include="MatterControl\AssetManagerTests.cs" />
     <Compile Include="MatterControl\MeshRebuildTests.cs" />
     <Compile Include="MatterControl\MeshCsgTests.cs" />
+    <Compile Include="MatterControl\PrinterSettingsExtensions.cs" />
     <Compile Include="MatterControl\PrinterSettingsTests.cs" />
     <Compile Include="MatterControl\SliceSettingsFieldTests.cs" />
     <Compile Include="MatterControl\SettingsParseTests.cs" />
@@ -157,6 +158,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite">
+      <Version>2.2.6</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="NUnit.ApplicationDomain" Version="11.1.0" />
