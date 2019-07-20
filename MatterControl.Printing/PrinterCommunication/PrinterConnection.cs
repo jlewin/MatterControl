@@ -169,6 +169,7 @@ namespace MatterControl.Printing
 		public PrinterConnection(PrintHostConfig printer)
 		{
 			this.Printer = printer;
+			this.settings = settings;
 
 			MonitorPrinterTemperature = true;
 
@@ -240,7 +241,7 @@ namespace MatterControl.Printing
 				Thread.Sleep(10);
 			});
 
-			printer.Settings.SettingChanged += (s, stringEvent) =>
+			settings.SettingChanged += (s, stringEvent) =>
 			{
 				int extruder = -1;
 				switch (stringEvent.Data)
@@ -274,7 +275,7 @@ namespace MatterControl.Printing
 						double goalTemp = this.GetTargetHotendTemperature(extruder);
 						if (goalTemp > 0)
 						{
-							double newGoal = printer.Settings.GetValue<double>(stringEvent.Data);
+							double newGoal = settings.GetValue<double>(stringEvent.Data);
 							this.SetTargetHotendTemperature(extruder, newGoal);
 						}
 					}
@@ -291,7 +292,7 @@ namespace MatterControl.Printing
 						double goalTemp = this.TargetBedTemperature;
 						if (goalTemp > 0)
 						{
-							double newGoal = printer.Settings.GetValue<double>(SettingsKey.bed_temperature);
+							double newGoal = settings.GetValue<double>(SettingsKey.bed_temperature);
 							this.TargetBedTemperature = newGoal;
 						}
 					}
@@ -519,7 +520,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private string ComPort => Printer.Settings?.Helpers.ComPort();
+		private string ComPort => settings?.Helpers.ComPort();
 
 		public bool ContinueHoldingTemperature { get; set; }
 
@@ -557,7 +558,7 @@ namespace MatterControl.Printing
 
 		private bool Disconnecting => CommunicationState == CommunicationStates.Disconnecting;
 
-		public int ExtruderCount => Printer.Settings.GetValue<int>(SettingsKey.extruder_count);
+		public int ExtruderCount => settings.GetValue<int>(SettingsKey.extruder_count);
 
 		public double FanSpeed0To255
 		{
@@ -668,6 +669,8 @@ namespace MatterControl.Printing
 		}
 
 		public PrintHostConfig Printer { get; }
+
+		private PrinterSettings settings;
 
 		public bool Printing
 		{
@@ -812,30 +815,30 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private bool AutoReleaseMotors => Printer.Settings.GetValue<bool>(SettingsKey.auto_release_motors);
+		private bool AutoReleaseMotors => settings.GetValue<bool>(SettingsKey.auto_release_motors);
 
 		private int BaudRate
 		{
 			get
 			{
-				if (string.IsNullOrEmpty(Printer.Settings.GetValue(SettingsKey.baud_rate)))
+				if (string.IsNullOrEmpty(settings.GetValue(SettingsKey.baud_rate)))
 				{
 					return 250000;
 				}
 
-				return Printer.Settings.GetValue<int>(SettingsKey.baud_rate);
+				return settings.GetValue<int>(SettingsKey.baud_rate);
 			}
 		}
 
-		private string CancelGCode => Printer.Settings.GetValue(SettingsKey.cancel_gcode);
+		private string CancelGCode => settings.GetValue(SettingsKey.cancel_gcode);
 
-		private string ConnectGCode => Printer.Settings.GetValue(SettingsKey.connect_gcode);
+		private string ConnectGCode => settings.GetValue(SettingsKey.connect_gcode);
 
-		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : Printer.Settings?.GetValue(SettingsKey.driver_type);
+		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : settings?.GetValue(SettingsKey.driver_type);
 
-		private bool EnableNetworkPrinting => Printer.Settings.GetValue<bool>(SettingsKey.enable_network_printing);
+		private bool EnableNetworkPrinting => settings.GetValue<bool>(SettingsKey.enable_network_printing);
 
-		private double FeedRateRatio => Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
+		private double FeedRateRatio => settings.GetValue<double>(SettingsKey.feedrate_ratio);
 
 		private int NumberOfLinesInCurrentPrint => gCodeFileSwitcher?.GCodeFile?.LineCount ?? -1;
 
@@ -874,9 +877,9 @@ namespace MatterControl.Printing
 
 		private string PrintJobName { get; set; } = null;
 
-		private bool RecoveryIsEnabled => Printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled);
+		private bool RecoveryIsEnabled => settings.GetValue<bool>(SettingsKey.recover_is_enabled);
 
-		private bool SendWithChecksum => Printer.Settings.GetValue<bool>(SettingsKey.send_with_checksum);
+		private bool SendWithChecksum => settings.GetValue<bool>(SettingsKey.send_with_checksum);
 
 		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		private Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
@@ -945,9 +948,9 @@ namespace MatterControl.Printing
 		{
 			// TODO: Ideally we would shutdown the printer connection when this method is called and we're connected. The
 			// current approach results in unpredictable behavior if the caller fails to close the connection
-			if (serialPort == null && this.Printer.Settings != null)
+			if (serialPort == null && this.settings != null)
 			{
-				IFrostedSerialPort resetSerialPort = FrostedSerialPortFactory.GetAppropriateFactory(this.DriverType).Create(this.ComPort, Printer.Settings);
+				IFrostedSerialPort resetSerialPort = FrostedSerialPortFactory.GetAppropriateFactory(this.DriverType).Create(this.ComPort, settings);
 				resetSerialPort.Open();
 
 				Thread.Sleep(500);
@@ -1002,7 +1005,7 @@ namespace MatterControl.Printing
 				if (!string.IsNullOrEmpty(currentPortName))
 				{
 					// TODO: Ensure that this does *not* cause a write to the settings file and should be an in memory update only
-					Printer.Settings?.Helpers.SetComPort(currentPortName);
+					settings?.Helpers.SetComPort(currentPortName);
 				}
 #endif
 
@@ -1035,7 +1038,7 @@ namespace MatterControl.Printing
 
 							var portFactory = FrostedSerialPortFactory.GetAppropriateFactory(this.DriverType);
 
-							bool serialPortIsAvailable = portFactory.SerialPortIsAvailable(serialPortName, Printer.Settings);
+							bool serialPortIsAvailable = portFactory.SerialPortIsAvailable(serialPortName, settings);
 							bool serialPortIsAlreadyOpen = this.ComPort != "Emulator" &&
 								portFactory.SerialPortAlreadyOpen(serialPortName);
 
@@ -1049,7 +1052,7 @@ namespace MatterControl.Printing
 										// we're actually doing the bulk of the connection time in CreateAndOpen
 										CommunicationState = CommunicationStates.AttemptingToConnect;
 
-										serialPort = portFactory.CreateAndOpen(serialPortName, Printer.Settings, baudRate, true);
+										serialPort = portFactory.CreateAndOpen(serialPortName, settings, baudRate, true);
 #if __ANDROID__
 										ToggleHighLowHigh(serialPort);
 #endif
@@ -1058,7 +1061,7 @@ namespace MatterControl.Printing
 										// Thread.Sleep(500);
 
 										// We have to send a line because some printers (like old print-r-bots) do not send anything when connecting and there is no other way to know they are there.
-										foreach (string line in ProcessWriteRegexStream.ProcessWriteRegEx("M105\n", Printer.Settings))
+										foreach (string line in ProcessWriteRegexStream.ProcessWriteRegEx("M105\n", settings))
 										{
 											WriteRaw(line, line);
 										}
@@ -1336,7 +1339,7 @@ namespace MatterControl.Printing
 
 		public void InitializeReadLineReplacements()
 		{
-			string readRegEx = Printer.Settings.GetValue(SettingsKey.read_regex);
+			string readRegEx = settings.GetValue(SettingsKey.read_regex);
 
 			// Clear and rebuild the replacement list
 			readLineReplacements.Clear();
@@ -1662,7 +1665,7 @@ namespace MatterControl.Printing
 		{
 			try
 			{
-				if (Printer.Settings.PrinterSelected)
+				if (settings.PrinterSelected)
 				{
 					// first make sure we are not printing if possible (cancel slicing)
 					if (serialPort != null) // we still have a serial port
@@ -1692,7 +1695,7 @@ namespace MatterControl.Printing
 						// We reset the board while attempting to connect, so now we don't have a serial port.
 						// Create one and do the DTR to reset
 						var factory = FrostedSerialPortFactory.GetAppropriateFactory(this.DriverType);
-						var resetSerialPort = factory.Create(this.ComPort, Printer.Settings);
+						var resetSerialPort = factory.Create(this.ComPort, settings);
 						resetSerialPort.Open();
 
 						Thread.Sleep(500);
@@ -2049,7 +2052,6 @@ namespace MatterControl.Printing
 			totalGCodeStream = null;
 			GCodeStream accumulatedStream;
 
-			var settings = Printer.Settings;
 			// PrinterConnection connection = Printer.Connection;
 
 			System.Diagnostics.Debugger.Break();
