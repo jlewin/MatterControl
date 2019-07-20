@@ -105,25 +105,15 @@ namespace MatterControl.Printing
 
 		public double ActualBedTemperature => remoteConnection.ActualBedTemperature;
 
-		public bool AllowLeveling { set => throw new NotImplementedException(); }
+		public bool AllowLeveling { set => hubConnection.InvokeAsync("AllowLeveling", value).ConfigureAwait(false); }
 
 		public bool AnyHeatIsOn => remoteConnection.AnyHeatIsOn;
 
 		public bool AtxPowerEnabled { get => remoteConnection.AtxPowerEnabled; set => remoteConnection.AtxPowerEnabled = value; }
 
-		public bool AutoReleaseMotors => remoteConnection.AutoReleaseMotors;
-
-		public int BaudRate => remoteConnection.BaudRate;
-
 		public bool CalibrationPrint => remoteConnection.CalibrationPrint;
 
-		public string CancelGCode => remoteConnection.CancelGCode;
-
 		public CommunicationStates CommunicationState { get => remoteConnection.CommunicationState; set => remoteConnection.CommunicationState = value; }
-
-		public string ComPort => remoteConnection.ComPort;
-
-		public string ConnectGCode => remoteConnection.ConnectGCode;
 
 		public bool ContinueHoldingTemperature { get => remoteConnection.ContinueHoldingTemperature; set => remoteConnection.ContinueHoldingTemperature = value; }
 
@@ -201,26 +191,17 @@ namespace MatterControl.Printing
 
 		public double TargetBedTemperature { get => remoteConnection.TargetBedTemperature; set => remoteConnection.TargetBedTemperature = value; }
 
-		public Stopwatch TimeHaveBeenHoldingTemperature { get => remoteConnection.TimeHaveBeenHoldingTemperature; set => remoteConnection.TimeHaveBeenHoldingTemperature = value; }
-
 		public int TimeToHoldTemperature { get => remoteConnection.TimeToHoldTemperature; set => remoteConnection.TimeToHoldTemperature = value; }
-
-		public GCodeStream TotalGCodeStream => remoteConnection.TotalGCodeStream;
 
 		public int TotalLayersInPrint => remoteConnection.TotalLayersInPrint;
 
 		public int TotalSecondsInPrint => remoteConnection.TotalSecondsInPrint;
 
 		public bool WaitingForPositionRead => remoteConnection.WaitingForPositionRead;
+
 		public void ArduinoDtrReset()
 		{
 			remoteConnection.ArduinoDtrReset();
-		}
-
-		// TODO: Review Invalid
-		public void BedTemperatureWasWritenToPrinter(string line)
-		{
-			remoteConnection.BedTemperatureWasWritenToPrinter(line);
 		}
 
 		public void Connect()
@@ -243,36 +224,17 @@ namespace MatterControl.Printing
 			remoteConnection.Dispose();
 		}
 
-		// TODO: Review Invalid
-		public void FanOffWasWritenToPrinter(string line)
-		{
-			remoteConnection.FanOffWasWritenToPrinter(line);
-		}
-
-		// TODO: Review Invalid
-		public void FanSpeedWasWritenToPrinter(string line)
-		{
-			remoteConnection.FanSpeedWasWritenToPrinter(line);
-		}
-
-		// TODO: Review Invalid
-		public void FoundStart(string line)
-		{
-			remoteConnection.FoundStart(line);
-		}
-
 		public double GetActualHotendTemperature(int hotendIndex0Based)
 		{
 			return remoteConnection.GetActualHotendTemperature(hotendIndex0Based);
 		}
 
-		// TODO: Review Invalid
 		public double GetTargetHotendTemperature(int hotendIndex0Based)
 		{
 			return remoteConnection.GetTargetHotendTemperature(hotendIndex0Based);
 		}
 
-		// TODO: Review Invalid
+		// TODO: Review Invalid - seems more low level than required. MatterControl should have simple Connect interface only
 		public void HaltConnectionThread()
 		{
 			remoteConnection.HaltConnectionThread();
@@ -281,24 +243,6 @@ namespace MatterControl.Printing
 		public void HomeAxis(PrinterAxis axis)
 		{
 			remoteConnection.HomeAxis(axis);
-		}
-
-		// TODO: Review Invalid
-		public void HotendTemperatureWasWritenToPrinter(string line)
-		{
-			remoteConnection.HotendTemperatureWasWritenToPrinter(line);
-		}
-
-		// TODO: Review Invalid
-		public void InitializeReadLineReplacements()
-		{
-			remoteConnection.InitializeReadLineReplacements();
-		}
-
-		// TODO: Review Invalid
-		public void LogError(string message, ErrorSource source)
-		{
-			remoteConnection.LogError(message, source);
 		}
 
 		public void MacroCancel()
@@ -331,67 +275,19 @@ namespace MatterControl.Printing
 			remoteConnection.MoveRelative(axis, moveAmountMm, feedRateMmPerMinute);
 		}
 
-		// TODO: Review Invalid
-		public void OnConnectionFailed(ConnectionFailure reason, string message = null, string exceptionType = null)
-		{
-			remoteConnection.OnConnectionFailed(reason, message, exceptionType);
-		}
-
-		// TODO: Review Invalid
-		public void OnFilamentRunout(PrintPauseEventArgs printPauseEventArgs)
-		{
-			remoteConnection.OnFilamentRunout(printPauseEventArgs);
-		}
-
-		// TODO: Review Invalid
-		public void OnPauseOnLayer(PrintPauseEventArgs printPauseEventArgs)
-		{
-			remoteConnection.OnPauseOnLayer(printPauseEventArgs);
-		}
-
-		// TODO: Review Invalid
-		public void PrinterReportsError(string line)
-		{
-			remoteConnection.PrinterReportsError(line);
-		}
-
-		// TODO: Review Invalid
-		public void PrinterRequestsResend(string line)
-		{
-			remoteConnection.PrinterRequestsResend(line);
-		}
-
 		public void QueueLine(string lineToWrite, bool forceTopOfQueue = false)
 		{
 			remoteConnection.QueueLine(lineToWrite, forceTopOfQueue);
 		}
 
-		// TODO: Review Invalid
 		public void ReadPosition(PositionReadType positionReadType = PositionReadType.Other, bool forceToTopOfQueue = false)
 		{
 			remoteConnection.ReadPosition();
 		}
 
-		public void ReadTargetPositions(string line)
-		{
-			remoteConnection.ReadTargetPositions(line);
-		}
-
-		// TODO: Review Invalid
-		public void ReadTemperatures(string line)
-		{
-			remoteConnection.ReadTemperatures(line);
-		}
-
 		public void RebootBoard()
 		{
 			remoteConnection.RebootBoard();
-		}
-
-		// TODO: Review Invalid
-		public void ReleaseAndReportFailedConnection(ConnectionFailure reason, string message = null)
-		{
-			remoteConnection.ReleaseAndReportFailedConnection(reason, message);
 		}
 
 		public void ReleaseMotors(bool forceRelease = false)
@@ -412,12 +308,6 @@ namespace MatterControl.Printing
 		public void Resume()
 		{
 			remoteConnection.Resume();
-		}
-
-		// TODO: Review Invalid
-		public bool SerialPortIsAvailable(string portName)
-		{
-			return remoteConnection.SerialPortIsAvailable(portName);
 		}
 
 		public void SetMovementToAbsolute()
@@ -453,11 +343,6 @@ namespace MatterControl.Printing
 		public void Stop(bool markPrintCanceled = true)
 		{
 			remoteConnection.Stop();
-		}
-
-		public void SuppressEcho(string line)
-		{
-			remoteConnection.SuppressEcho(line);
 		}
 
 		public void SwitchToGCode(string gCodeFilePath)
