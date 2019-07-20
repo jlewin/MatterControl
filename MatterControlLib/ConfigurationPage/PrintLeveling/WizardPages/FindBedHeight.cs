@@ -96,7 +96,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 		public override void OnLoad(EventArgs args)
 		{
-			this.Parents<SystemWindow>().First().KeyDown -= TopWindowKeyDown;
+			this.DialogWindow.KeyDown -= TopWindowKeyDown;
 			probePositions[probePositionsBeingEditedIndex].Position = printer.Connection.LastReportedPosition;
 
 			// always make sure we don't have print leveling turned on
