@@ -815,8 +815,6 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private bool AutoReleaseMotors => settings.GetValue<bool>(SettingsKey.auto_release_motors);
-
 		private int BaudRate
 		{
 			get
@@ -830,15 +828,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private string CancelGCode => settings.GetValue(SettingsKey.cancel_gcode);
-
-		private string ConnectGCode => settings.GetValue(SettingsKey.connect_gcode);
-
 		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : settings?.GetValue(SettingsKey.driver_type);
-
-		private bool EnableNetworkPrinting => settings.GetValue<bool>(SettingsKey.enable_network_printing);
-
-		private double FeedRateRatio => settings.GetValue<double>(SettingsKey.feedrate_ratio);
 
 		private int NumberOfLinesInCurrentPrint => gCodeFileSwitcher?.GCodeFile?.LineCount ?? -1;
 
@@ -876,10 +866,6 @@ namespace MatterControl.Printing
 		private bool PrintIsFinished => CommunicationState == CommunicationStates.FinishedPrint;
 
 		private string PrintJobName { get; set; } = null;
-
-		private bool RecoveryIsEnabled => settings.GetValue<bool>(SettingsKey.recover_is_enabled);
-
-		private bool SendWithChecksum => settings.GetValue<bool>(SettingsKey.send_with_checksum);
 
 		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		private Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
@@ -987,7 +973,7 @@ namespace MatterControl.Printing
 		{
 			// TODO: Consider adding any conditions that would results in a connection failure to this initial test
 			// Start the process of requesting permission and exit if permission is not currently granted
-			if (!this.EnableNetworkPrinting
+			if (!settings.GetValue<bool>(SettingsKey.enable_network_printing)
 				&& !FrostedSerialPort.EnsureDeviceAccess())
 			{
 				// TODO: Consider calling OnConnectionFailed as we do below to fire events that indicate connection failed
@@ -1020,7 +1006,7 @@ namespace MatterControl.Printing
 					var portNames = FrostedSerialPort.GetPortNames();
 
 					// Debug.WriteLine("Open ports: {0}".FormatWith(portNames.Length));
-					if (portNames.Length > 0 || IsNetworkPrinting())
+					if (portNames.Length > 0 || settings.GetValue<bool>(SettingsKey.enable_network_printing))
 					{
 						// AttemptToConnect {{
 						{
@@ -1112,7 +1098,7 @@ namespace MatterControl.Printing
 										TurnOffBedAndExtruders(TurnOff.Now); // make sure our ui and the printer agree and that the printer is in a known state (not heating).
 										haveReportedError = false;
 
-										QueueLine(this.ConnectGCode);
+										QueueLine(settings.GetValue(SettingsKey.connect_gcode));
 
 										// Call instance event
 										ConnectionSucceeded?.Invoke(this, null);
@@ -1717,7 +1703,7 @@ namespace MatterControl.Printing
 		public void ReleaseMotors(bool forceRelease = false)
 		{
 			if (forceRelease
-				|| this.AutoReleaseMotors)
+				|| settings.GetValue<bool>(SettingsKey.auto_release_motors))
 			{
 				QueueLine("M84");
 			}
@@ -1995,10 +1981,12 @@ namespace MatterControl.Printing
 				// get rid of all the gcode we have left to print
 				ClearQueuedGCode();
 
-				if (!string.IsNullOrEmpty(this.CancelGCode))
+				string cancelGCode = settings.GetValue(SettingsKey.cancel_gcode);
+
+				if (!string.IsNullOrEmpty(cancelGCode))
 				{
 					// add any gcode we want to print while canceling
-					QueueLine(this.CancelGCode);
+					QueueLine(cancelGCode);
 				}
 
 				// let the process know we canceled not ended normally.
@@ -2061,7 +2049,7 @@ namespace MatterControl.Printing
 			{
 				gCodeFileSwitcher = new GCodeSwitcher(gcodeStream, settings);
 
-				if (this.RecoveryIsEnabled
+				if (settings.GetValue<bool>(SettingsKey.recover_is_enabled)
 					&& ActivePrintTask != null) // We are resuming a failed print (do lots of interesting stuff).
 				{
 					accumulatedStream = new SendProgressStream(new PrintRecoveryStream(gCodeFileSwitcher, settings, connection, ActivePrintTask.PercentDone), connection, settings);
@@ -2179,11 +2167,6 @@ namespace MatterControl.Printing
 		{
 			readLineStartCallBacks.Unregister("File deleted:", FileDeleteConfirmed);
 			PrintingCanContinue(line);
-		}
-
-		private bool IsNetworkPrinting()
-		{
-			return this.EnableNetworkPrinting;
 		}
 
 		private void KeepTrackOfAbsolutePositionAndDestination(string lineBeingSent)
@@ -2406,7 +2389,7 @@ namespace MatterControl.Printing
 		// Check is serial port is in the list of available serial ports
 		private bool SerialPortIsAvailable(string portName)
 		{
-			if (IsNetworkPrinting())
+			if (settings.GetValue<bool>(SettingsKey.enable_network_printing))
 			{
 				return true;
 			}
@@ -2654,7 +2637,8 @@ namespace MatterControl.Printing
 
 			KeepTrackOfAbsolutePositionAndDestination(lineToWrite);
 
-			if (this.SendWithChecksum && sendLineWithChecksum)
+			if (settings.GetValue<bool>(SettingsKey.send_with_checksum)
+				&& sendLineWithChecksum)
 			{
 				// always send the reset line number without a checksum so that it is accepted
 				string lineWithCount;
