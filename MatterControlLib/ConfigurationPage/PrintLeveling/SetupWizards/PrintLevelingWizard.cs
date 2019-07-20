@@ -79,7 +79,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, "0");
 
 			// turn off print leveling
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 
 			// clear any data that we are going to be acquiring (sampled positions, after z home offset)
 			var levelingData = new PrintLevelingData()
@@ -131,7 +131,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 		public override void Dispose()
 		{
 			// If leveling was on when we started, make sure it is on when we are done.
-			printer.Connection.AllowLeveling = true;
+			printer.Connection.AllowLeveling(true);
 
 			// set the baby stepping back to the last known good value
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, babySteppingValue.ToString());

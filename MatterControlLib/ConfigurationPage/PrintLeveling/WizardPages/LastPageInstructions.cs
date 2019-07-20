@@ -75,7 +75,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			// Invoke setter forcing persistence of leveling data
 			printer.Settings.Helpers.PrintLevelingData = levelingData;
 			printer.Settings.SetValue(SettingsKey.baby_step_z_offset, "0");
-			printer.Connection.AllowLeveling = true;
+			printer.Connection.AllowLeveling(true);
 			printer.Settings.Helpers.DoPrintLeveling(true);
 
 			// Make sure when the wizard is done we turn off the bed heating

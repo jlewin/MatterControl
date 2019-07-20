@@ -151,8 +151,6 @@ namespace MatterControl.Printing
 
 		public double ActualBedTemperature => remoteConnection.ActualBedTemperature;
 
-		public bool AllowLeveling { set => hubConnection.InvokeAsync("AllowLeveling", value).ConfigureAwait(false); }
-
 		public bool AnyHeatIsOn => remoteConnection.AnyHeatIsOn;
 
 		public bool AtxPowerEnabled { get => remoteConnection.AtxPowerEnabled; set => remoteConnection.AtxPowerEnabled = value; }
@@ -173,19 +171,9 @@ namespace MatterControl.Printing
 
 		public string DeviceCode => remoteConnection.DeviceCode;
 
-		public bool Disconnecting => remoteConnection.Disconnecting;
-
-		public string DriverType => remoteConnection.DriverType;
-
-		public bool EnableNetworkPrinting => remoteConnection.EnableNetworkPrinting;
-
 		public int ExtruderCount => remoteConnection.ExtruderCount;
 
 		public double FanSpeed0To255 { get => remoteConnection.FanSpeed0To255; set => remoteConnection.FanSpeed0To255 = value; }
-
-		public double FeedRateRatio => remoteConnection.FeedRateRatio;
-
-		public bool FilamentPositionSensorDetected => remoteConnection.FilamentPositionSensorDetected;
 
 		public FirmwareTypes FirmwareType => remoteConnection.FirmwareType;
 
@@ -197,41 +185,25 @@ namespace MatterControl.Printing
 
 		public Vector3 LastReportedPosition => remoteConnection.LastReportedPosition;
 
-		public bool MonitorPrinterTemperature { get => remoteConnection.MonitorPrinterTemperature; set => remoteConnection.MonitorPrinterTemperature = value; }
-
 		public int NumQueuedCommands => remoteConnection.NumQueuedCommands;
 
 		public bool Paused => remoteConnection.Paused;
 
 		public double PercentComplete => remoteConnection.PercentComplete;
 
-		public CommunicationStates PrePauseCommunicationState => remoteConnection.PrePauseCommunicationState;
-
 		public PrintHostConfig Printer => remoteConnection.Printer;
 
 		public bool Printing => remoteConnection.Printing;
 
-		public bool PrintIsActive => remoteConnection.PrintIsActive;
-
-		public bool PrintIsFinished => remoteConnection.PrintIsFinished;
-
-		public string PrintJobName => remoteConnection.PrintJobName;
-
-		public bool PrintWasCanceled { get => remoteConnection.PrintWasCanceled; set => remoteConnection.PrintWasCanceled = value; }
-
 		public double RatioIntoCurrentLayerInstructions => remoteConnection.RatioIntoCurrentLayerInstructions;
 
 		public double RatioIntoCurrentLayerSeconds => remoteConnection.RatioIntoCurrentLayerSeconds;
-
-		public bool RecoveryIsEnabled => remoteConnection.RecoveryIsEnabled;
 
 		public int SecondsPrinted => remoteConnection.SecondsPrinted;
 
 		public int SecondsToEnd => remoteConnection.SecondsToEnd;
 
 		public double SecondsToHoldTemperature => remoteConnection.SecondsToHoldTemperature;
-
-		public bool SendWithChecksum => remoteConnection.SendWithChecksum;
 
 		public IFrostedSerialPort serialPort => remoteConnection.serialPort;
 
@@ -241,9 +213,10 @@ namespace MatterControl.Printing
 
 		public int TotalLayersInPrint => remoteConnection.TotalLayersInPrint;
 
-		public int TotalSecondsInPrint => remoteConnection.TotalSecondsInPrint;
-
-		public bool WaitingForPositionRead => remoteConnection.WaitingForPositionRead;
+		public void AllowLeveling(bool allowLeveling)
+		{
+			remoteConnection.AllowLeveling(allowLeveling);
+		}
 
 		public void ArduinoDtrReset()
 		{
@@ -346,24 +319,9 @@ namespace MatterControl.Printing
 			remoteConnection.RequestPause();
 		}
 
-		public void ResetToReadyState()
-		{
-			remoteConnection.ResetToReadyState();
-		}
-
 		public void Resume()
 		{
 			remoteConnection.Resume();
-		}
-
-		public void SetMovementToAbsolute()
-		{
-			remoteConnection.SetMovementToAbsolute();
-		}
-
-		public void SetMovementToRelative()
-		{
-			remoteConnection.SetMovementToRelative();
 		}
 
 		public void SetTargetHotendTemperature(int hotendIndex0Based, double temperature, bool forceSend = false)

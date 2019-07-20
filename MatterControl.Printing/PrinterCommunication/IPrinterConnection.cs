@@ -19,7 +19,7 @@ namespace MatterControl.Printing
 
 		double ActualBedTemperature { get; }
 
-		bool AllowLeveling { set; }
+		void AllowLeveling(bool allowLeveling);
 
 		bool AnyHeatIsOn { get; }
 
@@ -41,19 +41,9 @@ namespace MatterControl.Printing
 
 		string DeviceCode { get; }
 
-		bool Disconnecting { get; }
-
-		string DriverType { get; }
-
-		bool EnableNetworkPrinting { get; }
-
 		int ExtruderCount { get; }
 
 		double FanSpeed0To255 { get; set; }
-
-		double FeedRateRatio { get; }
-
-		bool FilamentPositionSensorDetected { get; }
 
 		FirmwareTypes FirmwareType { get; }
 
@@ -65,41 +55,25 @@ namespace MatterControl.Printing
 
 		Vector3 LastReportedPosition { get; }
 
-		bool MonitorPrinterTemperature { get; set; }
-
 		int NumQueuedCommands { get; }
 
 		bool Paused { get; }
 
 		double PercentComplete { get; }
 
-		CommunicationStates PrePauseCommunicationState { get; }
-
 		PrintHostConfig Printer { get; }
 
 		bool Printing { get; }
 
-		bool PrintIsActive { get; }
-
-		bool PrintIsFinished { get; }
-
-		string PrintJobName { get; }
-
-		bool PrintWasCanceled { get; set; }
-
 		double RatioIntoCurrentLayerInstructions { get; }
 
 		double RatioIntoCurrentLayerSeconds { get; }
-
-		bool RecoveryIsEnabled { get; }
 
 		int SecondsPrinted { get; }
 
 		int SecondsToEnd { get; }
 
 		double SecondsToHoldTemperature { get; }
-
-		bool SendWithChecksum { get; }
 
 		IFrostedSerialPort serialPort { get; }
 
@@ -108,10 +82,6 @@ namespace MatterControl.Printing
 		int TimeToHoldTemperature { get; set; }
 
 		int TotalLayersInPrint { get; }
-
-		int TotalSecondsInPrint { get; }
-
-		bool WaitingForPositionRead { get; }
 
 		event EventHandler AtxPowerStateChanged;
 
@@ -197,13 +167,7 @@ namespace MatterControl.Printing
 
 		void RequestPause();
 
-		void ResetToReadyState();
-
 		void Resume();
-
-		void SetMovementToAbsolute();
-
-		void SetMovementToRelative();
 
 		void SetTargetHotendTemperature(int hotendIndex0Based, double temperature, bool forceSend = false);
 

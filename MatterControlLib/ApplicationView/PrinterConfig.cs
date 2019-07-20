@@ -97,7 +97,6 @@ namespace MatterHackers.MatterControl
 			this.Settings.SettingChanged += Printer_SettingChanged;
 		}
 
-
 		public PrinterViewState ViewState { get; }
 
 		public PrinterSettings Settings { get; } = PrinterSettings.Empty;

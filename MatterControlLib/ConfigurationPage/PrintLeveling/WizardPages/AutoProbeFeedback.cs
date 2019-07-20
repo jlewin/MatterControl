@@ -114,7 +114,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 		public override void OnLoad(EventArgs args)
 		{
 			// always make sure we don't have print leveling turned on
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 
 			if (printer.Settings.GetValue<bool>(SettingsKey.has_z_probe)
 				&& printer.Settings.GetValue<bool>(SettingsKey.use_z_probe)

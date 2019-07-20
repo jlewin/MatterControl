@@ -356,19 +356,16 @@ namespace MatterControl.Printing
 
 		public double ActualBedTemperature => actualBedTemperature;
 
-		private bool AllowLeveling
+		public void AllowLeveling(bool allowLeveling)
 		{
-			set
+			if (printLevelingStream != null)
 			{
-				if (printLevelingStream != null)
-				{
-					printLevelingStream.AllowLeveling = value;
-				}
-				else if (value)
-				{
-					// we are requesting it turned back on, re-build the leveling stream
-					CreateStreamProcessors();
-				}
+				printLevelingStream.AllowLeveling = allowLeveling;
+			}
+			else if (allowLeveling)
+			{
+				// we are requesting it turned back on, re-build the leveling stream
+				CreateStreamProcessors();
 			}
 		}
 
@@ -594,11 +591,11 @@ namespace MatterControl.Printing
 
 		public string DeviceCode { get; private set; }
 
-		public bool Disconnecting => CommunicationState == CommunicationStates.Disconnecting;
+		private bool Disconnecting => CommunicationState == CommunicationStates.Disconnecting;
 
-		public string DriverType => (this.ComPort == "Emulator") ? "Emulator" : Printer.Settings?.GetValue(SettingsKey.driver_type);
+		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : Printer.Settings?.GetValue(SettingsKey.driver_type);
 
-		public bool EnableNetworkPrinting => Printer.Settings.GetValue<bool>(SettingsKey.enable_network_printing);
+		private bool EnableNetworkPrinting => Printer.Settings.GetValue<bool>(SettingsKey.enable_network_printing);
 
 		public int ExtruderCount => Printer.Settings.GetValue<int>(SettingsKey.extruder_count);
 
@@ -616,14 +613,14 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public double FeedRateRatio => Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
+		private double FeedRateRatio => Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
 
 		/// <summary>
-		/// Gets a value indicating whether the Pause Handling Stream has seen a change in the position sensor.
+		/// Gets or sets a value indicating whether the Pause Handling Stream has seen a change in the position sensor.
 		/// It is important that this is not persisted, it is meant to function correctly if the user
 		/// plugs in or removes a filament position sensor.
 		/// </summary>
-		public bool FilamentPositionSensorDetected { get; internal set; }
+		internal bool FilamentPositionSensorDetected { get; set; }
 
 		public FirmwareTypes FirmwareType { get; private set; } = FirmwareTypes.Unknown;
 
@@ -669,10 +666,12 @@ namespace MatterControl.Printing
 			}
 		}
 
+		// TODO: Only used by tool (FindBedHeight.cs) - rewrite as async method for tools
 		public Vector3 LastReportedPosition => lastReportedPosition.position;
 
-		public bool MonitorPrinterTemperature { get; set; }
+		internal bool MonitorPrinterTemperature { get; set; }
 
+		// TODO: Only used by tool (filament wizards) - rewrite as async method for tools
 		public int NumQueuedCommands
 		{
 			get
@@ -719,7 +718,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public CommunicationStates PrePauseCommunicationState { get; private set; } = CommunicationStates.Printing;
+		private CommunicationStates PrePauseCommunicationState { get; set; } = CommunicationStates.Printing;
 
 		public PrintHostConfig Printer { get; }
 
@@ -750,7 +749,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public bool PrintIsActive
+		private bool PrintIsActive
 		{
 			get
 			{
@@ -777,12 +776,13 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public bool PrintIsFinished => CommunicationState == CommunicationStates.FinishedPrint;
+		private bool PrintIsFinished => CommunicationState == CommunicationStates.FinishedPrint;
 
-		public string PrintJobName { get; private set; } = null;
+		private string PrintJobName { get; set; } = null;
 
-		public bool PrintWasCanceled { get; set; } = false;
+		internal bool PrintWasCanceled { get; set; } = false;
 
+		// TODO: Revise - used by SyncToPrint in PrinterTabPage only to drive horizontal scroll position. Should be revised to notify on percentage point change - either through event or terminal line
 		public double RatioIntoCurrentLayerInstructions
 		{
 			get
@@ -797,6 +797,7 @@ namespace MatterControl.Printing
 			}
 		}
 
+		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public double RatioIntoCurrentLayerSeconds
 		{
 			get
@@ -811,8 +812,9 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public bool RecoveryIsEnabled => Printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled);
+		private bool RecoveryIsEnabled => Printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled);
 
+		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public int SecondsPrinted
 		{
 			get
@@ -826,6 +828,7 @@ namespace MatterControl.Printing
 			}
 		}
 
+		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public int SecondsToEnd
 		{
 			get
@@ -839,9 +842,10 @@ namespace MatterControl.Printing
 			}
 		}
 
+		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		public double SecondsToHoldTemperature { get; private set; }
 
-		public bool SendWithChecksum => Printer.Settings.GetValue<bool>(SettingsKey.send_with_checksum);
+		private bool SendWithChecksum => Printer.Settings.GetValue<bool>(SettingsKey.send_with_checksum);
 
 		// we start out by setting it to a nothing file
 		public IFrostedSerialPort serialPort { get; private set; }
@@ -865,33 +869,17 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
+		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
+		private Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
 
+		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		public int TimeToHoldTemperature { get; set; } = 600;
 
-		public GCodeStream TotalGCodeStream => totalGCodeStream;
-
+		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public int TotalLayersInPrint => gCodeFileSwitcher?.GCodeFile?.LayerCount ?? -1;
 
-		public int TotalSecondsInPrint
-		{
-			get
-			{
-				if (gCodeFileSwitcher?.GCodeFile?.LineCount > 0)
-				{
-					if (this.FeedRateRatio != 0)
-					{
-						return (int)(gCodeFileSwitcher.GCodeFile.TotalSecondsInPrint / this.FeedRateRatio);
-					}
-
-					return (int)gCodeFileSwitcher.GCodeFile.TotalSecondsInPrint;
-				}
-
-				return 0;
-			}
-		}
-
-		public bool WaitingForPositionRead
+		// TODO: Runtime state - why can't this be tracked by the consumer (RequestTemperatureStream). In some case is the StreamProcessor stack rebuild and this needs to track across those states?
+		internal bool WaitingForPositionRead
 		{
 			get
 			{
@@ -1772,7 +1760,7 @@ namespace MatterControl.Printing
 			PositionReadType = PositionReadType.None;
 		}
 
-		public void ReadTemperatures(string line)
+		private void ReadTemperatures(string line)
 		{
 			ParseTemperatureString(
 				line,
@@ -1835,7 +1823,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public void ReleaseAndReportFailedConnection(ConnectionFailure reason, string message = null)
+		private void ReleaseAndReportFailedConnection(ConnectionFailure reason, string message = null)
 		{
 			// Shutdown the serial port
 			if (serialPort != null)
@@ -1874,18 +1862,6 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public void ResetToReadyState()
-		{
-			if (CommunicationState == CommunicationStates.FinishedPrint)
-			{
-				CommunicationState = CommunicationStates.Connected;
-			}
-			else
-			{
-				throw new Exception("You should only reset after a print has finished.");
-			}
-		}
-
 		public void Resume()
 		{
 			if (Paused)
@@ -1905,7 +1881,7 @@ namespace MatterControl.Printing
 		}
 
 		// Check is serial port is in the list of available serial ports
-		public bool SerialPortIsAvailable(string portName)
+		private bool SerialPortIsAvailable(string portName)
 		{
 			if (IsNetworkPrinting())
 			{
@@ -1923,12 +1899,12 @@ namespace MatterControl.Printing
 			}
 		}
 
-		public void SetMovementToAbsolute()
+		private void SetMovementToAbsolute()
 		{
 			QueueLine("G90");
 		}
 
-		public void SetMovementToRelative()
+		private void SetMovementToRelative()
 		{
 			QueueLine("G91");
 		}

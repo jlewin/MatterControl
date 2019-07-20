@@ -100,7 +100,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			probePositions[probePositionsBeingEditedIndex].Position = printer.Connection.LastReportedPosition;
 
 			// always make sure we don't have print leveling turned on
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 			NextButton.ToolTipText = string.Format("[{0}]", "Right Arrow".Localize());
 
 			this.DialogWindow.KeyDown += TopWindowKeyDown;

@@ -62,10 +62,10 @@ namespace MatterHackers.MatterControl.ActionBar
 			// Register listeners
 			printer.Connection.BedTemperatureRead += Connection_BedTemperatureRead;
 			printer.Connection.BedTargetTemperatureChanged += this.Connection_BedTargetTemperatureChanged;
-
 		}
 
 		protected override int ActualTemperature => (int)printer.Connection.ActualBedTemperature;
+
 		protected override int TargetTemperature => (int)printer.Connection.TargetBedTemperature;
 
 		private GuiWidget GetPopupContent(ThemeConfig menuTheme)

@@ -1954,6 +1954,7 @@ namespace MatterHackers.MatterControl
 											printerConnection.SecondsToHoldTemperature);
 									}
 								}
+
 								progressStatus.Progress0To1 = printerConnection.SecondsToHoldTemperature / printerConnection.TimeToHoldTemperature;
 								reporter.Report(progressStatus);
 								Thread.Sleep(20);

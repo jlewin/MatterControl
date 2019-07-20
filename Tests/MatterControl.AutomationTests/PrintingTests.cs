@@ -330,7 +330,9 @@ namespace MatterHackers.MatterControl.Tests.Automation
 					// TODO: Delay needed to work around timing issue in MatterHackers/MCCentral#2415
 					testRunner.Delay(1);
 
-					Assert.IsTrue(printer.Connection.RecoveryIsEnabled);
+					// Connection.RecoveryIsEnabled simply proxies to settings with no logic - validation has little to no effect and simply confirms settings are remain as set above after Delay(1)
+					// Assert.IsTrue(printer.Connection.RecoveryIsEnabled);
+					Assert.IsTrue(printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled));
 
 					// print a part
 					testRunner.AddItemToBedplate();

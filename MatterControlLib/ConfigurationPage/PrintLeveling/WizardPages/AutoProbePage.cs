@@ -73,7 +73,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 			this.NextButton.Enabled = false;
 
 			// Disable leveling
-			printer.Connection.AllowLeveling = false;
+			printer.Connection.AllowLeveling(false);
 
 			// Collect settings
 			servoDeployCommand = printer.Settings.GetValue<double>(SettingsKey.z_servo_depolyed_angle);

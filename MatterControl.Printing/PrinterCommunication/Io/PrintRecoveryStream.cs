@@ -122,7 +122,7 @@ namespace MatterControl.Printing.Pipelines
 				// remove it from the part
 				case RecoveryState.Raising:
 					// We don't know where the printer is for sure (it may have been turned off). Disable leveling until we know where it is.
-					connection.AllowLeveling = false;
+					connection.AllowLeveling(false);
 					queuedCommands.Add("M114 ; get current position");
 					queuedCommands.Add("G91 ; move relative");
 					queuedCommands.Add("G1 Z10 F{0}".FormatWith(settings.ZSpeed()));
@@ -151,7 +151,7 @@ namespace MatterControl.Printing.Pipelines
 					}
 
 					// We now know where the printer is re-enable print leveling
-					connection.AllowLeveling = true;
+					connection.AllowLeveling(true);
 					RecoveryState = RecoveryState.FindingRecoveryLayer;
 					return "";
 
