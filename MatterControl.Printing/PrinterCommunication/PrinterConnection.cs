@@ -298,7 +298,6 @@ namespace MatterControl.Printing
 				}
 			};
 		}
-		#region Events
 
 		public static event EventHandler AnyCommunicationStateChanged;
 
@@ -346,8 +345,6 @@ namespace MatterControl.Printing
 
 		public event EventHandler TemporarilyHoldingTemp;
 
-		#endregion
-
 		public int ActiveExtruderIndex => (toolChangeStream != null) ? toolChangeStream.RequestedTool : 0;
 
 		public string ActivePrintName => this.ActivePrintTask?.PrintName ?? "";
@@ -355,19 +352,6 @@ namespace MatterControl.Printing
 		public PrintJob ActivePrintTask { get; set; }
 
 		public double ActualBedTemperature => actualBedTemperature;
-
-		public void AllowLeveling(bool allowLeveling)
-		{
-			if (printLevelingStream != null)
-			{
-				printLevelingStream.AllowLeveling = allowLeveling;
-			}
-			else if (allowLeveling)
-			{
-				// we are requesting it turned back on, re-build the leveling stream
-				CreateStreamProcessors();
-			}
-		}
 
 		public bool AnyHeatIsOn
 		{
@@ -405,25 +389,7 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private bool AutoReleaseMotors => Printer.Settings.GetValue<bool>(SettingsKey.auto_release_motors);
-
-		// PrinterSettings/Options {{
-		private int BaudRate
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(Printer.Settings.GetValue(SettingsKey.baud_rate)))
-				{
-					return 250000;
-				}
-
-				return Printer.Settings.GetValue<int>(SettingsKey.baud_rate);
-			}
-		}
-
 		public bool CalibrationPrint { get; private set; }
-
-		private string CancelGCode => Printer.Settings.GetValue(SettingsKey.cancel_gcode);
 
 		public CommunicationStates CommunicationState
 		{
@@ -555,8 +521,6 @@ namespace MatterControl.Printing
 
 		private string ComPort => Printer.Settings?.Helpers.ComPort();
 
-		private string ConnectGCode => Printer.Settings.GetValue(SettingsKey.connect_gcode);
-
 		public bool ContinueHoldingTemperature { get; set; }
 
 		public Vector3 CurrentDestination => currentDestination.position;
@@ -593,10 +557,6 @@ namespace MatterControl.Printing
 
 		private bool Disconnecting => CommunicationState == CommunicationStates.Disconnecting;
 
-		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : Printer.Settings?.GetValue(SettingsKey.driver_type);
-
-		private bool EnableNetworkPrinting => Printer.Settings.GetValue<bool>(SettingsKey.enable_network_printing);
-
 		public int ExtruderCount => Printer.Settings.GetValue<int>(SettingsKey.extruder_count);
 
 		public double FanSpeed0To255
@@ -612,15 +572,6 @@ namespace MatterControl.Printing
 				}
 			}
 		}
-
-		private double FeedRateRatio => Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
-
-		/// <summary>
-		/// Gets or sets a value indicating whether the Pause Handling Stream has seen a change in the position sensor.
-		/// It is important that this is not persisted, it is meant to function correctly if the user
-		/// plugs in or removes a filament position sensor.
-		/// </summary>
-		internal bool FilamentPositionSensorDetected { get; set; }
 
 		public FirmwareTypes FirmwareType { get; private set; } = FirmwareTypes.Unknown;
 
@@ -669,8 +620,6 @@ namespace MatterControl.Printing
 		// TODO: Only used by tool (FindBedHeight.cs) - rewrite as async method for tools
 		public Vector3 LastReportedPosition => lastReportedPosition.position;
 
-		internal bool MonitorPrinterTemperature { get; set; }
-
 		// TODO: Only used by tool (filament wizards) - rewrite as async method for tools
 		public int NumQueuedCommands
 		{
@@ -718,8 +667,6 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private CommunicationStates PrePauseCommunicationState { get; set; } = CommunicationStates.Printing;
-
 		public PrintHostConfig Printer { get; }
 
 		public bool Printing
@@ -748,39 +695,6 @@ namespace MatterControl.Printing
 				}
 			}
 		}
-
-		private bool PrintIsActive
-		{
-			get
-			{
-				switch (CommunicationState)
-				{
-					case CommunicationStates.Disconnected:
-					case CommunicationStates.Disconnecting:
-					case CommunicationStates.AttemptingToConnect:
-					case CommunicationStates.ConnectionLost:
-					case CommunicationStates.FailedToConnect:
-					case CommunicationStates.Connected:
-					case CommunicationStates.FinishedPrint:
-						return false;
-
-					case CommunicationStates.Printing:
-					case CommunicationStates.PrintingFromSd:
-					case CommunicationStates.PreparingToPrint:
-					case CommunicationStates.Paused:
-						return true;
-
-					default:
-						throw new NotImplementedException("Make sure every status returns the correct connected state.");
-				}
-			}
-		}
-
-		private bool PrintIsFinished => CommunicationState == CommunicationStates.FinishedPrint;
-
-		private string PrintJobName { get; set; } = null;
-
-		internal bool PrintWasCanceled { get; set; } = false;
 
 		// TODO: Revise - used by SyncToPrint in PrinterTabPage only to drive horizontal scroll position. Should be revised to notify on percentage point change - either through event or terminal line
 		public double RatioIntoCurrentLayerInstructions
@@ -811,8 +725,6 @@ namespace MatterControl.Printing
 				return gCodeFileSwitcher.GCodeFile.Ratio0to1IntoContainedLayerSeconds(gCodeFileSwitcher.LineIndex);
 			}
 		}
-
-		private bool RecoveryIsEnabled => Printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled);
 
 		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public int SecondsPrinted
@@ -845,8 +757,6 @@ namespace MatterControl.Printing
 		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		public double SecondsToHoldTemperature { get; private set; }
 
-		private bool SendWithChecksum => Printer.Settings.GetValue<bool>(SettingsKey.send_with_checksum);
-
 		// we start out by setting it to a nothing file
 		public IFrostedSerialPort serialPort { get; private set; }
 
@@ -870,13 +780,21 @@ namespace MatterControl.Printing
 		}
 
 		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
-		private Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
-
-		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
 		public int TimeToHoldTemperature { get; set; } = 600;
 
 		// TODO: PrintProgress - used for print progress widgets in PrinterTabPage. Replace with considered solution
 		public int TotalLayersInPrint => gCodeFileSwitcher?.GCodeFile?.LayerCount ?? -1;
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the Pause Handling Stream has seen a change in the position sensor.
+		/// It is important that this is not persisted, it is meant to function correctly if the user
+		/// plugs in or removes a filament position sensor.
+		/// </summary>
+		internal bool FilamentPositionSensorDetected { get; set; }
+
+		internal bool MonitorPrinterTemperature { get; set; }
+
+		internal bool PrintWasCanceled { get; set; } = false;
 
 		// TODO: Runtime state - why can't this be tracked by the consumer (RequestTemperatureStream). In some case is the StreamProcessor stack rebuild and this needs to track across those states?
 		internal bool WaitingForPositionRead
@@ -894,9 +812,74 @@ namespace MatterControl.Printing
 			}
 		}
 
+		private bool AutoReleaseMotors => Printer.Settings.GetValue<bool>(SettingsKey.auto_release_motors);
+
+		private int BaudRate
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(Printer.Settings.GetValue(SettingsKey.baud_rate)))
+				{
+					return 250000;
+				}
+
+				return Printer.Settings.GetValue<int>(SettingsKey.baud_rate);
+			}
+		}
+
+		private string CancelGCode => Printer.Settings.GetValue(SettingsKey.cancel_gcode);
+
+		private string ConnectGCode => Printer.Settings.GetValue(SettingsKey.connect_gcode);
+
+		private string DriverType => (this.ComPort == "Emulator") ? "Emulator" : Printer.Settings?.GetValue(SettingsKey.driver_type);
+
+		private bool EnableNetworkPrinting => Printer.Settings.GetValue<bool>(SettingsKey.enable_network_printing);
+
+		private double FeedRateRatio => Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
+
 		private int NumberOfLinesInCurrentPrint => gCodeFileSwitcher?.GCodeFile?.LineCount ?? -1;
 
 		private PositionReadType PositionReadType { get; set; } = PositionReadType.None;
+
+		private CommunicationStates PrePauseCommunicationState { get; set; } = CommunicationStates.Printing;
+
+		private bool PrintIsActive
+		{
+			get
+			{
+				switch (CommunicationState)
+				{
+					case CommunicationStates.Disconnected:
+					case CommunicationStates.Disconnecting:
+					case CommunicationStates.AttemptingToConnect:
+					case CommunicationStates.ConnectionLost:
+					case CommunicationStates.FailedToConnect:
+					case CommunicationStates.Connected:
+					case CommunicationStates.FinishedPrint:
+						return false;
+
+					case CommunicationStates.Printing:
+					case CommunicationStates.PrintingFromSd:
+					case CommunicationStates.PreparingToPrint:
+					case CommunicationStates.Paused:
+						return true;
+
+					default:
+						throw new NotImplementedException("Make sure every status returns the correct connected state.");
+				}
+			}
+		}
+
+		private bool PrintIsFinished => CommunicationState == CommunicationStates.FinishedPrint;
+
+		private string PrintJobName { get; set; } = null;
+
+		private bool RecoveryIsEnabled => Printer.Settings.GetValue<bool>(SettingsKey.recover_is_enabled);
+
+		private bool SendWithChecksum => Printer.Settings.GetValue<bool>(SettingsKey.send_with_checksum);
+
+		// TODO: Revise - used for holding temperature feature. Behavior should be removed from MatterControl and moved to PrintHost
+		private Stopwatch TimeHaveBeenHoldingTemperature { get; set; }
 
 		public static void ParseTemperatureString(string temperatureString,
 			double[] actualHotendTemperature,
@@ -942,6 +925,19 @@ namespace MatterControl.Printing
 						bedTemperatureChanged?.Invoke(new TemperatureEventArgs(0, readBedTemp));
 					}
 				}
+			}
+		}
+
+		public void AllowLeveling(bool allowLeveling)
+		{
+			if (printLevelingStream != null)
+			{
+				printLevelingStream.AllowLeveling = allowLeveling;
+			}
+			else if (allowLeveling)
+			{
+				// we are requesting it turned back on, re-build the leveling stream
+				CreateStreamProcessors();
 			}
 		}
 
@@ -1603,104 +1599,6 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private void ReadFromPrinter(ReadThread readThreadHolder)
-		{
-			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-			timeSinceLastReadAnything.Restart();
-			// we want this while loop to be as fast as possible. Don't allow any significant work to happen in here
-			while (CommunicationState == CommunicationStates.AttemptingToConnect
-				|| (this.IsConnected && serialPort != null && serialPort.IsOpen && !Disconnecting && readThreadHolder.IsCurrentThread()))
-			{
-				if ((this.IsConnected
-					|| this.CommunicationState == CommunicationStates.AttemptingToConnect)
-					&& CommunicationState != CommunicationStates.PrintingFromSd)
-				{
-					TryWriteNextLineFromGCodeFile();
-				}
-
-				try
-				{
-					while (serialPort != null
-						&& serialPort.BytesToRead > 0
-						&& readThreadHolder.IsCurrentThread())
-					{
-						lock (locker)
-						{
-							string allDataRead = serialPort.ReadExisting();
-							allDataRead = allDataRead.Replace("\r\n", "\n");
-							allDataRead = allDataRead.Replace('\r', '\n');
-							dataLastRead += allDataRead;
-
-							do
-							{
-								int returnPosition = dataLastRead.IndexOf('\n');
-								if (returnPosition < 0)
-								{
-									// there is no return keep getting characters
-									break;
-								}
-
-								if (dataLastRead.Length > 0)
-								{
-									if (lastLineRead.StartsWith("ok"))
-									{
-										timeSinceRecievedOk.Restart();
-									}
-
-									lastLineRead = dataLastRead.Substring(0, returnPosition);
-									var (firstLine, extraLines) = ProcessReadRegEx(lastLineRead);
-									lastLineRead = firstLine;
-									dataLastRead += extraLines;
-									dataLastRead = dataLastRead.Substring(returnPosition + 1);
-
-									// process this command
-									{
-										readLineStartCallBacks.ProcessLine(lastLineRead);
-										readLineContainsCallBacks.ProcessLine(lastLineRead);
-
-										LineReceived?.Invoke(this, lastLineRead);
-									}
-								}
-							}
-							while (true);
-						}
-
-						timeSinceLastReadAnything.Restart();
-					}
-
-					if (Printing)
-					{
-						Thread.Sleep(0);
-					}
-					else
-					{
-						Thread.Sleep(1);
-					}
-				}
-				catch (TimeoutException)
-				{
-				}
-				catch (IOException ex)
-				{
-					OnConnectionFailed(ConnectionFailure.IOException, ex.Message);
-				}
-				catch (InvalidOperationException ex)
-				{
-					// this happens when the serial port closes after we check and before we read it.
-					OnConnectionFailed(ConnectionFailure.InvalidOperationException, ex.Message);
-				}
-				catch (UnauthorizedAccessException ex)
-				{
-					OnConnectionFailed(ConnectionFailure.UnauthorizedAccessException, ex.Message);
-				}
-				catch (Exception)
-				{
-				}
-			}
-
-			Console.WriteLine("Exiting ReadFromPrinter method: " + CommunicationState.ToString());
-		}
-
 		public void ReadPosition(PositionReadType positionReadType = PositionReadType.Other, bool forceToTopOfQueue = false)
 		{
 			string nextIssue = queuedCommandStream.Peek();
@@ -1760,16 +1658,6 @@ namespace MatterControl.Printing
 			PositionReadType = PositionReadType.None;
 		}
 
-		private void ReadTemperatures(string line)
-		{
-			ParseTemperatureString(
-				line,
-				actualHotendTemperature,
-				OnHotendTemperatureRead,
-				ref actualBedTemperature,
-				OnBedTemperatureRead);
-		}
-
 		public void RebootBoard()
 		{
 			try
@@ -1823,21 +1711,6 @@ namespace MatterControl.Printing
 			}
 		}
 
-		private void ReleaseAndReportFailedConnection(ConnectionFailure reason, string message = null)
-		{
-			// Shutdown the serial port
-			if (serialPort != null)
-			{
-				// Close and dispose the serial port
-				serialPort.Close();
-				serialPort.Dispose();
-				serialPort = null;
-			}
-
-			// Notify
-			OnConnectionFailed(reason, message);
-		}
-
 		public void ReleaseMotors(bool forceRelease = false)
 		{
 			if (forceRelease
@@ -1878,35 +1751,6 @@ namespace MatterControl.Printing
 					CommunicationState = CommunicationStates.Printing;
 				}
 			}
-		}
-
-		// Check is serial port is in the list of available serial ports
-		private bool SerialPortIsAvailable(string portName)
-		{
-			if (IsNetworkPrinting())
-			{
-				return true;
-			}
-
-			try
-			{
-				string[] portNames = FrostedSerialPort.GetPortNames();
-				return portNames.Any(x => string.Compare(x, portName, true) == 0);
-			}
-			catch (Exception)
-			{
-				return false;
-			}
-		}
-
-		private void SetMovementToAbsolute()
-		{
-			QueueLine("G90");
-		}
-
-		private void SetMovementToRelative()
-		{
-			QueueLine("G91");
 		}
 
 		public void SetTargetHotendTemperature(int hotendIndex0Based, double temperature, bool forceSend = false)
@@ -2206,7 +2050,7 @@ namespace MatterControl.Printing
 			GCodeStream accumulatedStream;
 
 			var settings = Printer.Settings;
-			//PrinterConnection connection = Printer.Connection;
+			// PrinterConnection connection = Printer.Connection;
 
 			System.Diagnostics.Debugger.Break();
 			var connection = Printer.Connection as PrinterConnection;
@@ -2434,6 +2278,148 @@ namespace MatterControl.Printing
 			return (lineBeingRead, extraLines);
 		}
 
+		private void ReadFromPrinter(ReadThread readThreadHolder)
+		{
+			Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+			timeSinceLastReadAnything.Restart();
+			// we want this while loop to be as fast as possible. Don't allow any significant work to happen in here
+			while (CommunicationState == CommunicationStates.AttemptingToConnect
+				|| (this.IsConnected && serialPort != null && serialPort.IsOpen && !Disconnecting && readThreadHolder.IsCurrentThread()))
+			{
+				if ((this.IsConnected
+					|| this.CommunicationState == CommunicationStates.AttemptingToConnect)
+					&& CommunicationState != CommunicationStates.PrintingFromSd)
+				{
+					TryWriteNextLineFromGCodeFile();
+				}
+
+				try
+				{
+					while (serialPort != null
+						&& serialPort.BytesToRead > 0
+						&& readThreadHolder.IsCurrentThread())
+					{
+						lock (locker)
+						{
+							string allDataRead = serialPort.ReadExisting();
+							allDataRead = allDataRead.Replace("\r\n", "\n");
+							allDataRead = allDataRead.Replace('\r', '\n');
+							dataLastRead += allDataRead;
+
+							do
+							{
+								int returnPosition = dataLastRead.IndexOf('\n');
+								if (returnPosition < 0)
+								{
+									// there is no return keep getting characters
+									break;
+								}
+
+								if (dataLastRead.Length > 0)
+								{
+									if (lastLineRead.StartsWith("ok"))
+									{
+										timeSinceRecievedOk.Restart();
+									}
+
+									lastLineRead = dataLastRead.Substring(0, returnPosition);
+									var (firstLine, extraLines) = ProcessReadRegEx(lastLineRead);
+									lastLineRead = firstLine;
+									dataLastRead += extraLines;
+									dataLastRead = dataLastRead.Substring(returnPosition + 1);
+
+									// process this command
+									{
+										readLineStartCallBacks.ProcessLine(lastLineRead);
+										readLineContainsCallBacks.ProcessLine(lastLineRead);
+
+										LineReceived?.Invoke(this, lastLineRead);
+									}
+								}
+							}
+							while (true);
+						}
+
+						timeSinceLastReadAnything.Restart();
+					}
+
+					if (Printing)
+					{
+						Thread.Sleep(0);
+					}
+					else
+					{
+						Thread.Sleep(1);
+					}
+				}
+				catch (TimeoutException)
+				{
+				}
+				catch (IOException ex)
+				{
+					OnConnectionFailed(ConnectionFailure.IOException, ex.Message);
+				}
+				catch (InvalidOperationException ex)
+				{
+					// this happens when the serial port closes after we check and before we read it.
+					OnConnectionFailed(ConnectionFailure.InvalidOperationException, ex.Message);
+				}
+				catch (UnauthorizedAccessException ex)
+				{
+					OnConnectionFailed(ConnectionFailure.UnauthorizedAccessException, ex.Message);
+				}
+				catch (Exception)
+				{
+				}
+			}
+
+			Console.WriteLine("Exiting ReadFromPrinter method: " + CommunicationState.ToString());
+		}
+
+		private void ReadTemperatures(string line)
+		{
+			ParseTemperatureString(
+				line,
+				actualHotendTemperature,
+				OnHotendTemperatureRead,
+				ref actualBedTemperature,
+				OnBedTemperatureRead);
+		}
+
+		private void ReleaseAndReportFailedConnection(ConnectionFailure reason, string message = null)
+		{
+			// Shutdown the serial port
+			if (serialPort != null)
+			{
+				// Close and dispose the serial port
+				serialPort.Close();
+				serialPort.Dispose();
+				serialPort = null;
+			}
+
+			// Notify
+			OnConnectionFailed(reason, message);
+		}
+
+		// Check is serial port is in the list of available serial ports
+		private bool SerialPortIsAvailable(string portName)
+		{
+			if (IsNetworkPrinting())
+			{
+				return true;
+			}
+
+			try
+			{
+				string[] portNames = FrostedSerialPort.GetPortNames();
+				return portNames.Any(x => string.Compare(x, portName, true) == 0);
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+		}
+
 		private void SetDetailedPrintingState(string lineBeingSetToPrinter)
 		{
 			if (lineBeingSetToPrinter.StartsWith("G28"))
@@ -2470,6 +2456,16 @@ namespace MatterControl.Printing
 
 				DetailedPrintingState = DetailedPrintingState.Printing;
 			}
+		}
+
+		private void SetMovementToAbsolute()
+		{
+			QueueLine("G90");
+		}
+
+		private void SetMovementToRelative()
+		{
+			QueueLine("G91");
 		}
 
 		private void SyncProgressToDB(CancellationToken cancellationToken)
