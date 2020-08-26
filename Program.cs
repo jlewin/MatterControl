@@ -164,9 +164,6 @@ namespace MatterHackers.MatterControl
 			Application.MiniTouchScreen.Make = config.GetValue<string>("MatterControl:MiniTouchScreen:Make", "");
 			Application.MiniTouchScreen.Model = config.GetValue<string>("MatterControl:MiniTouchScreen:Model", "");
 
-			// Make sure we have the right working directory as we assume everything relative to the executable.
-			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
-
 			Datastore.Instance.Initialize(DesktopSqlite.CreateInstance());
 
 			if (UserSettings.Instance.get(UserSettingsKey.ApplicationUseHeigResDisplays) == "true")
