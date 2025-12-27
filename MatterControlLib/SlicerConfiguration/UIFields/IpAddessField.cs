@@ -87,7 +87,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 		private async void RebuildMenuItems()
 		{
 			refreshButton.Enabled = false;
-			IReadOnlyList<Zeroconf.IZeroconfHost> possibleHosts = await ProbeForNetworkedTelenetConnections();
 			dropdownList.MenuItems.Clear();
 
 			MenuItem defaultOption = dropdownList.AddItem("Manual", "127.0.0.1:23");
@@ -96,27 +95,34 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				printer.Settings.SetValue(SettingsKey.selector_ip_address, defaultOption.Text);
 			};
 
-			foreach (Zeroconf.IZeroconfHost host in possibleHosts)
+			try
 			{
-				// Add each found telnet host to the dropdown list
-				IService service;
-				bool exists = host.Services.TryGetValue("_telnet._tcp.local.", out service);
-				int port = exists ? service.Port : 23;
-				MenuItem newItem = dropdownList.AddItem(host.DisplayName, $"{host.IPAddress}:{port}"); // The port may be unnecessary
-				// When the given menu item is selected, save its value back into settings
-				newItem.Selected += (sender, e) =>
+				IReadOnlyList<Zeroconf.IZeroconfHost> possibleHosts = await ProbeForNetworkedTelenetConnections();
+				foreach (Zeroconf.IZeroconfHost host in possibleHosts)
 				{
-					if (sender is MenuItem menuItem)
+					// Add each found telnet host to the dropdown list
+					IService service;
+					bool exists = host.Services.TryGetValue("_telnet._tcp.local.", out service);
+					int port = exists ? service.Port : 23;
+					MenuItem newItem = dropdownList.AddItem(host.DisplayName, $"{host.IPAddress}:{port}"); // The port may be unnecessary
+																										   // When the given menu item is selected, save its value back into settings
+					newItem.Selected += (sender, e) =>
 					{
-						// this.SetValue(
-						// menuItem.Text,
-						// userInitiated: true);
-						string[] ipAndPort = menuItem.Value.Split(':');
-						printer.Settings.SetValue(SettingsKey.ip_address, ipAndPort[0]);
-						printer.Settings.SetValue(SettingsKey.ip_port, ipAndPort[1]);
-						printer.Settings.SetValue(SettingsKey.selector_ip_address, menuItem.Text);
-					}
-				};
+						if (sender is MenuItem menuItem)
+						{
+							// this.SetValue(
+							// menuItem.Text,
+							// userInitiated: true);
+							string[] ipAndPort = menuItem.Value.Split(':');
+							printer.Settings.SetValue(SettingsKey.ip_address, ipAndPort[0]);
+							printer.Settings.SetValue(SettingsKey.ip_port, ipAndPort[1]);
+							printer.Settings.SetValue(SettingsKey.selector_ip_address, menuItem.Text);
+						}
+					};
+				}
+			}
+			catch (Exception ex) {
+				Console.WriteLine("Error in ProbeForNetworkedTelenetConnections: " + ex.Message);
 			}
 
 			refreshButton.Enabled = true;
