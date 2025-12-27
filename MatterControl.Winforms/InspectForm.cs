@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -165,6 +166,8 @@ namespace MatterHackers.MatterControl
 		}
 
 		private IObject3D _inspectedObject3D = null;
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public IObject3D InspectedObject3D
 		{
 			get => _inspectedObject3D;
