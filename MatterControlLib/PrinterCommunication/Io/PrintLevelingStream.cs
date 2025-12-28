@@ -119,14 +119,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				}
 			}
 
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(lineToSend))
 			{
 				return lineToSend;
 			}
 
-			if (lineToSend != null
-				&& LevelingActive
+			if (LevelingActive
 				&& !gcodeAlreadyLeveled)
 			{
 				if (LineIsMovement(lineToSend))

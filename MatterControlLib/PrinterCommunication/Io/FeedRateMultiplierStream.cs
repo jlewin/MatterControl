@@ -57,14 +57,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			string lineToSend = internalStream.ReadLine();
 
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(lineToSend))
 			{
 				return lineToSend;
 			}
 
-			if (lineToSend != null
-				&& LineIsMovement(lineToSend))
+			if (LineIsMovement(lineToSend))
 			{
 				PrinterMove currentMove = GetPosition(lineToSend, this.lastDestination);
 

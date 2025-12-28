@@ -132,14 +132,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			string lineToSend = base.ReadLine();
 
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(lineToSend))
 			{
 				return lineToSend;
 			}
 
-			if (lineToSend != null
-				&& lineToSend.StartsWith("T"))
+			if (lineToSend.StartsWith("T"))
 			{
 				int extruder = 0;
 				if (GCodeFile.GetFirstNumberAfter("T", lineToSend, ref extruder))
@@ -148,8 +146,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				}
 			}
 
-			if (lineToSend != null
-				&& LineIsMovement(lineToSend))
+			if (LineIsMovement(lineToSend))
 			{
 				inputNoBabyStepping = GetPosition(lineToSend, inputNoBabyStepping);
 

@@ -134,14 +134,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			string lineToSend = base.ReadLine();
 
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(lineToSend))
 			{
 				return lineToSend;
 			}
 
-			if (lineToSend != null
-				&& LineIsMovement(lineToSend))
+			if (LineIsMovement(lineToSend))
 			{
 				PrinterMove currentMove = GetPosition(lineToSend, lastDestination);
 
@@ -151,8 +149,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 					lineToSend = CreateMovementLine(currentMove, lastDestination);
 				}
 				lastDestination = currentMove;
-
-				return lineToSend;
 			}
 
 			return lineToSend;

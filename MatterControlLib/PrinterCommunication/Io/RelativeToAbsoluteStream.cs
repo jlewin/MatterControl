@@ -168,17 +168,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			// G91 Relative
 			// G90 Absolute
 			string lineToSend = base.ReadLine();
-			if (lineToSend != null)
+			if (ShouldSkipProcessing(lineToSend))
 			{
-				if (lineToSend.EndsWith("; NO_PROCESSING"))
-				{
-					return lineToSend;
-				}
-
-				return ProcessLine(lineToSend);
+				return lineToSend;
 			}
 
-			return null;
+			return ProcessLine(lineToSend);
 		}
 	}
 }

@@ -147,8 +147,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 			string lineToSend = base.ReadLine();
 
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(lineToSend))
 			{
 				return lineToSend;
 			}
@@ -159,7 +158,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 
 
-			if (lineToSend != null)
+			//if (lineToSend != null)
 			{
 				if (lineToSend.Contains("M190"))
 				{

@@ -89,14 +89,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			{
 				string lineToSend = base.ReadLine();
 
-				if (lineToSend != null
-					&& lineToSend.EndsWith("; NO_PROCESSING"))
+				if (ShouldSkipProcessing(lineToSend))
 				{
 					return lineToSend;
 				}
 
-				if (lineToSend != null
-					&& layerCount < 1
+				if (layerCount < 1
 					&& GCodeFile.IsLayerChange(lineToSend))
 				{
 					layerCount++;
@@ -107,8 +105,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				}
 
 
-				if (lineToSend != null
-					&& LineIsMovement(lineToSend))
+				if (LineIsMovement(lineToSend))
 				{
 					PrinterMove currentDestination = GetPosition(lineToSend, lastDestination);
 

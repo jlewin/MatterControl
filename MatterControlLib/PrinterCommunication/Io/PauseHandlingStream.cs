@@ -224,12 +224,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				if (!printer.Connection.Paused)
 				{
 					lineToSend = base.ReadLine();
-					if (lineToSend == null)
-					{
-						return lineToSend;
-					}
 
-					if (lineToSend.EndsWith("; NO_PROCESSING"))
+					if (ShouldSkipProcessing(lineToSend))
 					{
 						return lineToSend;
 					}

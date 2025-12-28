@@ -67,6 +67,17 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public abstract string DebugInfo { get; }
 
+		/// <summary>
+		/// Determines whether the specified line should be excluded from further processing.
+		/// </summary>
+		/// <param name="line">The line of text to evaluate. Can be null, empty, or contain whitespace.</param>
+		/// <returns>true if the line is null, empty, consists only of white-space characters, or ends with "; NO_PROCESSING";
+		/// otherwise, false.</returns>
+		public bool ShouldSkipProcessing(string line) 
+		{
+			return string.IsNullOrWhiteSpace(line) || line.EndsWith("; NO_PROCESSING");
+		}
+
 		public string CreateMovementLine(PrinterMove currentDestination)
 		{
 			return CreateMovementLine(currentDestination, PrinterMove.Unknown);

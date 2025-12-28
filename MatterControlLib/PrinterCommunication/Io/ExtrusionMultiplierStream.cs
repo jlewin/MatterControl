@@ -56,8 +56,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		public override string ReadLine()
 		{
 			var lineToSend = internalStream.ReadLine();
-			if (lineToSend != null
-				&& lineToSend.EndsWith("; NO_PROCESSING"))
+
+			if (ShouldSkipProcessing(lineToSend)) 
 			{
 				return lineToSend;
 			}
@@ -67,7 +67,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		private string ApplyExtrusionMultiplier(string lineBeingSent)
 		{
-			if (lineBeingSent != null)
+			//if (lineBeingSent != null)
 			{
 				if (LineIsMovement(lineBeingSent))
 				{
