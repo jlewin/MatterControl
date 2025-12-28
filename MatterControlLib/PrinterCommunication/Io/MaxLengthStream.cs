@@ -67,13 +67,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		PrinterMove lastDestination = PrinterMove.Unknown;
 		public double MaxSegmentLength { get; set; }
 
-		public override string DebugInfo
-		{
-			get
-			{
-				return $"Last Destination = {lastDestination}";
-			}
-		}
+		public override string DebugInfo => $"Last Destination = {lastDestination}";
 
 		public void Cancel()
 		{

@@ -47,13 +47,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public int Count => commandQueue.Count;
 
-		public override string DebugInfo
-		{
-			get
-			{
-				return "";
-			}
-		}
+		public override string DebugInfo => $"QueuedCommandsStream: {Count}";
 
 		public string Peek()
 		{

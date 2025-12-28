@@ -72,13 +72,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
-		public override string DebugInfo
-		{
-			get
-			{
-				return $"Last Destination = {inputNoBabyStepping}";
-			}
-		}
+		public override string DebugInfo => $"Last Destination = {inputNoBabyStepping}";
 
 		private void Printer_SettingChanged(object s, StringEventArgs e)
 		{

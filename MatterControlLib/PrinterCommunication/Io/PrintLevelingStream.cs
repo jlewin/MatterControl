@@ -59,13 +59,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			AllowLeveling = true;
 		}
 
-		public override string DebugInfo
-		{
-			get
-			{
-				return $"Last Destination = {inputUnleveled}";
-			}
-		}
+		public override string DebugInfo => $"Last Destination = {inputUnleveled}";
 
 		private GCodeFile loadedGCode;
 

@@ -45,13 +45,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public double ExtrusionRatio { get; set; }
 
-		public override string DebugInfo
-		{
-			get
-			{
-				return $"ExtrusionRatio = {ExtrusionRatio}";
-			}
-		}
+		public override string DebugInfo => $"ExtrusionRatio = {ExtrusionRatio}";
 
 		public override string ReadLine()
 		{
