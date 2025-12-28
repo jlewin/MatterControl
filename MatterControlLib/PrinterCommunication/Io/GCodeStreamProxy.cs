@@ -45,6 +45,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		public override void Dispose()
 		{
 			internalStream.Dispose();
+
+			base.Dispose();
 		}
 
 		public override string ReadLine()

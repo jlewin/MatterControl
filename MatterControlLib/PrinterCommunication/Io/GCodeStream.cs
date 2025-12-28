@@ -48,7 +48,9 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		/// <param name="position">The position as seen from down stream. Effectively what this stream will output after computation.</param>
 		public abstract void SetPrinterPosition(PrinterMove position);
 
-		public abstract void Dispose();
+		public virtual void Dispose() 
+		{
+		}
 
 		private readonly bool useG0ForMovement = false;
 

@@ -69,10 +69,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public int LineIndex { get; private set; } = -1;
 
-		public override void Dispose()
-		{
-		}
-
 		public override string ReadLine()
 		{
 			lock (locker)

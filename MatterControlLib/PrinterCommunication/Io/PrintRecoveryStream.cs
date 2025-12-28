@@ -65,10 +65,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			queuedCommands = new QueuedCommandsStream(printer, null);
 		}
 
-		public override void Dispose()
-		{
-		}
-
 		public override void SetPrinterPosition(PrinterMove position)
 		{
 			this.lastDestination.CopyKnowSettings(position);

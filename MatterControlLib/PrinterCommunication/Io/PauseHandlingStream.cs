@@ -137,6 +137,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		public override void Dispose()
 		{
 			printer.Connection.LineReceived -= LineReceived;
+
+			base.Dispose();
 		}
 
 		public PauseHandlingStream(PrinterConfig printer, GCodeStream internalStream)

@@ -38,10 +38,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 		}
 
-		public override void Dispose()
-		{
-		}
-
 		public override string ReadLine()
 		{
 			Thread.Sleep(100);

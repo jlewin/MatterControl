@@ -61,10 +61,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 		}
 
-		public override void Dispose()
-		{
-		}
-
 		public override GCodeStream InternalStream => null;
 
 		public override string DebugInfo => lastLine;

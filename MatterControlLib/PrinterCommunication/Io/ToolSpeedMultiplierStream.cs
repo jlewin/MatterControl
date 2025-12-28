@@ -58,11 +58,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
-		public override void Dispose()
-		{
-			base.Dispose();
-		}
-
 		public override string DebugInfo => $"Last Destination = {lastDestination}";
 
 		public override void SetPrinterPosition(PrinterMove position)
