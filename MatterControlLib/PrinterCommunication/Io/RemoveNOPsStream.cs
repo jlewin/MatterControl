@@ -56,12 +56,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 			var baseLine = base.ReadLine();
 
-			if (baseLine == null)
-			{
-				return null;
-			}
-
-			if (baseLine.EndsWith("; NO_PROCESSING"))
+			if (ShouldSkipProcessing(baseLine))
 			{
 				return baseLine;
 			}

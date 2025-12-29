@@ -94,12 +94,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 					{
 						string lineToSend = base.ReadLine();
 
-						if (lineToSend == null)
-						{
-							return null;
-						}
-
-						if (lineToSend.EndsWith("; NO_PROCESSING"))
+						if (ShouldSkipProcessing(lineToSend))
 						{
 							return lineToSend;
 						}
