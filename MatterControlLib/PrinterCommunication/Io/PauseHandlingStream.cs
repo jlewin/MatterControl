@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,16 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that manages print pause and resume operations, including handling filament runout
+	/// and user-initiated pauses during 3D printing.
+	/// </summary>
+	/// <remarks>This stream intercepts and injects pause and resume G-code commands as needed, based on user
+	/// requests, G-code instructions, or filament runout sensor input. It is designed to work with printers that support
+	/// pause and resume functionality, and can automatically trigger pause events when certain conditions are met, such as
+	/// reaching a specified layer or detecting filament runout. The class maintains the printer's position at the time of
+	/// pause and ensures proper state restoration upon resume. Thread safety is maintained for command queue
+	/// operations.</remarks>
 	public class PauseHandlingStream : GCodeStreamProxy
 	{
 		internal class PositionSensorData

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,12 @@ using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a stream for reading G-code instructions from a GCodeFile, supporting sequential access and line tracking.
+	/// </summary>
+	/// <remarks>Use this class to iterate through the lines of a GCodeFile in order, typically for processing or
+	/// sending G-code commands to a printer. The stream maintains the current line index and exposes the underlying
+	/// GCodeFile for reference. This class is not thread-safe.</remarks>
 	public class GCodeFileStream : GCodeStream, IGCodeLineReader
 	{
 		private int printerCommandQueueLineIndex = -1;

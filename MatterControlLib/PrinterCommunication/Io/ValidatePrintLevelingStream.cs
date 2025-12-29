@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,23 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Intercepts G-code during print startup to automatically validate and maintain bed leveling calibration.
+	/// </summary>
+	/// <remarks>
+	/// This stream waits for the printer to home (G28) and heat the bed (M190), then performs a quick probe 
+	/// of the first leveling point. If the measured Z-height matches the previously saved leveling data within 
+	/// a configured threshold (validation_threshold setting), printing continues with existing leveling.
+	/// 
+	/// If validation fails, it performs a full re-leveling sequence by probing all configured points based on 
+	/// the selected leveling system:
+	/// - Radial patterns: 3, 7, 13, or 100 points
+	/// - Mesh patterns: 3x3, 5x5, or 10x10 grids
+	/// - Custom point configurations
+	/// 
+	/// After successful probing, the new leveling data is saved and printing resumes. This ensures bed leveling 
+	/// accuracy is maintained across prints without requiring manual intervention.
+	/// </remarks>
 	public class ValidatePrintLevelingStream : GCodeStreamProxy
 	{
 		private readonly double[] babySteppingValue = new double[4];

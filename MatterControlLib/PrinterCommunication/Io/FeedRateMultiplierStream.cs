@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017, Lars Brubaker, John Lewin
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,14 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that applies a configurable feed rate multiplier to movement commands before passing
+	/// them to the underlying stream.
+	/// </summary>
+	/// <remarks>This stream is typically used to adjust the speed of printer movements dynamically by modifying the
+	/// feed rate of G-code commands. It wraps another GCodeStream and intercepts movement commands to apply the specified
+	/// feed rate ratio. Non-movement commands are passed through unchanged. Changes to the feed rate ratio take effect
+	/// immediately for subsequent movement commands.</remarks>
 	public class FeedRateMultiplierStream : GCodeStreamProxy
 	{
 		private PrinterMove lastDestination = PrinterMove.Unknown;

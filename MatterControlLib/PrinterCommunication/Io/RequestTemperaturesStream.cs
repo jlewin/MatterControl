@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,16 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using MatterHackers.Agg.UI;
-using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that periodically injects temperature request commands (M105) into the stream based
+	/// on printer connection state and timing conditions.
+	/// </summary>
+	/// <remarks>This stream is typically used to ensure that temperature readings are requested from the printer at
+	/// regular intervals when the printer is connected and temperature monitoring is enabled. It wraps an existing
+	/// GCodeStream and automatically issues M105 commands as needed, without requiring manual intervention.</remarks>
 	public class RequestTemperaturesStream : GCodeStreamProxy
 	{
 		private long nextReadTimeMs = 0;

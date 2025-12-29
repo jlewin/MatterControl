@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,17 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using MatterHackers.Agg.Image;
-using MatterHackers.Agg.Platform;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream that allows commands to be queued and processed in order before delegating to an
+	/// underlying stream.
+	/// </summary>
+	/// <remarks>QueuedCommandsStream enables dynamic insertion and prioritization of G-code commands, allowing
+	/// callers to add, inspect, or clear commands in the queue. This is useful for scenarios where commands need to be
+	/// injected or reordered during streaming, such as for pause, resume, or custom control operations. Thread safety is
+	/// ensured for queue operations.</remarks>
 	public class QueuedCommandsStream : GCodeStreamProxy
 	{
 		private List<string> commandQueue = new List<string>();

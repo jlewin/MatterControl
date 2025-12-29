@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,14 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that filters out no-operation (NOP) commands and, optionally, sound commands from
+	/// the underlying G-code stream.
+	/// </summary>
+	/// <remarks>This stream removes G-code lines that do not result in printer movement or action, such as bare
+	/// movement commands without parameters (e.g., "G0", "G1") and, depending on printer settings, sound commands
+	/// ("M300"). Lines explicitly marked with "; NO_PROCESSING" are always passed through. Use this stream to simplify or
+	/// clean up G-code before sending it to a printer.</remarks>
 	public class RemoveNOPsStream : GCodeStreamProxy
 	{
 		private bool filterM300;

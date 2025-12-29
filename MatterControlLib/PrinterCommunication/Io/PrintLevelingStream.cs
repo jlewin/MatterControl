@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,15 @@ using System;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that applies software-based print bed leveling corrections to movement commands
+	/// during 3D printing.
+	/// </summary>
+	/// <remarks>PrintLevelingStream intercepts and modifies G-code movement commands to compensate for bed
+	/// irregularities, enabling consistent first-layer adhesion and print quality even on unlevel print surfaces. It
+	/// should be inserted into the G-code stream before any streams that apply baby stepping or similar Z-axis
+	/// adjustments. Software leveling is only applied if enabled in the printer settings and hardware leveling is not
+	/// active.</remarks>
 	public class PrintLevelingStream : GCodeStreamProxy
 	{
 		private LevelingFunctions currentLevelingFunctions = null;

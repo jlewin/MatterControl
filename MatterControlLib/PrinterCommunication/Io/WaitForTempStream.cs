@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,14 @@ using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that intercepts and manages temperature wait commands, allowing for custom handling
+	/// of temperature stabilization before continuing with print operations.
+	/// </summary>
+	/// <remarks>This class replaces standard firmware wait commands (such as M109 and M190) with custom logic to
+	/// control when printing proceeds after temperature changes. It is useful for printers or firmware that require more
+	/// precise or customized temperature stabilization behavior. The class is typically used as part of a G-code
+	/// processing pipeline and is not intended for direct use outside of such contexts.</remarks>
 	public class WaitForTempStream : GCodeStreamProxy
 	{
 		/// <summary>

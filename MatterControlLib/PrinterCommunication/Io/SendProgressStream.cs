@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2019, Tyler Anderson, John Lewin
+Copyright (c) 2025, Tyler Anderson, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,13 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that injects progress reporting commands during a print job based on the printer's
+	/// configuration.
+	/// </summary>
+	/// <remarks>This stream is typically used to enable real-time progress updates to the printer or user interface
+	/// during printing. The specific progress reporting command injected depends on the printer's settings. This class is
+	/// intended to be used as part of a G-code streaming pipeline and is not thread-safe.</remarks>
 	public class SendProgressStream : GCodeStreamProxy
 	{
 		private double nextPercent = -1;

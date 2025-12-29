@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2016, Lars Brubaker, John Lewin
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,15 @@ using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that splits long movement commands into multiple segments, ensuring that no single
+	/// movement exceeds a specified maximum length. This helps maintain consistent movement speeds and improves print
+	/// quality by limiting the length of each movement sent to the printer.
+	/// </summary>
+	/// <remarks>MaxLengthStream should be inserted into the G-code stream before any streams that modify movement
+	/// points, such as BabyStepsStream or PrintLevelingStream. This ensures that the segmentation of movements occurs
+	/// prior to any additional transformations. The maximum segment length can be adjusted dynamically during printing,
+	/// and the stream is designed to operate efficiently by batching and reusing movement segments as needed.</remarks>
 	public class MaxLengthStream : GCodeStreamProxy
 	{
 		// 20 instruction per second

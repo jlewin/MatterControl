@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2016, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,15 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
 	public enum RecoveryState { RemoveHeating, Raising, Homing, FindingRecoveryLayer, SkippingGCode, PrimingAndMovingToStart, PrintingSlow, PrintingToEnd }
 
+	/// <summary>
+	/// Provides a G-code stream that enables recovery of a 3D print job from a specified completion percentage, handling
+	/// printer state transitions and resuming printing after interruptions.
+	/// </summary>
+	/// <remarks>This stream manages the sequence of commands required to safely resume a print, including
+	/// reheating, homing, skipping already printed layers, and priming the extruder. It is typically used in scenarios
+	/// where a print must be recovered after a power loss or other interruption. The recovery process is managed through
+	/// distinct states, and the stream ensures that the printer is correctly prepared before resuming normal printing.
+	/// Thread safety is not guaranteed; use from a single thread at a time.</remarks>
 	public class PrintRecoveryStream : GCodeStream
 	{
 		private GCodeSwitcher internalStream;

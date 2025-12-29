@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2019, Lars Brubaker, John Lewin
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,13 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that applies a configurable speed multiplier to extrusion moves when the secondary
+	/// extruder (T1) is active.
+	/// </summary>
+	/// <remarks>This stream monitors printer settings for changes to the T1 extrusion move speed multiplier and
+	/// updates its behavior accordingly. It is typically used in multi-extruder 3D printing scenarios to fine-tune the
+	/// movement speed of the secondary extruder without affecting the primary extruder's behavior.</remarks>
 	public class ToolSpeedMultiplierStream : GCodeStreamProxy
 	{
 		private PrinterMove lastDestination = PrinterMove.Unknown;

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2019, Lars Brubaker, John Lewin
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,16 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Processes G-code streams to manage tool changes for multi-extruder 3D printers, ensuring correct sequencing of tool
+	/// change commands, temperature management, and printer state updates during printing.
+	/// </summary>
+	/// <remarks>ToolChangeStream acts as a proxy over an existing G-code stream, intercepting and modifying
+	/// commands as needed to coordinate tool changes according to printer firmware requirements and user-defined G-code
+	/// snippets. It handles temperature preheating, cooldown, and synchronization of tool state, supporting advanced
+	/// scenarios such as Smoothie firmware corrections and custom before/after tool change G-code. This stream is
+	/// typically used in printer pipelines where automated, reliable tool change handling is required for multi-extruder
+	/// printing workflows.</remarks>
 	public class ToolChangeStream : GCodeStreamProxy
 	{
 		private readonly string completedBeforeGCodeString = "; COMPLETED_BEFORE_GCODE";

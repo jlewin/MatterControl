@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,14 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream that supports switching to an alternate G-code file at a specified layer boundary during
+	/// streaming. Enables dynamic replacement of the current G-code sequence for advanced print management scenarios.
+	/// </summary>
+	/// <remarks>GCodeSwitcher is useful in applications where it is necessary to change the print job mid-stream,
+	/// such as for multi-part prints, error recovery, or dynamic job modification. The switch occurs at a layer boundary
+	/// to maintain print consistency. Thread safety is ensured for command queue operations. This class is not thread-safe
+	/// for other operations unless otherwise noted.</remarks>
 	public class GCodeSwitcher : GCodeStream, IGCodeLineReader
 	{
 		private GCodeMemoryFile switchToGCode = null;

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,15 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// A GCode stream filter that applies Z-axis offset adjustments (baby stepping) to printer movements during printing.
+	/// </summary>
+	/// <remarks>
+	/// BabyStepsStream allows for real-time fine-tuning of the first layer height without modifying the original GCode. 
+	/// The stream intercepts movement commands (G0/G1), applies the configured baby step Z offset for the active extruder, 
+	/// and accounts for multi-extruder offsets. It maintains separate tracking of input positions (without offsets) and 
+	/// output positions (with offsets applied) to ensure accurate coordinate transformations throughout the print job.
+	/// </remarks>
 	public class BabyStepsStream : GCodeStreamProxy
 	{
 		private int extruderIndex = 0;

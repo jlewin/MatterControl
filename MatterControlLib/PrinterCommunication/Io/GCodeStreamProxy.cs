@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,12 @@ either expressed or implied, of the FreeBSD Project.
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a base class for G-code stream proxies that delegate operations to an underlying GCodeStream instance.
+	/// </summary>
+	/// <remarks>This class is intended to be used as a foundation for implementing G-code stream decorators or
+	/// interceptors. Derived classes can override methods to modify, filter, or monitor G-code commands while forwarding
+	/// calls to the wrapped stream. All method calls are delegated to the internal stream by default.</remarks>
 	public abstract class GCodeStreamProxy : GCodeStream
 	{
 		protected GCodeStream internalStream;

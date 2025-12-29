@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2017, Lars Brubaker, John Lewin
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,13 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream wrapper that applies an extrusion multiplier to all extrusion commands, adjusting the
+	/// amount of filament extruded according to a specified ratio.
+	/// </summary>
+	/// <remarks>This stream is typically used in 3D printing scenarios where fine-tuning of extrusion is required
+	/// without modifying the original G-code file. The extrusion ratio can be set dynamically to compensate for filament
+	/// characteristics or printer calibration. This class is not thread-safe.</remarks>
 	public class ExtrusionMultiplierStream : GCodeStreamProxy
 	{
 		private double currentActualExtrusionPosition = 0;

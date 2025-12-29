@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,14 @@ using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides an abstract base class for processing and streaming G-code lines, enabling transformation, filtering, or
+	/// augmentation of G-code commands for 3D printers or CNC devices.
+	/// </summary>
+	/// <remarks>GCodeStream is designed to be extended to implement custom G-code processing pipelines. Derived
+	/// classes can modify, filter, or analyze G-code as it passes through the stream. This class supports chaining of
+	/// multiple GCodeStream instances, allowing complex processing scenarios. Implementations should ensure thread safety
+	/// if used concurrently.</remarks>
 	public abstract class GCodeStream : IDisposable
 	{
 		/// <summary>

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,15 @@ either expressed or implied, of the FreeBSD Project.
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Converts relative G-code movement commands to absolute coordinates, ensuring all movement and extrusion commands
+	/// are sent in absolute mode to the printer.
+	/// </summary>
+	/// <remarks>This stream intercepts G-code lines and rewrites relative movement (G91) and extrusion (M83)
+	/// commands as absolute (G90, M82), so that downstream consumers or printers always receive absolute positioning. This
+	/// is useful for printers or firmware that require absolute coordinates, or for simplifying downstream processing. The
+	/// stream ensures that G90 and M82 commands are sent only once and suppresses further relative mode
+	/// commands.</remarks>
 	public class RelativeToAbsoluteStream : GCodeStreamProxy
 	{
 		protected PrinterMove lastDestination = PrinterMove.Unknown;

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2015, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,17 @@ either expressed or implied, of the FreeBSD Project.
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using MatterControl.Printing;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream proxy that processes outgoing G-code lines using regular expressions to perform write-time
+	/// replacements based on printer configuration settings.
+	/// </summary>
+	/// <remarks>This stream intercepts each line of G-code before it is sent to the printer and applies any
+	/// configured write-line regular expression replacements. If a replacement results in multiple output lines,
+	/// additional lines are queued for subsequent processing. This class is typically used to support advanced printer
+	/// scripting or macro expansion scenarios where G-code output must be dynamically modified.</remarks>
 	public class ProcessWriteRegexStream : GCodeStreamProxy
 	{
 		public static Regex GetQuotedParts { get; } = new Regex(@"([""'])(\\?.)*?\1", RegexOptions.Compiled);

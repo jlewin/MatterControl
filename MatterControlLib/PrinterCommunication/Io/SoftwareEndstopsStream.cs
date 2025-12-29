@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2014, Lars Brubaker
+Copyright (c) 2025, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,15 @@ using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
 {
+	/// <summary>
+	/// Provides a G-code stream wrapper that enforces software endstops, preventing movement commands from exceeding the
+	/// printer's configured physical boundaries.
+	/// </summary>
+	/// <remarks>This stream monitors printer configuration and homing events to dynamically update movement limits
+	/// based on current settings and homing positions. It is typically used to ensure that generated G-code does not
+	/// instruct the printer to move outside of its safe operating area, regardless of the source G-code. The stream
+	/// automatically adapts to changes in bed size, print center, build height, and bed shape settings, as well as homing
+	/// position changes.</remarks>
 	public class SoftwareEndstopsStream : GCodeStreamProxy
 	{
 		private PrinterMove lastDestination = PrinterMove.Unknown;
