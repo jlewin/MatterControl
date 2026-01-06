@@ -201,17 +201,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private double actualBedTemperature;
 
+		private int requestedExtruderIndex = 0;
+
 		public int ActiveExtruderIndex
 		{
-			get
-			{
-				if (toolChangeStream != null)
-				{
-					return toolChangeStream.RequestedTool;
-				}
-
-				return 0;
-			}
+			get => requestedExtruderIndex;
+			private set => requestedExtruderIndex = value;
 		}
 
 		private readonly double[] actualHotendTemperature = new double[MaxExtruders];
@@ -240,7 +235,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private PauseHandlingStream pauseHandlingStream = null;
 		private QueuedCommandsStream queuedCommandStream = null;
 		private MaxLengthStream maxLengthStream;
-		private ToolChangeStream toolChangeStream;
 		private PrintLevelingStream printLevelingStream = null;
 		private WaitForTempStream waitForTempStream = null;
 
@@ -2458,7 +2452,12 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 			if (ExtruderCount > 1)
 			{
-				accumulatedStream = toolChangeStream = new ToolChangeStream(Printer, accumulatedStream, queuedCommandStream, gCodeFileSwitcher);
+				accumulatedStream = new ToolChangeStream(
+					Printer, 
+					accumulatedStream, 
+					queuedCommandStream, 
+					gCodeFileSwitcher,
+					(requestedTool) => this.ActiveExtruderIndex = requestedTool);
 				accumulatedStream = new ToolSpeedMultiplierStream(Printer, accumulatedStream);
 			}
 

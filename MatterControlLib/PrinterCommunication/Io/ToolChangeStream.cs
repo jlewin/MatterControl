@@ -58,10 +58,24 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		private Vector3 preSwitchPosition;
 		private readonly IGCodeLineReader gcodeLineReader;
 		private readonly QueuedCommandsStream queuedCommandsStream;
+		private readonly Action<int> onRequestedToolChanged;
 
 		private GCodeMemoryFile gCodeMemoryFile => gcodeLineReader?.GCodeFile as GCodeMemoryFile;
 
-		public int RequestedTool { get; set; }
+		public int RequestedTool 
+		{ 
+			get => _requestedTool;
+			private set
+			{
+				if (_requestedTool != value)
+				{
+					_requestedTool = value;
+					onRequestedToolChanged?.Invoke(value);
+				}
+			}
+		}
+
+		private int _requestedTool;
 
 		private enum SendStates
 		{
@@ -85,12 +99,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		private readonly double[] targetTemps = new double[4];
 		private readonly Queue<string> queuedCommands = new Queue<string>();
 
-		public ToolChangeStream(PrinterConfig printer, GCodeStream internalStream, QueuedCommandsStream queuedCommandsStream, IGCodeLineReader gcodeLineReader)
+		public ToolChangeStream(PrinterConfig printer, GCodeStream internalStream, QueuedCommandsStream queuedCommandsStream, IGCodeLineReader gcodeLineReader, Action<int> onRequestedToolChanged)
 			: base(printer, internalStream)
 		{
 			this.gcodeLineReader = gcodeLineReader;
 
 			this.queuedCommandsStream = queuedCommandsStream;
+			this.onRequestedToolChanged = onRequestedToolChanged;
 			extruderCount = printer.Settings.GetValue<int>(SettingsKey.extruder_count);
 			activeTool = printer.Connection.ActiveExtruderIndex;
 		}
