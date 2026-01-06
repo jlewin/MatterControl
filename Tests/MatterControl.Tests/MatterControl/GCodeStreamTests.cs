@@ -852,7 +852,7 @@ namespace MatterControl.Tests.MatterControl
 
 			Assert.AreEqual("G1 X10 F1000", line, "FeedRate should remain unchanged when FeedRateRatio is 1.0");
 
-			gcodeStream.FeedRateRatio = 2;
+			printer.Connection.RuntimeFeedRateRatio = 2;
 
 			line = gcodeStream.ReadLine();
 			Assert.AreEqual("G1 Y5 F2000", line, "FeedRate should scale from F1000 to F2000 when FeedRateRatio is 2x");
@@ -874,7 +874,7 @@ namespace MatterControl.Tests.MatterControl
 
 			Assert.AreEqual("G1 E10", line, "ExtrusionMultiplier should remain unchanged when FeedRateRatio is 1.0");
 
-			gcodeStream.ExtrusionRatio = 2;
+			printer.Connection.RuntimeExtrusionRatio = 2;
 
 			line = gcodeStream.ReadLine();
 

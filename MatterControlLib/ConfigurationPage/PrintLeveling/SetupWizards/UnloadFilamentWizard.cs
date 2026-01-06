@@ -99,8 +99,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					temps);
 			}
 
-			var extrusionMultiplierStream = printer.Connection.ExtrusionMultiplierStream;
-			var oldExtrusionMultiplier = extrusionMultiplierStream.ExtrusionRatio;
+			var oldExtrusionMultiplier = printer.Connection.RuntimeExtrusionRatio;
 
 			// show the unloading filament progress bar
 			{
@@ -111,7 +110,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				{
 					PageLoad = (page) =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = 1;
+						printer.Connection.RuntimeExtrusionRatio = 1;
 
 						page.NextButton.Enabled = false;
 
@@ -208,7 +207,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					},
 					PageClose = () =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = oldExtrusionMultiplier;
+						printer.Connection.RuntimeExtrusionRatio = oldExtrusionMultiplier;
 
 						UiThread.ClearInterval(runningGCodeCommands);
 					}

@@ -175,8 +175,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 
 			// reset the extrusion amount so this is easier to debug
 			printer.Connection.QueueLine("G92 E0");
-			var extrusionMultiplierStream = printer.Connection.ExtrusionMultiplierStream;
-			var oldExtrusionMultiplier = extrusionMultiplierStream.ExtrusionRatio;
+			var oldExtrusionMultiplier = printer.Connection.RuntimeExtrusionRatio;
 
 			// show the insert filament page
 			{
@@ -185,7 +184,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				{
 					PageLoad = (page) =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = 1;
+						printer.Connection.RuntimeExtrusionRatio = 1;
 
 						var markdownText = printer.Settings.GetValue(SettingsKey.insert_filament_markdown2);
 
@@ -225,7 +224,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					},
 					PageClose = () =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = oldExtrusionMultiplier;
+						printer.Connection.RuntimeExtrusionRatio = oldExtrusionMultiplier;
 
 						if (runningGCodeCommands != null)
 						{
@@ -251,7 +250,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				{
 					PageLoad = (page) =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = 1;
+						printer.Connection.RuntimeExtrusionRatio = 1;
 
 						page.NextButton.Enabled = false;
 
@@ -329,7 +328,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					},
 					PageClose = () =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = oldExtrusionMultiplier;
+						printer.Connection.RuntimeExtrusionRatio = oldExtrusionMultiplier;
 
 						UiThread.ClearInterval(runningGCodeCommands);
 					}
@@ -366,7 +365,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 				{
 					PageLoad = (page) =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = 1;
+						printer.Connection.RuntimeExtrusionRatio = 1;
 
 						var markdownText = printer.Settings.GetValue(SettingsKey.running_clean_markdown2);
 
@@ -401,7 +400,7 @@ namespace MatterHackers.MatterControl.ConfigurationPage.PrintLeveling
 					},
 					PageClose = () =>
 					{
-						extrusionMultiplierStream.ExtrusionRatio = oldExtrusionMultiplier;
+						printer.Connection.RuntimeExtrusionRatio = oldExtrusionMultiplier;
 
 						UiThread.ClearInterval(runningGCodeCommands);
 					}

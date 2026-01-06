@@ -89,13 +89,15 @@ namespace MatterHackers.MatterControl.PrinterControls
 				};
 				feedRateRatioSlider.SliderReleased += (s, e) =>
 				{
+					var feedRateRatio = Math.Round(feedRateRatioSlider.Value, 2);
+					
 					// Update state for runtime use
-					printer.Connection.FeedRateMultiplierStream.FeedRateRatio = Math.Round(feedRateRatioSlider.Value, 2);
+					printer.Connection.RuntimeFeedRateRatio = feedRateRatio;
 
 					// Persist data for future use
 					printer.Settings.SetValue(
 						SettingsKey.feedrate_ratio,
-						printer.Connection.FeedRateMultiplierStream.FeedRateRatio.ToString());
+						feedRateRatio.ToString());
 				};
 				settingsRow.AddChild(feedRateRatioSlider);
 
@@ -109,14 +111,15 @@ namespace MatterHackers.MatterControl.PrinterControls
 				feedRateValue.ActuallNumberEdit.EditComplete += (sender, e) =>
 				{
 					feedRateRatioSlider.Value = feedRateValue.ActuallNumberEdit.Value;
+					var feedRateRatio = Math.Round(feedRateRatioSlider.Value, 2);
 
 					// Update state for runtime use
-					printer.Connection.FeedRateMultiplierStream.FeedRateRatio = Math.Round(feedRateRatioSlider.Value, 2);
+					printer.Connection.RuntimeFeedRateRatio = feedRateRatio;
 
 					// Persist data for future use
 					printer.Settings.SetValue(
 						SettingsKey.feedrate_ratio,
-						printer.Connection.FeedRateMultiplierStream.FeedRateRatio.ToString());
+						feedRateRatio.ToString());
 				};
 				settingsRow.AddChild(feedRateValue);
 			}
@@ -147,13 +150,15 @@ namespace MatterHackers.MatterControl.PrinterControls
 				};
 				extrusionRatioSlider.SliderReleased += (s, e) =>
 				{
+					var extrusionRatio = Math.Round(extrusionRatioSlider.Value, 2);
+
 					// Update state for runtime use
-					printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio = Math.Round(extrusionRatioSlider.Value, 2);
+					printer.Connection.RuntimeExtrusionRatio = extrusionRatio;
 
 					// Persist data for future use
 					printer.Settings.SetValue(
 						SettingsKey.extrusion_ratio,
-						printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio.ToString());
+						extrusionRatio.ToString());
 				};
 				settingsRow.AddChild(extrusionRatioSlider);
 
@@ -167,14 +172,15 @@ namespace MatterHackers.MatterControl.PrinterControls
 				extrusionValue.ActuallNumberEdit.EditComplete += (sender, e) =>
 				{
 					extrusionRatioSlider.Value = extrusionValue.ActuallNumberEdit.Value;
+					var extrusionRatio = Math.Round(extrusionRatioSlider.Value, 2);
 
 					// Update state for runtime use
-					printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio = Math.Round(extrusionRatioSlider.Value, 2);
+					printer.Connection.RuntimeExtrusionRatio = extrusionRatio;
 
 					// Persist data for future use
 					printer.Settings.SetValue(
 						SettingsKey.extrusion_ratio,
-						printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio.ToString());
+						extrusionRatio.ToString());
 				};
 				settingsRow.AddChild(extrusionValue);
 			}

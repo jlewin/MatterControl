@@ -147,6 +147,10 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		public event EventHandler FirmwareVersionRead;
 
+		public event EventHandler<double> FeedRateRatioChanged;
+
+		public event EventHandler<double> ExtrusionRatioChanged;
+
 		public void OnFilamentRunout(PrintPauseEventArgs printPauseEventArgs)
 		{
 			FilamentRunout?.Invoke(this, printPauseEventArgs);
@@ -203,10 +207,39 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private int requestedExtruderIndex = 0;
 
+		private double _feedRateRatio = 1.0;
+		private double _extrusionRatio = 1.0;
+
 		public int ActiveExtruderIndex
 		{
 			get => requestedExtruderIndex;
 			private set => requestedExtruderIndex = value;
+		}
+
+		public double RuntimeFeedRateRatio
+		{
+			get => _feedRateRatio;
+			set
+			{
+				if (_feedRateRatio != value)
+				{
+					_feedRateRatio = value;
+					FeedRateRatioChanged?.Invoke(this, _feedRateRatio);
+				}
+			}
+		}
+
+		public double RuntimeExtrusionRatio
+		{
+			get => _extrusionRatio;
+			set
+			{
+				if (_extrusionRatio != value)
+				{
+					_extrusionRatio = value;
+					ExtrusionRatioChanged?.Invoke(this, _extrusionRatio);
+				}
+			}
 		}
 
 		private readonly double[] actualHotendTemperature = new double[MaxExtruders];
@@ -2408,6 +2441,10 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 		private void CreateStreamProcessors(Stream gcodeStream = null)
 		{
+			// Initialize runtime ratios from settings
+			_feedRateRatio = Printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
+			_extrusionRatio = Printer.Settings.GetValue<double>(SettingsKey.extrusion_ratio);
+
 			// reset the error detection before each print
 			RegisterReadlineContainsCallbacks();
 
@@ -2481,8 +2518,8 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			accumulatedStream = new BabyStepsStream(Printer, accumulatedStream);
 
 			accumulatedStream = waitForTempStream = new WaitForTempStream(Printer, accumulatedStream);
-			accumulatedStream = ExtrusionMultiplierStream = new ExtrusionMultiplierStream(Printer, accumulatedStream);
-			accumulatedStream = FeedRateMultiplierStream = new FeedRateMultiplierStream(Printer, accumulatedStream);
+			accumulatedStream = new ExtrusionMultiplierStream(Printer, accumulatedStream);
+			accumulatedStream = new FeedRateMultiplierStream(Printer, accumulatedStream);
 			accumulatedStream = new RequestTemperaturesStream(Printer, accumulatedStream);
 
 			if (Printer.Settings.GetValue<bool>(SettingsKey.emulate_endstops))
@@ -2875,9 +2912,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 		public PrintTask ActivePrintTask { get; set; }
 
-		public ExtrusionMultiplierStream ExtrusionMultiplierStream { get; private set; }
-
-		public FeedRateMultiplierStream FeedRateMultiplierStream { get; private set; }
 		public bool WaitingToPause => pauseHandlingStream?.WaitingToPause == true;
 
 		public void TurnOffPartCoolingFan()

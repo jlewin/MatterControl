@@ -28,6 +28,7 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using MatterControl.Printing;
+using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.SlicerConfiguration;
 
 namespace MatterHackers.MatterControl.PrinterCommunication.Io
@@ -43,16 +44,29 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	{
 		private double currentActualExtrusionPosition = 0;
 		private double previousGcodeRequestedExtrusionPosition = 0;
+		private double extrusionRatio;
 
 		public ExtrusionMultiplierStream(PrinterConfig printer, GCodeStream internalStream)
 			: base(printer, internalStream)
 		{
-			ExtrusionRatio = printer.Settings.GetValue<double>(SettingsKey.extrusion_ratio);
+			extrusionRatio = printer.Settings.GetValue<double>(SettingsKey.extrusion_ratio);
+			printer.Connection.ExtrusionRatioChanged += Connection_ExtrusionRatioChanged;
 		}
 
-		public double ExtrusionRatio { get; set; }
+		public double ExtrusionRatio => extrusionRatio;
 
-		public override string DebugInfo => $"ExtrusionRatio = {ExtrusionRatio}";
+		public override string DebugInfo => $"ExtrusionRatio = {extrusionRatio}";
+
+		private void Connection_ExtrusionRatioChanged(object sender, double e)
+		{
+			this.extrusionRatio = e;
+		}
+
+		public override void Dispose()
+		{
+			printer.Connection.ExtrusionRatioChanged -= Connection_ExtrusionRatioChanged;
+			base.Dispose();
+		}
 
 		public override string ReadLine()
 		{
@@ -76,7 +90,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 					if (GCodeFile.GetFirstNumberAfter("E", lineBeingSent, ref gcodeRequestedExtrusionPosition))
 					{
 						double delta = gcodeRequestedExtrusionPosition - previousGcodeRequestedExtrusionPosition;
-						double newActualExtruderPosition = currentActualExtrusionPosition + delta * ExtrusionRatio;
+						double newActualExtruderPosition = currentActualExtrusionPosition + delta * extrusionRatio;
 						lineBeingSent = GCodeFile.ReplaceNumberAfter('E', lineBeingSent, newActualExtruderPosition);
 						previousGcodeRequestedExtrusionPosition = gcodeRequestedExtrusionPosition;
 						currentActualExtrusionPosition = newActualExtruderPosition;

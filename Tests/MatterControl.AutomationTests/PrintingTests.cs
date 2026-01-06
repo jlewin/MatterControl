@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,18 @@ using TestInvoker;
 
 namespace MatterHackers.MatterControl.Tests.Automation
 {
+	public static class StreamExtensions
+	{
+		public static IEnumerable<GCodeStreamProxy> AsStack(this GCodeStream current)
+		{
+			while (current is GCodeStreamProxy stream)
+			{
+				yield return stream;
+				current = stream.InternalStream as GCodeStreamProxy;
+			}
+		}
+	}
+
 	[TestFixture, Category("MatterControl.UI.Automation"), Parallelizable(ParallelScope.Children)]
 	public class PrintingTests
 	{
@@ -787,13 +800,16 @@ namespace MatterHackers.MatterControl.Tests.Automation
 			Assert.AreEqual(targetFeedRate, slider.Value, $"Unexpected Feed Rate Slider Value - {scope}");
 
 			var printer = testRunner.FirstPrinter();
+			var streamStack = printer.Connection.TotalGCodeStream.AsStack();
+			var extrusionMultiplierStream = streamStack.OfType<ExtrusionMultiplierStream>().FirstOrDefault();
+			var feedRateMultiplierStream = streamStack.OfType<FeedRateMultiplierStream>().FirstOrDefault();
 
 			// Assert the changes took effect on the model
-			testRunner.WaitFor(() => targetExtrusionRate == printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio);
-			Assert.AreEqual(targetExtrusionRate, printer.Connection.ExtrusionMultiplierStream.ExtrusionRatio, $"Unexpected Extrusion Rate - {scope}");
+			testRunner.WaitFor(() => targetExtrusionRate == extrusionMultiplierStream.ExtrusionRatio);
+			Assert.AreEqual(targetExtrusionRate, extrusionMultiplierStream.ExtrusionRatio, $"Unexpected Extrusion Rate - {scope}");
 
-			testRunner.WaitFor(() => targetFeedRate == printer.Connection.FeedRateMultiplierStream.FeedRateRatio);
-			Assert.AreEqual(targetFeedRate, printer.Connection.FeedRateMultiplierStream.FeedRateRatio, $"Unexpected Feed Rate - {scope}");
+			testRunner.WaitFor(() => targetFeedRate == feedRateMultiplierStream.FeedRateRatio);
+			Assert.AreEqual(targetFeedRate, feedRateMultiplierStream.FeedRateRatio, $"Unexpected Feed Rate - {scope}");
 		}
 	}
 }

@@ -45,20 +45,35 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	{
 		private PrinterMove lastDestination = PrinterMove.Unknown;
 
+		private double feedRateRatio;
+
 		public FeedRateMultiplierStream(PrinterConfig printer, GCodeStream internalStream)
 			: base(printer, internalStream)
 		{
-			FeedRateRatio = printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
-		}
+			feedRateRatio = printer.Settings.GetValue<double>(SettingsKey.feedrate_ratio);
 
-		public double FeedRateRatio { get; set; }
+			printer.Connection.FeedRateRatioChanged += Connection_FeedRateRatioChanged;
+		}
+		
+		public double FeedRateRatio => feedRateRatio;	
 
 		public override string DebugInfo => $"Last Destination = {lastDestination}";
+
+		private void Connection_FeedRateRatioChanged(object sender, double e)
+		{
+			feedRateRatio = e;
+		}
 
 		public override void SetPrinterPosition(PrinterMove position)
 		{
 			this.lastDestination.CopyKnowSettings(position);
 			internalStream.SetPrinterPosition(this.lastDestination);
+		}
+
+		public override void Dispose()
+		{
+			printer.Connection.FeedRateRatioChanged -= Connection_FeedRateRatioChanged;
+			base.Dispose();
 		}
 
 		public override string ReadLine()
