@@ -114,6 +114,14 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 					if (currentDestination.FullyKnown)
 					{
+						// If lastDestination is unknown, initialize it to currentDestination before calculating delta
+						// to avoid issues with PositiveInfinity values
+						if (!lastDestination.FullyKnown)
+						{
+							lastDestination = currentDestination;
+							return lineToSend;
+						}
+
 						PrinterMove deltaToDestination = currentDestination - lastDestination;
 						deltaToDestination.feedRate = 0; // remove the changing of the federate (we'll set it initially)
 						double lengthSquared = Math.Max(deltaToDestination.LengthSquared, deltaToDestination.extrusion * deltaToDestination.extrusion);
