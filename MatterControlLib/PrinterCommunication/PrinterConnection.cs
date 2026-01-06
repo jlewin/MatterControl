@@ -2494,9 +2494,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			accumulatedStream = pauseHandlingStream = new PauseHandlingStream(Printer, accumulatedStream);
 			accumulatedStream = new RunSceneGCodeProcesorsStream(Printer, accumulatedStream, queuedCommandStream);
 			accumulatedStream = new RemoveNOPsStream(Printer, accumulatedStream);
-
-			processWriteRegexStream = new ProcessWriteRegexStream(Printer, accumulatedStream, queuedCommandStream);
-			accumulatedStream = processWriteRegexStream;
+			accumulatedStream = new ProcessWriteRegexStream(Printer, accumulatedStream, queuedCommandStream); ;
 
 			totalGCodeStream = accumulatedStream;
 
@@ -3157,7 +3155,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 		private int currentReadThreadIndex = 0;
 		private Vector3 _homingPosition = Vector3.NegativeInfinity;
 		private int noOkResendCount;
-		private ProcessWriteRegexStream processWriteRegexStream;
 		private bool cancelPrintNextWriteLine;
         private ValidatePrintLevelingStream validatePrintLevelingStream;
 
