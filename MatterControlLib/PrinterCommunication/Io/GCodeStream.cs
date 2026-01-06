@@ -60,6 +60,10 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 		{
 		}
 
+		public virtual void Cancel()
+		{
+		}
+
 		private readonly bool useG0ForMovement = false;
 
 		protected PrinterConfig printer { get; }

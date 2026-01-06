@@ -267,7 +267,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private GCodeSwitcher gCodeFileSwitcher = null;
 		private PauseHandlingStream pauseHandlingStream = null;
 		private QueuedCommandsStream queuedCommandStream = null;
-		private MaxLengthStream maxLengthStream;
 		private PrintLevelingStream printLevelingStream = null;
 		private WaitForTempStream waitForTempStream = null;
 
@@ -2338,7 +2337,9 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				// Flag as canceled
 				this.cancelPrintNextWriteLine = true;
 
-				CancelInProgressStreamProcessors();
+				// Cancel in progress stream processors
+				totalGCodeStream.Cancel();
+
 				// get rid of all the gcode we have left to print
 				ClearQueuedGCode();
 
@@ -2499,7 +2500,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			}
 
 			bool enableLineSplitting = gcodeStream != null && Printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting);
-			accumulatedStream = maxLengthStream = new MaxLengthStream(Printer, accumulatedStream, enableLineSplitting ? 1 : 2000);
+			accumulatedStream = new MaxLengthStream(Printer, accumulatedStream, enableLineSplitting ? 1 : 2000);
 
 			var doValidateLeveling = Printer.Settings.Helpers.ValidateLevelingWithProbe;
 			if (!LevelingPlan.NeedsToBeRun(Printer)
@@ -2509,7 +2510,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					&& doValidateLeveling)
 				{
 					// make sure we don't validate the leveling while recovering a print
-					accumulatedStream = validatePrintLevelingStream = new ValidatePrintLevelingStream(Printer, accumulatedStream);
+					accumulatedStream = new ValidatePrintLevelingStream(Printer, accumulatedStream);
 				}
 
 				accumulatedStream = printLevelingStream = new PrintLevelingStream(Printer, accumulatedStream);
@@ -3172,14 +3173,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			queuedCommandStream?.Reset();
 		}
 
-		public void CancelInProgressStreamProcessors()
-		{
-			maxLengthStream?.Cancel();
-			waitForTempStream?.Cancel();
-			queuedCommandStream?.Cancel();
-			validatePrintLevelingStream?.Cancel();
-		}
-
 		public void Dispose()
 		{
 			TerminalLog.Dispose();
@@ -3190,7 +3183,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 		private Vector3 _homingPosition = Vector3.NegativeInfinity;
 		private int noOkResendCount;
 		private bool cancelPrintNextWriteLine;
-        private ValidatePrintLevelingStream validatePrintLevelingStream;
 
         public class ReadThread
 		{

@@ -81,9 +81,10 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public override string DebugInfo => "";
 
-		public void Cancel()
+		public override void Cancel()
 		{
 			state = State.Passthrough;
+			base.Cancel();
 		}
 
 		public override string ReadLine()

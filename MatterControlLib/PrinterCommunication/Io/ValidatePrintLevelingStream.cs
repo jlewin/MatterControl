@@ -138,9 +138,10 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
-		public void Cancel()
+		public override void Cancel()
 		{
 			CancelValidation();
+			base.Cancel();
 		}
 
 		public override string ReadLine()

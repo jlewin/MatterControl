@@ -78,12 +78,14 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public override string DebugInfo => $"Last Destination = {lastDestination}";
 
-		public void Cancel()
+		public override void Cancel()
 		{
 			lock (movesToSend)
 			{
 				movesToSend.Clear();
 			}
+
+			base.Cancel();
 		}
 
 		public override string ReadLine()
