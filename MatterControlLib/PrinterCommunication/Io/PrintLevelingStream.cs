@@ -44,7 +44,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	/// should be inserted into the G-code stream before any streams that apply baby stepping or similar Z-axis
 	/// adjustments. Software leveling is only applied if enabled in the printer settings and hardware leveling is not
 	/// active.</remarks>
-	public class PrintLevelingStream : GCodeStreamProxy
+	public class PrintLevelingStream : GCodeStreamProxy, ILevelingTarget
 	{
 		private LevelingFunctions currentLevelingFunctions = null;
 		private Vector3 currentProbeZOffset;

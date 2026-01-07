@@ -283,9 +283,9 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private GCodeSwitcher gCodeFileSwitcher = null;
 		private QueuedCommandsStream queuedCommandStream = null;
-		private PrintLevelingStream printLevelingStream = null;
 		private IHeatableTarget heatableTarget = null;
 		private IPausableTarget pausableTarget = null;
+		private ILevelingTarget levelingTarget = null;
 
 		private GCodeStream totalGCodeStream = null;
 
@@ -2530,7 +2530,9 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					accumulatedStream = new ValidatePrintLevelingStream(Printer, accumulatedStream);
 				}
 
-				accumulatedStream = printLevelingStream = new PrintLevelingStream(Printer, accumulatedStream);
+				var printLevelingStream = new PrintLevelingStream(Printer, accumulatedStream);
+				levelingTarget = printLevelingStream;
+				accumulatedStream = printLevelingStream;
 			}
 
 			accumulatedStream = new BabyStepsStream(Printer, accumulatedStream);
@@ -2889,9 +2891,9 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 		{
 			get
 			{
-				if (printLevelingStream != null)
+				if (levelingTarget != null)
 				{
-					return printLevelingStream.AllowLeveling;
+					return levelingTarget.AllowLeveling;
 				}
 
 				return false;
@@ -2899,9 +2901,9 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 			set
 			{
-				if (printLevelingStream != null)
+				if (levelingTarget != null)
 				{
-					printLevelingStream.AllowLeveling = value;
+					levelingTarget.AllowLeveling = value;
 				}
 				else if (value)
 				{
