@@ -50,7 +50,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	/// reaching a specified layer or detecting filament runout. The class maintains the printer's position at the time of
 	/// pause and ensures proper state restoration upon resume. Thread safety is maintained for command queue
 	/// operations.</remarks>
-	public class PauseHandlingStream : GCodeStreamProxy
+	public class PauseHandlingStream : GCodeStreamProxy, IPausableTarget
 	{
 		internal class PositionSensorData
 		{
@@ -183,12 +183,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		private long lastSendTimeMs;
 
-		public void DoPause(PauseReason pauseReason)
+		public void Pause(PauseReason pauseReason)
 		{
-  			DoPause(pauseReason, -1);
+  			Pause(pauseReason, -1);
 		}
 
-		public void DoPause(PauseReason pauseReason, int layerNumber)
+		public void Pause(PauseReason pauseReason, int layerNumber)
 		{
 			switch (pauseReason)
 			{
@@ -278,7 +278,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 				if (PauseOnLayer(layerNumber))
 				{
-					this.DoPause(
+					this.Pause(
 						PauseReason.PauseLayerReached,
 						// make the layer 1 based (the internal code is 0 based)
 						layerNumber + 1);
@@ -287,7 +287,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			else if (lineToSend.StartsWith("M226")
 				|| lineToSend.StartsWith("@pause"))
 			{
-				DoPause(PauseReason.GCodeRequest);
+				Pause(PauseReason.GCodeRequest);
 				lineToSend = "";
 			}
 			else if (lineToSend == "MH_PAUSE")
@@ -308,7 +308,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			else if (readOutOfFilament)
 			{
 				readOutOfFilament = false;
-				DoPause(PauseReason.FilamentRunout);
+				Pause(PauseReason.FilamentRunout);
 				lineToSend = "";
 			}
 

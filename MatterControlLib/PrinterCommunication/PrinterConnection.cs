@@ -213,8 +213,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private double _extrusionRatio = 1.0;
 		private bool _waitingToPause = false;
 
-		private Action<PauseHandlingStream.PauseReason> _pauseAction;
-		private Action _resumeAction;
 
 		public int ActiveExtruderIndex
 		{
@@ -287,6 +285,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private QueuedCommandsStream queuedCommandStream = null;
 		private PrintLevelingStream printLevelingStream = null;
 		private IHeatableTarget heatableTarget = null;
+		private IPausableTarget pausableTarget = null;
 
 		private GCodeStream totalGCodeStream = null;
 
@@ -2007,7 +2006,8 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					QueueLine("M25"); // : Pause SD print
 					return;
 				}
-				_pauseAction?.Invoke(PauseHandlingStream.PauseReason.UserRequested);
+
+				pausableTarget?.Pause(PauseHandlingStream.PauseReason.UserRequested);
 			}
 		}
 
@@ -2035,7 +2035,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				}
 				else
 				{
-					_resumeAction?.Invoke();
+					pausableTarget?.Resume();
 					CommunicationState = CommunicationStates.Printing;
 				}
 			}
@@ -2550,8 +2550,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			}
 
 			var pauseHandlingStream = new PauseHandlingStream(Printer, accumulatedStream);
-			_pauseAction = pauseHandlingStream.DoPause;
-			_resumeAction = pauseHandlingStream.Resume;
+			pausableTarget = pauseHandlingStream;
 
 			accumulatedStream = pauseHandlingStream;
 			accumulatedStream = new RunSceneGCodeProcesorsStream(Printer, accumulatedStream, queuedCommandStream);
