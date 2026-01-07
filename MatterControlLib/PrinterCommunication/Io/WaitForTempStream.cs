@@ -41,7 +41,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	/// control when printing proceeds after temperature changes. It is useful for printers or firmware that require more
 	/// precise or customized temperature stabilization behavior. The class is typically used as part of a G-code
 	/// processing pipeline and is not intended for direct use outside of such contexts.</remarks>
-	public class WaitForTempStream : GCodeStreamProxy
+	public class WaitForTempStream : GCodeStreamProxy, IHeatableTarget
 	{
 		/// <summary>
 		/// Gets or sets the number of seconds to wait after reaching the target temp before continuing. Analogous to

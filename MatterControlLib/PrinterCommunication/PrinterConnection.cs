@@ -286,7 +286,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private GCodeSwitcher gCodeFileSwitcher = null;
 		private QueuedCommandsStream queuedCommandStream = null;
 		private PrintLevelingStream printLevelingStream = null;
-		private WaitForTempStream waitForTempStream = null;
+		private IHeatableTarget heatableTarget = null;
 
 		private GCodeStream totalGCodeStream = null;
 
@@ -2535,7 +2535,10 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 			accumulatedStream = new BabyStepsStream(Printer, accumulatedStream);
 
-			accumulatedStream = waitForTempStream = new WaitForTempStream(Printer, accumulatedStream);
+			var waitForTempStream = new WaitForTempStream(Printer, accumulatedStream);
+			heatableTarget = waitForTempStream;
+
+			accumulatedStream = waitForTempStream;
 			accumulatedStream = new ExtrusionMultiplierStream(Printer, accumulatedStream);
 			accumulatedStream = new FeedRateMultiplierStream(Printer, accumulatedStream);
 			accumulatedStream = new RequestTemperaturesStream(Printer, accumulatedStream);
@@ -2666,19 +2669,19 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				timePrinting.Stop();
 				DetailedPrintingState = DetailedPrintingState.HomingAxis;
 			}
-			else if (waitForTempStream?.HeatingBed ?? false)
+			else if (heatableTarget?.HeatingBed ?? false)
 			{
 				// don't time the heating bed operation
 				timePrinting.Stop();
 				DetailedPrintingState = DetailedPrintingState.HeatingBed;
 			}
-			else if (waitForTempStream?.HeatingT0 ?? false)
+			else if (heatableTarget?.HeatingT0 ?? false)
 			{
 				// don't time the heating extruder operation
 				timePrinting.Stop();
 				DetailedPrintingState = DetailedPrintingState.HeatingT0;
 			}
-			else if (waitForTempStream?.HeatingT1 ?? false)
+			else if (heatableTarget?.HeatingT1 ?? false)
 			{
 				// don't time the heating extruder operation
 				timePrinting.Stop();
