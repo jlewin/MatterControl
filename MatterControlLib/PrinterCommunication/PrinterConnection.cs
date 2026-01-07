@@ -2438,6 +2438,39 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			return false;
 		}
 
+
+		private static ConnectionProcessing LightProcessingPipeline(Stream gcodeStream, PrintTask activePrintTask, PrinterConfig printer)
+		{
+			GCodeStream accumulatedStream;
+			GCodeSwitcher gCodeFileSwitcher = null;
+
+			var connection = printer.Connection;
+
+			if (gcodeStream != null)
+			{
+				gCodeFileSwitcher = new GCodeSwitcher(gcodeStream, printer);
+				accumulatedStream = new SendProgressStream(gCodeFileSwitcher, printer);
+			}
+			else
+			{
+				gCodeFileSwitcher = null;
+				accumulatedStream = new NotPrintingStream(printer);
+			}
+
+			var queuedCommandStream = new QueuedCommandsStream(printer, accumulatedStream);
+			accumulatedStream = queuedCommandStream;
+
+			var pauseHandlingStream = new PauseHandlingStream(printer, accumulatedStream);
+			accumulatedStream = pauseHandlingStream;
+
+			return new ConnectionProcessing()
+			{
+				StreamPipeline = accumulatedStream,
+				PausableTarget = pauseHandlingStream,
+				QueuedCommands = queuedCommandStream,
+			};
+		}
+
 		private static ConnectionProcessing DefaultProcessingPipeline(Stream gcodeStream, PrintTask activePrintTask, PrinterConfig printer)
 		{
 			GCodeStream accumulatedStream;
@@ -3179,7 +3212,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			}
 		}
 
-		public Func<Stream, PrintTask, PrinterConfig, ConnectionProcessing> StreamPipelineBuilder { get; set; } = DefaultProcessingPipeline;
+		public Func<Stream, PrintTask, PrinterConfig, ConnectionProcessing> StreamPipelineBuilder { get; set; } = LightProcessingPipeline; // DefaultProcessingPipeline;
 
 		public void MacroStart()
 		{
