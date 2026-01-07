@@ -267,10 +267,11 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private PrinterMove lastReportedPosition = PrinterMove.Unknown;
 
 		private GCodeSwitcher gCodeFileSwitcher = null;
-		private QueuedCommandsStream queuedCommandStream = null;
+		private IQueuedCommands queuedCommands = null;
 		private IHeatableTarget heatableTarget = null;
 		private IPausableTarget pausableTarget = null;
 		private ILevelingTarget levelingTarget = null;
+
 
 		private GCodeStream totalGCodeStream = null;
 
@@ -1794,7 +1795,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 		public void ReadPosition(PositionReadType positionReadType = PositionReadType.Other, bool forceToTopOfQueue = false)
 		{
-			var nextIssue = queuedCommandStream.Peek();
+			var nextIssue = queuedCommands.Peek();
 			if (nextIssue == null
 				|| nextIssue != "M114")
 			{
@@ -2066,7 +2067,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					if (lineToWrite.Trim().Length > 0)
 					{
 						// insert the command into the printing queue at the head
-						queuedCommandStream?.Add(lineToWrite, forceTopOfQueue);
+						queuedCommands?.Add(lineToWrite, forceTopOfQueue);
 					}
 				}
 			}
@@ -2483,7 +2484,9 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				accumulatedStream = new NotPrintingStream(Printer);
 			}
 
-			accumulatedStream = queuedCommandStream = new QueuedCommandsStream(Printer, accumulatedStream);
+			var queuedCommandStream = new QueuedCommandsStream(Printer, accumulatedStream);
+			queuedCommands = queuedCommandStream;
+			accumulatedStream = queuedCommandStream;
 
 			// ensure that our read-line replacements are updated at the same time we build our write line replacements
 			InitializeReadLineReplacements();
@@ -2859,18 +2862,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			}
 		}
 
-		public int NumQueuedCommands
-		{
-			get
-			{
-				if (queuedCommandStream != null)
-				{
-					return queuedCommandStream.Count;
-				}
-
-				return 0;
-			}
-		}
+		public int NumQueuedCommands => queuedCommands?.Count ?? 0;
 
 		public bool AllowLeveling
 		{
@@ -3178,7 +3170,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 		public void MacroStart()
 		{
-			queuedCommandStream?.Reset();
+			queuedCommands?.Clear();
 		}
 
 		public void Dispose()

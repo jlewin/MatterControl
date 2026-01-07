@@ -40,7 +40,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 	/// callers to add, inspect, or clear commands in the queue. This is useful for scenarios where commands need to be
 	/// injected or reordered during streaming, such as for pause, resume, or custom control operations. Thread safety is
 	/// ensured for queue operations.</remarks>
-	public class QueuedCommandsStream : GCodeStreamProxy
+	public class QueuedCommandsStream : GCodeStreamProxy, IQueuedCommands
 	{
 		private List<string> commandQueue = new List<string>();
 		private object locker = new object();
@@ -121,7 +121,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public override void Cancel()
 		{
-			Reset();
+			Clear();
 			base.Cancel();
 		}
 
@@ -148,7 +148,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			return lineToSend;
 		}
 
-		public void Reset()
+		public void Clear()
 		{
 			lock (locker)
 			{
