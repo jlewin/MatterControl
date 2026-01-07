@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker, John Lewin
+Copyright (c) 2026, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterControl.Printing;
+using MatterControlLib.PrinterCommunication;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
@@ -2437,6 +2438,102 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			return false;
 		}
 
+		private static ConnectionProcessing DefaultProcessingPipeline(Stream gcodeStream, PrintTask activePrintTask, PrinterConfig printer)
+		{
+			GCodeStream accumulatedStream;
+			GCodeSwitcher gCodeFileSwitcher = null;
+			PrintLevelingStream printLevelingStream = null;
+
+			var connection = printer.Connection;
+
+			var doingPrintRecovery = connection.RecoveryIsEnabled && activePrintTask != null;
+			if (gcodeStream != null)
+			{
+				gCodeFileSwitcher = new GCodeSwitcher(gcodeStream, printer);
+
+				if (doingPrintRecovery) // We are resuming a failed print (do lots of interesting stuff).
+				{
+					accumulatedStream = new SendProgressStream(new PrintRecoveryStream(gCodeFileSwitcher, printer, activePrintTask.PercentDone), printer);
+					// And increment the recovery count
+					activePrintTask.RecoveryCount++;
+					activePrintTask.CommitAndPushToServer();
+				}
+				else
+				{
+					accumulatedStream = new SendProgressStream(gCodeFileSwitcher, printer);
+				}
+			}
+			else
+			{
+				gCodeFileSwitcher = null;
+				accumulatedStream = new NotPrintingStream(printer);
+			}
+
+			var queuedCommandStream = new QueuedCommandsStream(printer, accumulatedStream);
+			accumulatedStream = queuedCommandStream;
+
+			accumulatedStream = new RelativeToAbsoluteStream(printer, accumulatedStream);
+
+			if (connection.ExtruderCount > 1)
+			{
+				accumulatedStream = new ToolChangeStream(
+					printer,
+					accumulatedStream,
+					queuedCommandStream,
+					gCodeFileSwitcher,
+					(requestedTool) => connection.ActiveExtruderIndex = requestedTool);
+				accumulatedStream = new ToolSpeedMultiplierStream(printer, accumulatedStream);
+			}
+
+			bool enableLineSplitting = gcodeStream != null && printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting);
+			accumulatedStream = new MaxLengthStream(printer, accumulatedStream, enableLineSplitting ? 1 : 2000);
+
+			var doValidateLeveling = printer.Settings.Helpers.ValidateLevelingWithProbe;
+			if (!LevelingPlan.NeedsToBeRun(printer)
+				|| doValidateLeveling)
+			{
+				if (!doingPrintRecovery
+					&& doValidateLeveling)
+				{
+					// make sure we don't validate the leveling while recovering a print
+					accumulatedStream = new ValidatePrintLevelingStream(printer, accumulatedStream);
+				}
+
+				printLevelingStream = new PrintLevelingStream(printer, accumulatedStream);
+				accumulatedStream = printLevelingStream;
+			}
+
+			accumulatedStream = new BabyStepsStream(printer, accumulatedStream);
+
+			var waitForTempStream = new WaitForTempStream(printer, accumulatedStream);
+			accumulatedStream = waitForTempStream;
+
+			accumulatedStream = new ExtrusionMultiplierStream(printer, accumulatedStream);
+			accumulatedStream = new FeedRateMultiplierStream(printer, accumulatedStream);
+			accumulatedStream = new RequestTemperaturesStream(printer, accumulatedStream);
+
+			if (printer.Settings.GetValue<bool>(SettingsKey.emulate_endstops))
+			{
+				var softwareEndstopsExStream12 = new SoftwareEndstopsStream(printer, accumulatedStream);
+				accumulatedStream = softwareEndstopsExStream12;
+			}
+
+			var pauseHandlingStream = new PauseHandlingStream(printer, accumulatedStream);
+			accumulatedStream = pauseHandlingStream;
+			accumulatedStream = new RunSceneGCodeProcesorsStream(printer, accumulatedStream, queuedCommandStream);
+			accumulatedStream = new RemoveNOPsStream(printer, accumulatedStream);
+			accumulatedStream = new ProcessWriteRegexStream(printer, accumulatedStream, queuedCommandStream); ;
+
+			return new ConnectionProcessing()
+			{
+				StreamPipeline = accumulatedStream,
+				HeatableTarget = waitForTempStream,
+				PausableTarget = pauseHandlingStream,
+				LevelingTarget = printLevelingStream,
+				QueuedCommands = queuedCommandStream,
+			};
+		}
+
 		private void CreateStreamProcessors(Stream gcodeStream = null)
 		{
 			// Initialize runtime ratios from settings
@@ -2452,95 +2549,16 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			secondsSinceUpdateHistory = 0;
 			lineSinceUpdateHistory = 0;
 
+			// Dispose existing pipeline
 			totalGCodeStream?.Dispose();
-			totalGCodeStream = null;
-			GCodeStream accumulatedStream;
-			GCodeSwitcher gCodeFileSwitcher = null;
-
-			var doingPrintRecovery = this.RecoveryIsEnabled && ActivePrintTask != null;
-			if (gcodeStream != null)
-			{
-				gCodeFileSwitcher = new GCodeSwitcher(gcodeStream, Printer);
-
-				if (doingPrintRecovery) // We are resuming a failed print (do lots of interesting stuff).
-				{
-					accumulatedStream = new SendProgressStream(new PrintRecoveryStream(gCodeFileSwitcher, Printer, ActivePrintTask.PercentDone), Printer);
-					// And increment the recovery count
-					ActivePrintTask.RecoveryCount++;
-					ActivePrintTask.CommitAndPushToServer();
-				}
-				else
-				{
-					accumulatedStream = new SendProgressStream(gCodeFileSwitcher, Printer);
-				}
-			}
-			else
-			{
-				gCodeFileSwitcher = null;
-				accumulatedStream = new NotPrintingStream(Printer);
-			}
-
-			var queuedCommandStream = new QueuedCommandsStream(Printer, accumulatedStream);
-			queuedCommands = queuedCommandStream;
-			accumulatedStream = queuedCommandStream;
-
-			accumulatedStream = new RelativeToAbsoluteStream(Printer, accumulatedStream);
-
-			if (ExtruderCount > 1)
-			{
-				accumulatedStream = new ToolChangeStream(
-					Printer, 
-					accumulatedStream, 
-					queuedCommandStream,
-					gCodeFileSwitcher,
-					(requestedTool) => this.ActiveExtruderIndex = requestedTool);
-				accumulatedStream = new ToolSpeedMultiplierStream(Printer, accumulatedStream);
-			}
-
-			bool enableLineSplitting = gcodeStream != null && Printer.Settings.GetValue<bool>(SettingsKey.enable_line_splitting);
-			accumulatedStream = new MaxLengthStream(Printer, accumulatedStream, enableLineSplitting ? 1 : 2000);
-
-			var doValidateLeveling = Printer.Settings.Helpers.ValidateLevelingWithProbe;
-			if (!LevelingPlan.NeedsToBeRun(Printer)
-				|| doValidateLeveling)
-			{
-				if (!doingPrintRecovery
-					&& doValidateLeveling)
-				{
-					// make sure we don't validate the leveling while recovering a print
-					accumulatedStream = new ValidatePrintLevelingStream(Printer, accumulatedStream);
-				}
-
-				var printLevelingStream = new PrintLevelingStream(Printer, accumulatedStream);
-				levelingTarget = printLevelingStream;
-				accumulatedStream = printLevelingStream;
-			}
-
-			accumulatedStream = new BabyStepsStream(Printer, accumulatedStream);
-
-			var waitForTempStream = new WaitForTempStream(Printer, accumulatedStream);
-			heatableTarget = waitForTempStream;
-
-			accumulatedStream = waitForTempStream;
-			accumulatedStream = new ExtrusionMultiplierStream(Printer, accumulatedStream);
-			accumulatedStream = new FeedRateMultiplierStream(Printer, accumulatedStream);
-			accumulatedStream = new RequestTemperaturesStream(Printer, accumulatedStream);
-
-			if (Printer.Settings.GetValue<bool>(SettingsKey.emulate_endstops))
-			{
-				var softwareEndstopsExStream12 = new SoftwareEndstopsStream(Printer, accumulatedStream);
-				accumulatedStream = softwareEndstopsExStream12;
-			}
-
-			var pauseHandlingStream = new PauseHandlingStream(Printer, accumulatedStream);
-			pausableTarget = pauseHandlingStream;
-
-			accumulatedStream = pauseHandlingStream;
-			accumulatedStream = new RunSceneGCodeProcesorsStream(Printer, accumulatedStream, queuedCommandStream);
-			accumulatedStream = new RemoveNOPsStream(Printer, accumulatedStream);
-			accumulatedStream = new ProcessWriteRegexStream(Printer, accumulatedStream, queuedCommandStream); ;
-
-			totalGCodeStream = accumulatedStream;
+			
+			// Rebuild new pipeline
+			var processor = StreamPipelineBuilder(gcodeStream, this.ActivePrintTask, this.Printer);
+			totalGCodeStream = processor.StreamPipeline;
+			heatableTarget = processor.HeatableTarget;
+			pausableTarget = processor.PausableTarget;
+			levelingTarget = processor.LevelingTarget;
+			queuedCommands = processor.QueuedCommands;
 
 			// Force a reset of the printer checksum state (but allow it to be write regexed)
 			var transformedCommand = ProcessWriteRegexStream.ProcessWriteRegEx("M110 N1", this.Printer);
@@ -3160,6 +3178,8 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				}
 			}
 		}
+
+		public Func<Stream, PrintTask, PrinterConfig, ConnectionProcessing> StreamPipelineBuilder { get; set; } = DefaultProcessingPipeline;
 
 		public void MacroStart()
 		{
