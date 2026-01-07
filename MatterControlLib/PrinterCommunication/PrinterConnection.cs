@@ -266,12 +266,11 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private PrinterMove lastReportedPosition = PrinterMove.Unknown;
 
-		private GCodeSwitcher gCodeFileSwitcher = null;
+		private ISwitchableGCode switchableSource = null;
 		private IQueuedCommands queuedCommands = null;
 		private IHeatableTarget heatableTarget = null;
 		private IPausableTarget pausableTarget = null;
 		private ILevelingTarget levelingTarget = null;
-
 
 		private GCodeStream totalGCodeStream = null;
 
@@ -689,7 +688,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		public void SwitchToGCode(string gCodeFilePath)
 		{
-			gCodeFileSwitcher.SwitchTo(gCodeFilePath);
+			switchableSource.SwitchTo(gCodeFilePath);
 		}
 
 		public string ComPort => Printer.Settings?.Helpers.ComPort();
@@ -724,12 +723,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		{
 			get
 			{
-				if (gCodeFileSwitcher != null)
-				{
-					return gCodeFileSwitcher?.GCodeFile?.GetLayerIndex(gCodeFileSwitcher.LineIndex) ?? -1;
-				}
-
-				return -1;
+				return switchableSource?.GCodeFile?.GetLayerIndex(switchableSource.LineIndex) ?? -1;
 			}
 		}
 
@@ -797,9 +791,9 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 					return 100.0;
 				}
 				else if (NumberOfLinesInCurrentPrint > 0
-					&& gCodeFileSwitcher?.GCodeFile != null)
+					&& switchableSource?.GCodeFile != null)
 				{
-					return gCodeFileSwitcher.GCodeFile.PercentComplete(gCodeFileSwitcher.LineIndex);
+					return switchableSource.GCodeFile.PercentComplete(switchableSource.LineIndex);
 				}
 				else
 				{
@@ -914,13 +908,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		{
 			get
 			{
-				if (gCodeFileSwitcher?.GCodeFile == null
-					|| !(gCodeFileSwitcher?.GCodeFile is GCodeMemoryFile))
+				if (switchableSource?.GCodeFile == null
+					|| !(switchableSource?.GCodeFile is GCodeMemoryFile))
 				{
 					return 0;
 				}
 
-				return gCodeFileSwitcher.GCodeFile.Ratio0to1IntoContainedLayerSeconds(gCodeFileSwitcher.LineIndex);
+				return switchableSource.GCodeFile.Ratio0to1IntoContainedLayerSeconds(switchableSource.LineIndex);
 			}
 		}
 
@@ -928,13 +922,13 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		{
 			get
 			{
-				if (gCodeFileSwitcher?.GCodeFile == null
-					|| !(gCodeFileSwitcher?.GCodeFile is GCodeMemoryFile))
+				if (switchableSource?.GCodeFile == null
+					|| !(switchableSource?.GCodeFile is GCodeMemoryFile))
 				{
 					return 0;
 				}
 
-				return gCodeFileSwitcher.GCodeFile.Ratio0to1IntoContainedLayerInstruction(gCodeFileSwitcher.LineIndex);
+				return switchableSource.GCodeFile.Ratio0to1IntoContainedLayerInstruction(switchableSource.LineIndex);
 			}
 		}
 
@@ -942,12 +936,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		{
 			get
 			{
-				if (gCodeFileSwitcher?.GCodeFile == null)
+				if (switchableSource?.GCodeFile == null)
 				{
 					return 0;
 				}
 
-				return (int)gCodeFileSwitcher.GCodeFile.Instruction(gCodeFileSwitcher.LineIndex).SecondsToEndFromHere;
+				return (int)switchableSource.GCodeFile.Instruction(switchableSource.LineIndex).SecondsToEndFromHere;
 			}
 		}
 
@@ -983,22 +977,22 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			}
 		}
 
-		public int TotalLayersInPrint => gCodeFileSwitcher?.GCodeFile?.LayerCount ?? -1;
+		public int TotalLayersInPrint => switchableSource?.GCodeFile?.LayerCount ?? -1;
 
-		private int NumberOfLinesInCurrentPrint => gCodeFileSwitcher?.GCodeFile?.LineCount ?? -1;
+		private int NumberOfLinesInCurrentPrint => switchableSource?.GCodeFile?.LineCount ?? -1;
 
 		public int TotalSecondsInPrint
 		{
 			get
 			{
-				if (gCodeFileSwitcher?.GCodeFile?.LineCount > 0)
+				if (switchableSource?.GCodeFile?.LineCount > 0)
 				{
 					if (this.FeedRateRatio != 0)
 					{
-						return (int)(gCodeFileSwitcher.GCodeFile.TotalSecondsInPrint / this.FeedRateRatio);
+						return (int)(switchableSource.GCodeFile.TotalSecondsInPrint / this.FeedRateRatio);
 					}
 
-					return (int)gCodeFileSwitcher.GCodeFile.TotalSecondsInPrint;
+					return (int)switchableSource.GCodeFile.TotalSecondsInPrint;
 				}
 
 				return 0;
@@ -2234,7 +2228,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 									DeviceToken = this.Printer.Settings.GetValue(SettingsKey.device_token),
 								};
 
-								if(gCodeFileSwitcher?.GCodeFile is GCodeMemoryFile memoryFile)
+								if(switchableSource?.GCodeFile is GCodeMemoryFile memoryFile)
 								{
 									ActivePrintTask.VolumeMm3 = memoryFile.GetFilamentCubicMm(Printer.Settings.GetValue<double>(SettingsKey.filament_diameter));
 								}
@@ -2394,7 +2388,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 
 		private void ClearQueuedGCode()
 		{
-			gCodeFileSwitcher?.GCodeFile?.Clear();
+			switchableSource?.GCodeFile?.Clear();
 		}
 
 		private void DonePrintingSdFile(string line)
@@ -2461,6 +2455,8 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			totalGCodeStream?.Dispose();
 			totalGCodeStream = null;
 			GCodeStream accumulatedStream;
+			GCodeSwitcher gCodeFileSwitcher = null;
+
 			var doingPrintRecovery = this.RecoveryIsEnabled && ActivePrintTask != null;
 			if (gcodeStream != null)
 			{
@@ -2488,9 +2484,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 			queuedCommands = queuedCommandStream;
 			accumulatedStream = queuedCommandStream;
 
-			// ensure that our read-line replacements are updated at the same time we build our write line replacements
-			InitializeReadLineReplacements();
-
 			accumulatedStream = new RelativeToAbsoluteStream(Printer, accumulatedStream);
 
 			if (ExtruderCount > 1)
@@ -2498,7 +2491,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				accumulatedStream = new ToolChangeStream(
 					Printer, 
 					accumulatedStream, 
-					queuedCommandStream, 
+					queuedCommandStream,
 					gCodeFileSwitcher,
 					(requestedTool) => this.ActiveExtruderIndex = requestedTool);
 				accumulatedStream = new ToolSpeedMultiplierStream(Printer, accumulatedStream);
@@ -2580,12 +2573,12 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				double secondsSinceStartedPrint = timePrinting.Elapsed.TotalSeconds;
 
 				if (timePrinting.Elapsed.TotalSeconds > 0
-					&& gCodeFileSwitcher != null
+					&& switchableSource != null
 					&& (secondsSinceUpdateHistory > secondsSinceStartedPrint
 					|| secondsSinceUpdateHistory + 1 < secondsSinceStartedPrint
-					|| lineSinceUpdateHistory + 20 < gCodeFileSwitcher.LineIndex))
+					|| lineSinceUpdateHistory + 20 < switchableSource.LineIndex))
 				{
-					double currentDone = gCodeFileSwitcher.GCodeFile.PercentComplete(gCodeFileSwitcher.LineIndex);
+					double currentDone = switchableSource.GCodeFile.PercentComplete(switchableSource.LineIndex);
 					// Only update the amount done if it is greater than what is recorded.
 					// We don't want to mess up the resume before we actually resume it.
 					if (ActivePrintTask != null
@@ -2600,7 +2593,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					}
 
 					secondsSinceUpdateHistory = secondsSinceStartedPrint;
-					lineSinceUpdateHistory = gCodeFileSwitcher.LineIndex;
+					lineSinceUpdateHistory = switchableSource.LineIndex;
 				}
 
 				Thread.Sleep(5);
