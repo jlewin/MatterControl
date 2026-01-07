@@ -151,8 +151,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		public event EventHandler<double> ExtrusionRatioChanged;
 
-		public event EventHandler WaitingToPauseChanged;
-
 		public void OnFilamentRunout(PrintPauseEventArgs printPauseEventArgs)
 		{
 			FilamentRunout?.Invoke(this, printPauseEventArgs);
@@ -211,8 +209,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private double _feedRateRatio = 1.0;
 		private double _extrusionRatio = 1.0;
-		private bool _waitingToPause = false;
-
 
 		public int ActiveExtruderIndex
 		{
@@ -246,18 +242,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			}
 		}
 
-		public bool WaitingToPause
-		{
-			get => _waitingToPause;
-			internal set
-			{
-				if (_waitingToPause != value)
-				{
-					_waitingToPause = value;
-					WaitingToPauseChanged?.Invoke(this, null);
-				}
-			}
-		}
+		public bool WaitingToPause => pausableTarget?.WaitingToPause ?? false;	
 
 		private readonly double[] actualHotendTemperature = new double[MaxExtruders];
 

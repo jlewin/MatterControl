@@ -37,5 +37,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		public void Pause(PauseHandlingStream.PauseReason pauseReason);
 
 		public void Resume();
+
+		public bool WaitingToPause { get; }
 	}
 }

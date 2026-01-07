@@ -161,6 +161,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			}
 		}
 
+		public bool WaitingToPause { get; private set; }
+
 		public enum PauseReason
 		{
 			UserRequested,
@@ -210,7 +212,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			string pauseGCode = printer.Settings.GetValue(SettingsKey.pause_gcode);
 
 			// set the state that we are waiting to pause
-			printer.Connection.WaitingToPause = true;
+			this.WaitingToPause = true;
 
 			// put in the gcode for pausing (if any)
 			InjectPauseGCode(pauseGCode);
@@ -301,7 +303,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				}
 
 				// remember that we are no longer waiting
-				printer.Connection.WaitingToPause = false;
+				this.WaitingToPause = false;
 
 				lineToSend = "";
 			}
