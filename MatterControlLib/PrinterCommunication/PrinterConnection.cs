@@ -151,6 +151,8 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		public event EventHandler<double> ExtrusionRatioChanged;
 
+		public event EventHandler WaitingToPauseChanged;
+
 		public void OnFilamentRunout(PrintPauseEventArgs printPauseEventArgs)
 		{
 			FilamentRunout?.Invoke(this, printPauseEventArgs);
@@ -209,6 +211,10 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 
 		private double _feedRateRatio = 1.0;
 		private double _extrusionRatio = 1.0;
+		private bool _waitingToPause = false;
+
+		private Action<PauseHandlingStream.PauseReason> _pauseAction;
+		private Action _resumeAction;
 
 		public int ActiveExtruderIndex
 		{
@@ -242,6 +248,19 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 			}
 		}
 
+		public bool WaitingToPause
+		{
+			get => _waitingToPause;
+			internal set
+			{
+				if (_waitingToPause != value)
+				{
+					_waitingToPause = value;
+					WaitingToPauseChanged?.Invoke(this, null);
+				}
+			}
+		}
+
 		private readonly double[] actualHotendTemperature = new double[MaxExtruders];
 
 		private readonly CheckSumLines allCheckSumLinesSent = new CheckSumLines();
@@ -265,7 +284,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication
 		private PrinterMove lastReportedPosition = PrinterMove.Unknown;
 
 		private GCodeSwitcher gCodeFileSwitcher = null;
-		private PauseHandlingStream pauseHandlingStream = null;
 		private QueuedCommandsStream queuedCommandStream = null;
 		private PrintLevelingStream printLevelingStream = null;
 		private WaitForTempStream waitForTempStream = null;
@@ -1989,8 +2007,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 					QueueLine("M25"); // : Pause SD print
 					return;
 				}
-
-				pauseHandlingStream.DoPause(PauseHandlingStream.PauseReason.UserRequested);
+				_pauseAction?.Invoke(PauseHandlingStream.PauseReason.UserRequested);
 			}
 		}
 
@@ -2018,7 +2035,7 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				}
 				else
 				{
-					pauseHandlingStream.Resume();
+					_resumeAction?.Invoke();
 					CommunicationState = CommunicationStates.Printing;
 				}
 			}
@@ -2529,7 +2546,11 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				accumulatedStream = softwareEndstopsExStream12;
 			}
 
-			accumulatedStream = pauseHandlingStream = new PauseHandlingStream(Printer, accumulatedStream);
+			var pauseHandlingStream = new PauseHandlingStream(Printer, accumulatedStream);
+			_pauseAction = pauseHandlingStream.DoPause;
+			_resumeAction = pauseHandlingStream.Resume;
+
+			accumulatedStream = pauseHandlingStream;
 			accumulatedStream = new RunSceneGCodeProcesorsStream(Printer, accumulatedStream, queuedCommandStream);
 			accumulatedStream = new RemoveNOPsStream(Printer, accumulatedStream);
 			accumulatedStream = new ProcessWriteRegexStream(Printer, accumulatedStream, queuedCommandStream); ;
@@ -2912,8 +2933,6 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 		public PrintTask CanceledPrintTask { get; private set; }
 
 		public PrintTask ActivePrintTask { get; set; }
-
-		public bool WaitingToPause => pauseHandlingStream?.WaitingToPause == true;
 
 		public void TurnOffPartCoolingFan()
 		{

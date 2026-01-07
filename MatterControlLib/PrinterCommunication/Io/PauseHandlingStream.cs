@@ -171,7 +171,6 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		public PrinterMove LastDestination { get { return lastDestination; } }
 
-		public bool WaitingToPause { get; private set; }
 
 		public void Add(string line)
 		{
@@ -184,7 +183,12 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 
 		private long lastSendTimeMs;
 
-		public void DoPause(PauseReason pauseReason, int layerNumber = -1)
+		public void DoPause(PauseReason pauseReason)
+		{
+  			DoPause(pauseReason, -1);
+		}
+
+		public void DoPause(PauseReason pauseReason, int layerNumber)
 		{
 			switch (pauseReason)
 			{
@@ -206,7 +210,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 			string pauseGCode = printer.Settings.GetValue(SettingsKey.pause_gcode);
 
 			// set the state that we are waiting to pause
-			WaitingToPause = true;
+			printer.Connection.WaitingToPause = true;
 
 			// put in the gcode for pausing (if any)
 			InjectPauseGCode(pauseGCode);
@@ -297,7 +301,7 @@ namespace MatterHackers.MatterControl.PrinterCommunication.Io
 				}
 
 				// remember that we are no longer waiting
-				WaitingToPause = false;
+				printer.Connection.WaitingToPause = false;
 
 				lineToSend = "";
 			}
