@@ -64,6 +64,7 @@ namespace MatterHackers.MatterControl.PrinterControls
 
 			SettingsRow settingsRow;
 
+			if (printer.Connection.TotalGCodeStream.HasBehavior<FeedRateMultiplierStream>())
 			{
 				this.AddChild(settingsRow = new SettingsRow(
 					"Speed Multiplier".Localize(),
@@ -124,6 +125,7 @@ namespace MatterHackers.MatterControl.PrinterControls
 				settingsRow.AddChild(feedRateValue);
 			}
 
+			if (printer.Connection.TotalGCodeStream.HasBehavior<ExtrusionMultiplierStream>())
 			{
 				this.AddChild(settingsRow = new SettingsRow(
 					"Extrusion Multiplier".Localize(),

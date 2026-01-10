@@ -17,18 +17,6 @@ using TestInvoker;
 
 namespace MatterHackers.MatterControl.Tests.Automation
 {
-	public static class StreamExtensions
-	{
-		public static IEnumerable<GCodeStreamProxy> AsStack(this GCodeStream current)
-		{
-			while (current is GCodeStreamProxy stream)
-			{
-				yield return stream;
-				current = stream.InternalStream as GCodeStreamProxy;
-			}
-		}
-	}
-
 	[TestFixture, Category("MatterControl.UI.Automation"), Parallelizable(ParallelScope.Children)]
 	public class PrintingTests
 	{
