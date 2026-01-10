@@ -2457,6 +2457,10 @@ Make sure that your printer is turned on. Some printers will appear to be connec
 				accumulatedStream = new NotPrintingStream(printer);
 			}
 
+			accumulatedStream = new BabyStepsStream(printer, accumulatedStream);
+			accumulatedStream = new FeedRateMultiplierStream(printer, accumulatedStream);
+			accumulatedStream = new PlotterStream(printer, accumulatedStream);
+
 			var queuedCommandStream = new QueuedCommandsStream(printer, accumulatedStream);
 			accumulatedStream = queuedCommandStream;
 
