@@ -116,18 +116,6 @@ namespace MatterHackers.MatterControl
 				});
 			};
 
-			if (Application.EnableNetworkTraffic)
-			{
-				popupMenu.CreateSeparator();
-
-				menuItem = popupMenu.CreateMenuItem("Check For Update".Localize(), StaticData.Instance.LoadIcon("update.png", 16, 16).GrayToColor(menuTheme.TextColor));
-				menuItem.Click += (s, e) => UiThread.RunOnIdle(() =>
-				{
-					UpdateControlData.Instance.CheckForUpdate();
-					DialogWindow.Show<CheckForUpdatesPage>();
-				});
-			}
-
 			popupMenu.CreateSeparator();
 
 			menuItem = popupMenu.CreateMenuItem("Settings".Localize(), StaticData.Instance.LoadIcon("fa-cog_16.png", 16, 16).GrayToColor(menuTheme.TextColor));

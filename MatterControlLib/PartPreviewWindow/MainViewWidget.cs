@@ -99,108 +99,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				Padding = new BorderDouble(left: 8)
 			};
 
-			SearchPanel searchPanel = null;
-
-			bool searchPanelOpenOnMouseDown = false;
-
-			var searchButton = theme.CreateSearchButton();
-			searchButton.Name = "App Search Button";
-			searchButton.MouseDown += (s, e) =>
-			{
-				searchPanelOpenOnMouseDown = searchPanel != null;
-			};
-
-			searchButton.Click += SearchButton_Click;
-			extensionArea.AddChild(searchButton);
-
-			async void SearchButton_Click(object sender, EventArgs e)
-			{
-				if (searchPanel == null && !searchPanelOpenOnMouseDown)
-				{
-					void ShowSearchPanel()
-					{
-						searchPanel = new SearchPanel(this.TabControl, searchButton, theme);
-						searchPanel.Closed += SearchPanel_Closed;
-
-						var systemWindow = this.Parents<SystemWindow>().FirstOrDefault();
-						systemWindow.ShowRightSplitPopup(
-                            theme,
-							new MatePoint(searchButton),
-							new MatePoint(searchPanel),
-							borderWidth: 0);
-					}
-
-					if (HelpIndex.IndexExists)
-					{
-						ShowSearchPanel();
-					}
-					else
-					{
-						searchButton.Enabled = false;
-
-						try
-						{
-							// Show popover
-							var popover = new Popover(ArrowDirection.Up, 7, 5, 0)
-							{
-								TagColor = theme.AccentMimimalOverlay
-							};
-
-							popover.AddChild(new TextWidget("Preparing help".Localize() + "...", pointSize: theme.DefaultFontSize - 1, textColor: theme.TextColor));
-
-							popover.ArrowOffset = (int)(popover.Width - (searchButton.Width / 2));
-
-							this.Parents<SystemWindow>().FirstOrDefault().ShowPopover(
-								new MatePoint(searchButton)
-								{
-									Mate = new MateOptions(MateEdge.Right, MateEdge.Bottom),
-									AltMate = new MateOptions(MateEdge.Right, MateEdge.Bottom),
-									Offset = new RectangleDouble(12, 0, 12, 0)
-								},
-								new MatePoint(popover)
-								{
-									Mate = new MateOptions(MateEdge.Right, MateEdge.Top),
-									AltMate = new MateOptions(MateEdge.Left, MateEdge.Bottom)
-								});
-
-							await Task.Run(async () =>
-							{
-								// Start index generation
-								await HelpIndex.RebuildIndex();
-
-								UiThread.RunOnIdle(() =>
-								{
-									// Close popover
-									popover.Close();
-
-									// Continue to original task
-									ShowSearchPanel();
-								});
-							});
-						}
-						catch
-						{
-						}
-
-						searchButton.Enabled = true;
-					}
-				}
-				else
-				{
-					searchPanel?.CloseOnIdle();
-					searchPanelOpenOnMouseDown = false;
-				}
-			}
-
-			void SearchPanel_Closed(object sender, EventArgs e)
-			{
-				// Unregister
-				searchPanel.Closed -= SearchPanel_Closed;
-
-				// Release
-				searchPanel = null;
-			}
-
 			tabControl = new ChromeTabs(extensionArea, theme)
 			{
 				VAnchor = VAnchor.Stretch,
@@ -223,81 +121,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			// Force common padding into top region
 			tabControl.TabBar.Padding = theme.TabbarPadding.Clone(top: theme.TabbarPadding.Top * 2, bottom: 0);
 
-			if (Application.EnableNetworkTraffic)
-			{
-				// add in the update available button
-				updateAvailableButton = new LinkLabel("Update Available".Localize(), theme)
-				{
-					Visible = false,
-					Name = "Update Available Link",
-					ToolTipText = "There is a new update available for download".Localize(),
-					VAnchor = VAnchor.Center,
-					Margin = new BorderDouble(10, 0),
-					TextColor = theme.PrimaryAccentColor
-				};
-
-				// Register listeners
-				UserSettings.Instance.SettingChanged += SetLinkButtonsVisibility;
-
-				SetLinkButtonsVisibility(this, null);
-
-				updateAvailableButton.Click += (s, e) =>
-				{
-					UpdateControlData.Instance.CheckForUpdate();
-					DialogWindow.Show<CheckForUpdatesPage>();
-				};
-
-				tabControl.TabBar.ActionArea.AddChild(updateAvailableButton);
-
-				UpdateControlData.Instance.UpdateStatusChanged.RegisterEvent((s, e) =>
-				{
-					SetLinkButtonsVisibility(s, new StringEventArgs("Unknown"));
-				}, ref unregisterEvents);
-			}
-
 			this.AddChild(tabControl);
 
 			ApplicationController.Instance.NotifyPrintersTabRightElement(extensionArea);
 
 			ChromeTab tab = null;
-
-			// Upgrade tab
-			if (!ApplicationController.Instance.IsMatterControlPro())
-			{
-				tab = new ChromeTab("Upgrade", "Upgrade".Localize(), tabControl, new UpgradeToProTabPage(theme), theme, hasClose: false)
-				{
-					MinimumSize = new Vector2(0, theme.TabButtonHeight),
-					Name = "Upgrade",
-					Padding = new BorderDouble(15, 0),
-				};
-				tabControl.AddTab(tab);
-
-				ChromeTab upgradeTab = tab;
-
-				tab.AfterDraw += (s, e) =>
-				{
-					var textWidget = upgradeTab.Descendants<TextWidget>().FirstOrDefault();
-
-					var localLabelEndPosition = textWidget.TransformToScreenSpace(textWidget.Printer.GetSize()) - upgradeTab.TransformToScreenSpace(Vector2.Zero);
-
-					double radius = 5 * DeviceScale;
-					e.Graphics2D.Circle(localLabelEndPosition.X + radius + 3 * DeviceScale,
-						upgradeTab.LocalBounds.Bottom + upgradeTab.Height / 2 - 1 * DeviceScale,
-						radius,
-						theme.PrimaryAccentColor);
-				};
-			}
-
-			// Store tab
-			tabControl.AddTab(
-				tab = new ChromeTab("Store", "Store".Localize(), tabControl, new StoreTabPage(theme), theme, hasClose: false)
-				{
-					MinimumSize = new Vector2(0, theme.TabButtonHeight),
-					Name = "Store Tab",
-					Padding = new BorderDouble(15, 0),
-				});
-
-			EnableReduceWidth(tab, theme);
 
 			// Library tab
 			var libraryWidget = new LibraryWidget(this, theme)
@@ -305,16 +133,19 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				BackgroundColor = theme.BackgroundColor
 			};
 
-			tabControl.AddTab(
-				tab = new ChromeTab("Library", "Library".Localize(), tabControl, libraryWidget, theme, hasClose: false)
-				{
-					MinimumSize = new Vector2(0, theme.TabButtonHeight),
-					Name = "Library Tab",
-					Padding = new BorderDouble(15, 0),
-				});
-			EnableReduceWidth(tab, theme);
+			if (false)
+			{
+				tabControl.AddTab(
+					tab = new ChromeTab("Library", "Library".Localize(), tabControl, libraryWidget, theme, hasClose: false)
+					{
+						MinimumSize = new Vector2(0, theme.TabButtonHeight),
+						Name = "Library Tab",
+						Padding = new BorderDouble(15, 0),
+					});
+				EnableReduceWidth(tab, theme);
+			}
 
-			if (!OemSettings.Instance.DesignToolsOnly)
+			if (false && !OemSettings.Instance.DesignToolsOnly)
 			{
 				// Hardware tab
 				tabControl.AddTab(
@@ -333,11 +164,10 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					Name = "Hardware Tab",
 					Padding = new BorderDouble(15, 0),
 				});
+				EnableReduceWidth(tab, theme);
 			}
 
-			EnableReduceWidth(tab, theme);
-
-			SetInitialTab();
+			//SetInitialTab();
 
 			var brandMenu = new BrandMenuButton(theme)
 			{
@@ -423,8 +253,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			var panelBackgroundColor = theme.MinimalShade.WithAlpha(10);
 
 			statusBar.AddChild(this.CreateThemeStatusPanel(theme, panelBackgroundColor));
-
-			statusBar.AddChild(this.CreateNetworkStatusPanel(theme));
 
 			this.RenderRunningTasks(theme, ApplicationController.Instance.Tasks);
 		}
