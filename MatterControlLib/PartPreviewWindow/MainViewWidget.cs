@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2023, Lars Brubaker, John Lewin
+Copyright (c) 2026, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using MatterControlLib;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
@@ -41,11 +39,9 @@ using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
 using MatterHackers.ImageProcessing;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Library.Widgets;
-using MatterHackers.MatterControl.PartPreviewWindow.PlusTab;
 using MatterHackers.MatterControl.SettingsManagement;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
@@ -90,15 +86,82 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			ApplicationController.Instance.MainView = this;
 		}
 
+		public override void OnLoad(EventArgs args)
+		{
+			base.OnLoad(args);
+
+			// Add WindowStateChanged listener in OnLoad to ensure systemWindow is assigned
+			if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+			{
+				parentWindow.WindowStateChanged -= ParentWindow_WindowStateChanged;
+				parentWindow.WindowStateChanged += ParentWindow_WindowStateChanged;
+			}
+		}
+
+		private void ParentWindow_WindowStateChanged(object sender, SystemWindow.AppWindowState e)
+		{
+			bool showRestore = e == SystemWindow.AppWindowState.Maximized;
+			restoreButton.Visible = showRestore;
+			maximizeButton.Visible = !showRestore;
+		}
+
 		private async void AddStandardUi(ThemeConfig theme)
 		{
 			var extensionArea = new LeftClipFlowLayoutWidget()
 			{
 				BackgroundColor = theme.TabBarBackground,
-				VAnchor = VAnchor.Stretch,
-				Padding = new BorderDouble(left: 8)
+				VAnchor = VAnchor.Fit | VAnchor.Bottom,
+				Padding = new BorderDouble(0)
 			};
 
+			var minimizeButton = theme.CreateSystemActionButton("Minimize Button", "Minimize", "minimize");
+			minimizeButton.Margin = minimizeButton.Margin.Clone(left: 50);
+			minimizeButton.Click += (s, e) =>
+			{
+				if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+				{
+					parentWindow.WindowState = SystemWindow.AppWindowState.Minimized;
+				}
+			};
+			extensionArea.AddChild(minimizeButton);
+
+			if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+			{
+				parentWindow.WindowState = SystemWindow.AppWindowState.Maximized;
+			}
+
+			restoreButton = theme.CreateSystemActionButton("Maximize Button", "Maximize".Localize(), "restore");
+			restoreButton.Click += (s, e) =>
+			{
+				if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+				{
+					parentWindow.WindowState = SystemWindow.AppWindowState.Normal;
+				}
+			};
+			extensionArea.AddChild(restoreButton);
+
+			maximizeButton = theme.CreateSystemActionButton("Maximize Button", "Maximize".Localize(), "maximize");
+			maximizeButton.Click += (s, e) =>
+			{
+				if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+				{
+					parentWindow.WindowState = SystemWindow.AppWindowState.Maximized;
+				}
+			};
+			extensionArea.AddChild(maximizeButton);
+
+			// Conditionally set correct image on load
+			bool showRestore = AppContext.RootSystemWindow.WindowState == SystemWindow.AppWindowState.Maximized;
+			restoreButton.Visible = showRestore;
+			maximizeButton.Visible = !showRestore;
+
+			var closeButton = theme.CreateSystemActionButton("Close Button", "Close".Localize(), "close");
+			closeButton.Click += (s, e) =>
+			{
+				var parentWindow = this.Parents<SystemWindow>().First();
+				parentWindow?.Close();
+			};
+			extensionArea.AddChild(closeButton);
 			tabControl = new ChromeTabs(extensionArea, theme)
 			{
 				VAnchor = VAnchor.Stretch,
@@ -107,6 +170,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				BorderColor = theme.MinimalShade,
 				Border = new BorderDouble(left: 1),
 			};
+
+			tabControl.TabBar.ActionArea.MouseDownCaptured += TabBar_MouseDownCaptured;
 
 			tabControl.PlusClicked += (s, e) => UiThread.RunOnIdle(() =>
 			{
@@ -117,9 +182,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			tabControl.TabBar.ActionArea.MinimumSize = new Vector2(0, theme.ButtonHeight);
 			tabControl.TabBar.BackgroundColor = theme.TabBarBackground;
 			tabControl.TabBar.BorderColor = theme.BackgroundColor;
-
-			// Force common padding into top region
-			tabControl.TabBar.Padding = theme.TabbarPadding.Clone(top: theme.TabbarPadding.Top * 2, bottom: 0);
+			tabControl.TabBar.Margin = 0;
+			tabControl.TabBar.Padding = 0;
 
 			this.AddChild(tabControl);
 
@@ -306,6 +370,18 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			base.OnKeyPress(keyPressEvent);
         }
 #endif
+
+		private void TabBar_MouseDownCaptured(object sender, MouseEventArgs e)
+		{
+			if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+			{
+				parentWindow.MouseDownOnTitlebar();
+
+                // Fire synthetic mouse up to clear capture state given we are starting a window drag and have released tracking
+                MouseEventArgs e2 = new MouseEventArgs(MouseButtons.None, 0, [e.Position], e.WheelDelta, null);
+				UiThread.RunOnIdle(() => parentWindow.OnMouseUp(e2));
+			}
+		}
 
 		public void OpenFile(string filePath)
         {
@@ -595,6 +671,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		public ChromeTabs TabControl => tabControl;
 
 		private static int debugPrinterTabIndex = 0;
+		private ThemedButton maximizeButton;
+		private ThemedButton restoreButton;
 
 		private ChromeTab CreatePrinterTab(PartWorkspace workspace, ThemeConfig theme)
 		{
@@ -922,6 +1000,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		public override void OnClosed(EventArgs e)
 		{
+			if (this.Parents<SystemWindow>().FirstOrDefault() is SystemWindow parentWindow)
+			{
+				parentWindow.WindowStateChanged -= ParentWindow_WindowStateChanged;
+			}
+
 			// Unregister listeners
 			PrinterSettings.AnyPrinterSettingChanged -= Printer_SettingChanged;
 			UserSettings.Instance.SettingChanged -= SetLinkButtonsVisibility;

@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
-using MatterHackers.GuiAutomation;
 using static MatterHackers.VectorMath.Easing;
 
 namespace MatterHackers.MatterControl
