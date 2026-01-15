@@ -149,7 +149,7 @@ namespace MatterHackers.GCodeVisualizer
 
 					var eWidth = extrusionLineWidths / 2;
 
-					graphics2DGl.DrawAALineRounded(startPoint, endPoint, eWidth, extrusionColor);
+					graphics2DGl.Line(startPoint, endPoint, extrusionColor, eWidth);
 
 					if (highlightFeature)
 					{

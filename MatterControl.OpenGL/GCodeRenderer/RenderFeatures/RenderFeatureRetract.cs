@@ -117,7 +117,7 @@ namespace MatterHackers.GCodeVisualizer
 				if (graphics2D is Graphics2DOpenGL graphics2DGl)
 				{
 					// render using opengl
-					graphics2DGl.DrawAACircle(position, radius, retractionColor);
+					graphics2DGl.Circle(position, radius, retractionColor);
 				}
 				else
 				{

@@ -66,8 +66,8 @@ namespace MatterHackers.GCodeVisualizer
 
 		protected void Render3DStartEndMarkers(Graphics2DOpenGL graphics2DGl, double radius, Vector2 startPoint, Vector2 endPoint)
 		{
-			graphics2DGl.DrawAACircle(startPoint, radius, RenderFeatureBase.StartColor);
-			graphics2DGl.DrawAACircle(endPoint, radius, RenderFeatureBase.EndColor);
+			graphics2DGl.Circle(startPoint, radius, RenderFeatureBase.StartColor);
+			graphics2DGl.Circle(endPoint, radius, RenderFeatureBase.EndColor);
 		}
 
 		public override void Render(Graphics2D graphics2D, GCodeRenderInfo renderInfo, bool highlightFeature = false)
@@ -96,7 +96,7 @@ namespace MatterHackers.GCodeVisualizer
 						movementColor = movementColor.WithAlpha(120);
 					}
 
-					graphics2DGl.DrawAALineRounded(startPoint, endPoint, movementLineWidth, movementColor);
+					graphics2DGl.Line(startPoint, endPoint, movementColor, movementLineWidth);
 				}
 				else
 				{
