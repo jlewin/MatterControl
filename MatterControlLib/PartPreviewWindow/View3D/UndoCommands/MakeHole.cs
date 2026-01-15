@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
+using MatterHackers.Localizations;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -50,6 +51,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				SetData(new List<IObject3D> { selectedItem });
 			}
 		}
+
+		public string Name => "Make Hole".Localize();
 
 		void SetData(List<IObject3D> itemsToChange)
 		{

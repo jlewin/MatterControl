@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using System.Collections.Generic;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
+using MatterHackers.Localizations;
 using MatterHackers.MeshVisualizer;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
@@ -51,6 +52,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				SetDeletionObjects(scene, new IObject3D[] { deletingItem });
 			}
 		}
+
+		public string Name => "Delete".Localize();
 
 		public DeleteCommand(InteractiveScene scene, IEnumerable<IObject3D> deletingItems)
 		{

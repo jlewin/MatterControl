@@ -32,6 +32,7 @@ using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
+using MatterHackers.Localizations;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -54,6 +55,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				SetData(new List<IObject3D> { selectedItem });
 			}
 		}
+
+		public string Name => "Material Change".Localize();
 
 		void SetData(List<IObject3D> itemsToChange)
 		{

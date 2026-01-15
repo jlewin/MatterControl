@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
+using MatterHackers.Localizations;
 using MatterHackers.MeshVisualizer;
 using MatterHackers.VectorMath;
 
@@ -44,6 +45,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.originalItem = ungroupingItem;
 			this.scene = scene;
 		}
+
+		public string Name => "Ungroup".Localize();
 
 		public void Do()
 		{
