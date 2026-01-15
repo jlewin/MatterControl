@@ -595,7 +595,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				return false;
 			}
 
-			var bvhHierachy = BoundingVolumeHierarchy.CreateNewHierachy(traceables);
+			var bvhHierachy = BoundingVolumeHierarchy.CreateNewHierarchy(traceables);
 
 			info = bvhHierachy.GetClosestIntersection(ray);
 			if (info != null)

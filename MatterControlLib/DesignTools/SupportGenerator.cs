@@ -136,7 +136,7 @@ namespace MatterHackers.MatterControl.DesignTools
 				allPolys.Add(new TriangleShape(vertexList[face.v0], vertexList[face.v1], vertexList[face.v2], null));
 			}
 
-			return BoundingVolumeHierarchy.CreateNewHierachy(allPolys, bvhCreationOptions);
+			return BoundingVolumeHierarchy.CreateNewHierarchy(allPolys, bvhCreationOptions);
 		}
 
 		public Task Create(Action<double, string> progress, CancellationToken cancellationToken)

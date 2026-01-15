@@ -448,7 +448,7 @@ namespace MatterHackers.MatterControl.DesignTools
         /// </summary>
         /// <param name="item">The item to start the search from</param>
         /// <returns></returns>
-        private static IVariableContainer FindFirstVariableContainer(IObject3D item)
+        private static IVariableResolver FindFirstVariableContainer(IObject3D item)
         {
             // look through all the parents
             foreach (var parent in item.Parents())
@@ -458,7 +458,7 @@ namespace MatterHackers.MatterControl.DesignTools
                 {
                     // if it is a sheet
                     if (sibling != item
-                        && sibling is IVariableContainer variableContainer)
+                        && sibling is IVariableResolver variableContainer)
                     {
                         return variableContainer;
                     }
