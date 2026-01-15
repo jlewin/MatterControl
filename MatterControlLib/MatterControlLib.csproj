@@ -74,8 +74,6 @@
     <ProjectReference Include="..\Submodules\agg-sharp\DataConverters2D\DataConverters2D.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\DataConverters3D\DataConverters3D.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\geometry3Sharp\geometry3Sharp.csproj" />
-    <ProjectReference Include="..\Submodules\agg-sharp\glfw-net\GLFW.NET\GLFW.NETStandard.csproj" />
-    <ProjectReference Include="..\Submodules\agg-sharp\Glfw\GlfwProvider.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\GuiAutomation\GuiAutomation.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\Gui\Gui.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\ImageProcessing\ImageProcessing.csproj" />
@@ -98,23 +96,23 @@
     <PackageReference Include="Lucene.Net" Version="4.8.0-beta00005" />
     <PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00005" />
     <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00005" />
-    <PackageReference Include="Markdig" Version="0.31.0" />
+    <PackageReference Include="Markdig" Version="0.41.3" />
     <PackageReference Include="MathParser.org-mXparser" Version="5.2.1" />
     <PackageReference Include="MIConvexHull" Version="1.1.19.1019" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PDFsharpNetStandard2" Version="1.51.4845" />
     <PackageReference Include="QRCoder" Version="1.4.3" />
     <PackageReference Include="SocketIOSharp" Version="2.0.3" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
+    <PackageReference Include="System.IO.Packaging" Version="9.0.8" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="Zeroconf" Version="3.6.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>
