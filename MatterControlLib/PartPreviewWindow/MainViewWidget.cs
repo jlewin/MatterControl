@@ -476,14 +476,14 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		
 		public override void OnDraw(Graphics2D graphics2D)
 		{
-			using (new QuickTimerReport("MainViewWidget.OnDraw"))
+			using (new ReportTimer("MainViewWidget.OnDraw"))
 			{
 				base.OnDraw(graphics2D);
 			}
 
 			if (showQuickTiming)
 			{
-				QuickTimerReport.ReportAndRestart(graphics2D, 10, Height - 26);
+				ReportTimer.ReportAndRestart(graphics2D, 10, Height - 26);
 			}
         }
 

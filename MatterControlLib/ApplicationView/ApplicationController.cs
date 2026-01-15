@@ -2251,6 +2251,9 @@ namespace MatterHackers.MatterControl
 				humanTranslation = null;
 			}
 
+			string sourcePath = Path.Combine(StaticData.RootPath, "Translations");
+			string savePath = Path.Combine(StaticData.RootPath, "NewTranslations");
+
 			if (StaticData.Instance.FileExists(machineTranslation))
 			{
 				StreamReader humanTranlationReader = null;
@@ -2264,14 +2267,15 @@ namespace MatterHackers.MatterControl
 
 				var machineTranslationStream = StaticData.Instance.OpenStream(machineTranslation);
 				var machineTranlationReader = new StreamReader(machineTranslationStream);
-				TranslationMap.ActiveTranslationMap = new TranslationMap(machineTranlationReader, humanTranlationReader, twoLetterIsoLanguageName);
+
+				TranslationMap.ActiveTranslationMap = new TranslationMap(machineTranlationReader, humanTranlationReader, twoLetterIsoLanguageName, savePath, sourcePath);
 
 				machineTranlationReader.Close();
 				humanTranlationReader?.Close();
 			}
 			else
-            {
-				TranslationMap.ActiveTranslationMap = new TranslationMap(twoLetterIsoLanguageName);
+			{
+				TranslationMap.ActiveTranslationMap = new TranslationMap(twoLetterIsoLanguageName, savePath, sourcePath);
 			}
 		}
 

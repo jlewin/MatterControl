@@ -127,22 +127,22 @@ namespace MatterHackers.MatterControl
 			ToolTipManager.CreateToolTip = MatterControlToolTipWidget;
 		}
 
-		private static GuiWidget MatterControlToolTipWidget(string toolTipText)
+		private static (GuiWidget, Action<GuiWidget, string>) MatterControlToolTipWidget(string toolTipText)
 		{
 			var toolTipPopover = new ClickablePopover(ArrowDirection.Up, new BorderDouble(0, 0), 7, 0);
 
-            var markdownWidegt = new MarkdownWidget(Theme, false)
-            {
-                HAnchor = HAnchor.Absolute,
-                VAnchor = VAnchor.Fit,
-                Width = 350 * GuiWidget.DeviceScale,
-                BackgroundColor = Theme.BackgroundColor,
-                Border = 1,
-                BorderColor = Color.Black,
-                Markdown = toolTipText
-            };
-            
-            markdownWidegt.Width = 350 * GuiWidget.DeviceScale;
+			var markdownWidegt = new MarkdownWidget(Theme, false)
+			{
+				HAnchor = HAnchor.Absolute,
+				VAnchor = VAnchor.Fit,
+				Width = 350 * GuiWidget.DeviceScale,
+				BackgroundColor = Theme.BackgroundColor,
+				Border = 1,
+				BorderColor = Color.Black,
+				Markdown = toolTipText
+			};
+
+			markdownWidegt.Width = 350 * GuiWidget.DeviceScale;
 			var maxLineWidth = 0.0;
 			if (markdownWidegt.Descendants<ParagraphX>().Any())
 			{
@@ -151,7 +151,16 @@ namespace MatterHackers.MatterControl
 
 			markdownWidegt.Width = maxLineWidth + 15;
 
-			return markdownWidegt;
+			// Provide a no-op Action for changing the text, or implement as needed
+			Action<GuiWidget, string> changeWidgetText = (widget, text) =>
+			{
+				if (widget is MarkdownWidget mw)
+				{
+					mw.Markdown = text;
+				}
+			};
+
+			return (markdownWidegt, changeWidgetText);
 		}
 
 		public static ThemeConfig LoadTheme(string themeName)

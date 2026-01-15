@@ -69,7 +69,7 @@ namespace MatterHackers.MatterControl
 
 			this.AddChild(toolbar, 0);
 
-			this.ChildBorderColor = theme.BorderColor40;
+			this.ChildBorderColor = theme.BorderColor20;
 			AddGuides();
 			CreateMousePage();
 			CreateKeyBindingsPage();
@@ -252,7 +252,7 @@ namespace MatterHackers.MatterControl
 
 					if (!string.IsNullOrWhiteSpace(article.Path))
 					{
-						markdownWidget.LoadUri(new Uri(ApplicationController.Instance.HelpArticleSource, article.Path));
+						markdownWidget.LoadUri(new Uri(ApplicationController.Instance.HelpArticleSource, article.Path).ToString());
 					}
 					else
 					{

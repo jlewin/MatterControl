@@ -50,7 +50,7 @@ namespace Markdig.Agg
 			{
 				widget = new MarkdownWidget(
 					theme,
-					new Uri("https://raw.githubusercontent.com/lunet-io/markdig/master/readme.md"));
+					"https://raw.githubusercontent.com/lunet-io/markdig/master/readme.md");
 			}
 
 			contentRow.AddChild(widget);

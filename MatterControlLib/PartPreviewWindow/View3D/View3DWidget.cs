@@ -1336,7 +1336,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
         public override void OnDraw(Graphics2D graphics2D)
 		{
-			using (new QuickTimerReport("View3DWidget.OnDraw"))
+			using (new ReportTimer("View3DWidget.OnDraw"))
 			{
 				var selectedItem = Scene.SelectedItem;
 

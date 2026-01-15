@@ -66,7 +66,6 @@ namespace MatterHackers.MatterControl
 			MatterHackers.Agg.UI.SystemWindow.AssertDebugNotDefined();
 			MatterHackers.Agg.ImageProcessing.InvertLightness.AssertDebugNotDefined();
 			MatterHackers.Localizations.TranslationMap.AssertDebugNotDefined();
-			MatterHackers.MarchingSquares.MarchingSquaresByte.AssertDebugNotDefined();
 			MatterHackers.MatterSlice.MatterSlice.AssertDebugNotDefined();
 			MatterHackers.RenderOpenGl.GLMeshTrianglePlugin.AssertDebugNotDefined();
 		}

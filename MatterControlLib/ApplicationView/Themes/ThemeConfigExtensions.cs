@@ -121,7 +121,7 @@ namespace MatterHackers.MatterControl
             return new JogControls.ExtrudeButton(printer, label, movementFeedRate, extruderNumber, theme)
             {
                 BackgroundColor = theme.MinimalShade,
-                BorderColor = theme.BorderColor40,
+                BorderColor = theme.BorderColor20,
                 BackgroundOutlineWidth = 1,
                 VAnchor = VAnchor.Absolute,
                 HAnchor = HAnchor.Absolute,
@@ -253,7 +253,7 @@ namespace MatterHackers.MatterControl
             return new JogControls.MoveButton(label, printer, axis, movementFeedRate, theme)
             {
                 BackgroundColor = theme.MinimalShade,
-                BorderColor = theme.BorderColor40,
+                BorderColor = theme.BorderColor20,
                 BackgroundOutlineWidth = 1,
                 VAnchor = VAnchor.Absolute,
                 HAnchor = HAnchor.Absolute,

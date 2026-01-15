@@ -534,7 +534,7 @@ Support and tutorials:" + articles;
 				reasonSection.AddChild(dropDownList);
 				reasonSection.AddChild(textEditWidget);
 
-				topToBottom.AddChild(new HorizontalLine(theme.BorderColor40)
+				topToBottom.AddChild(new HorizontalLine(theme.BorderColor20)
 				{
 					Margin = new BorderDouble(0, 5)
 				});
