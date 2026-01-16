@@ -451,7 +451,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			set
 			{
 				this.activeTransformState = value;
-				view3DWidget?.UpdateControlButtons(activeTransformState);
 				TransformStateChanged?.Invoke(this, new TransformStateChangedEventArgs()
 				{
 					TransformMode = activeTransformState
