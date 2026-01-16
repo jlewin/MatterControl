@@ -631,23 +631,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				}
 			});
 
-			menuActions.Add(new LibraryAction(ActionScope.ListView)
-			{
-				Title = "Enter Share Code".Localize() + "...",
-				Icon = StaticData.Instance.LoadIcon("enter-code.png", 16, 16).GrayToColor(theme.TextColor),
-				Action = (selectedLibraryItems, listView) =>
-				{
-					UiThread.RunOnIdle(() =>
-					{
-						// Implementation already does RunOnIdle
-						ApplicationController.Instance.EnterShareCode?.Invoke();
-					});
-				},
-				IsEnabled = (selectedListItems, listView) =>
-				{
-					return true;
-				}
-			});
 
 			if (allowPrint)
 			{
@@ -838,28 +821,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 					return listView.SelectedItems.Any()
 						&& listView.SelectedItems.All(i => !(i.Model is ILibraryContainerLink));
 				},
-			});
-
-			// share menu item
-			menuActions.Add(new LibraryAction(ActionScope.ListItem)
-			{
-				Title = "Share".Localize() + "...",
-				Icon = StaticData.Instance.LoadIcon("share.png", 16, 16).GrayToColor(theme.TextColor),
-				Action = (selectedLibraryItems, listView) =>
-				{
-					// Previously - shareFromLibraryButton_Click
-					// TODO: Should be rewritten to Register from cloudlibrary, include logic to add to library as needed
-					ApplicationController.Instance.ShareLibraryItem(libraryView.SelectedItems.Select(i => i.Model).FirstOrDefault());
-				},
-				IsEnabled = (selectedListItems, listView) =>
-				{
-					// Singleselect - disallow containers and protected items
-					return listView.SelectedItems.Count == 1
-						&& selectedListItems.FirstOrDefault()?.Model is ILibraryItem firstItem
-						&& listView.ActiveContainer.GetType().Name.IndexOf("Cloud", StringComparison.OrdinalIgnoreCase) >= 0
-						&& !(firstItem is ILibraryContainer)
-						&& !firstItem.IsProtected;
-				}
 			});
 
 			menuActions.Add(new MenuSeparator("Rename"));

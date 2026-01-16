@@ -426,11 +426,6 @@ namespace MatterHackers.MatterControl
 		{
 			this.ApplicationEvent?.Invoke(this, message);
 		}
-
-		public Action RedeemDesignCode { get; set; }
-
-		public Action EnterShareCode { get; set; }
-
 		// check permission to an IObject3D instance
 #if DEBUG
 		public Func<IObject3D, bool> UserHasPermission { get; set; } = (item) => true;
@@ -986,66 +981,26 @@ namespace MatterHackers.MatterControl
 					StaticData.Instance.LoadIcon(Path.Combine("Library", "computer_icon.png")),
 					() => new ComputerCollectionContainer()));
 
-			var rootLibraryCollection = Datastore.Instance.dbSQLite.Table<PrintItemCollection>().Where(v => v.Name == "_library").Take(1).FirstOrDefault();
-			if (rootLibraryCollection != null)
-			{
-				var forceAddLocalLibrary = false;
-#if DEBUG
-				forceAddLocalLibrary = true;
-#endif
-				// only add the local library if there are items in it
-				var localLibrary = new SqliteLibraryContainer(rootLibraryCollection.Id);
-				localLibrary.Load();
-				if (forceAddLocalLibrary || localLibrary.ChildContainers.Any() || localLibrary.Items.Any())
-				{
-					this.Library.RegisterContainer(
-						new DynamicContainerLink(
-							"Local Library".Localize(),
-							StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
-							StaticData.Instance.LoadIcon(Path.Combine("Library", "local_library_icon.png")),
-							() => localLibrary));
-				}
-			}
-
-			var forceAddQueue = false;
-#if DEBUG
-			forceAddQueue = true;
-#endif
-			// only add the queue if there are items in it
-			var queueDirectory = LegacyQueueFiles.QueueDirectory;
-			LegacyQueueFiles.ImportFromLegacy();
-			if (forceAddQueue || Directory.Exists(queueDirectory))
-			{
-				// make sure the queue directory exists
-				Directory.CreateDirectory(queueDirectory);
-
-				this.Library.RegisterContainer(new DynamicContainerLink(
-						"Queue".Localize(),
-						StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
-						StaticData.Instance.LoadIcon(Path.Combine("Library", "queue_icon.png")),
-						() => new FileSystemContainer(queueDirectory)
-						{
-							UseIncrementedNameDuringTypeChange = true,
-							DefaultSort = new LibrarySortBehavior()
-							{
-								SortKey = SortKey.ModifiedDate,
-							}
-						}));
-			}
-
-			this.Library.BundledPartsCollectionContainer = new BundledPartsCollectionContainer();
-			// this.Library.LibraryCollectionContainer.HeaderMarkdown = "Here you can find the collection of libraries you can use".Localize();
-
 			this.Library.RegisterContainer(
 				new DynamicContainerLink(
-					"Bundled".Localize(),
+					"Primitives 3D".Localize(),
 					StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
-					StaticData.Instance.LoadIcon(Path.Combine("Library", "design_apps_icon.png")),
-					() => this.Library.BundledPartsCollectionContainer)
+					StaticData.Instance.LoadIcon(Path.Combine("Library", "primitives_library_icon.png")),
+					() => new Primitives3DContainer())
 				{
 					IsReadOnly = true
 				});
 
+			this.Library.RegisterContainer(
+				new DynamicContainerLink(
+					"Primitives 2D".Localize(),
+					StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
+					StaticData.Instance.LoadIcon(Path.Combine("Library", "primitives_library_icon.png")),
+					() => new Primitives2DContainer())
+				{
+					IsReadOnly = true
+				});
+		
 			if (File.Exists(ApplicationDataStorage.Instance.CustomLibraryFoldersPath))
 			{
 				// Add each path defined in the CustomLibraryFolders file as a new FileSystemContainerItem
@@ -2035,8 +1990,6 @@ namespace MatterHackers.MatterControl
 		}
 
 		public static IObject3D ClipboardItem { get; internal set; }
-
-		public Action<ILibraryItem> ShareLibraryItem { get; set; }
 
 		public ObservableCollection<PartWorkspace> Workspaces { get; }
 

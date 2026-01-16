@@ -133,8 +133,6 @@ namespace MatterHackers.MatterControl.Library
 			}
 		}
 
-		public BundledPartsCollectionContainer BundledPartsCollectionContainer { get; internal set; }
-
 		public SafeList<LibraryAction> MenuExtensions { get; } = new SafeList<LibraryAction>();
 
 		public PlatingHistoryContainer PlatingHistory { get; internal set; }
