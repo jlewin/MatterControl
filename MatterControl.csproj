@@ -22,6 +22,8 @@
 		<Compile Remove="MatterControl.Winforms\**" />
 		<Compile Remove="MatterControlLib\**" />
 		<Compile Remove="MatterHackers.gsSlicer\**" />
+		<Compile Remove="MeshThumbnails\**" />
+		<Compile Remove="Platform\**" />
 		<Compile Remove="Plugins\**" />
 		<Compile Remove="PrinterDriverInstaller\**" />
 		<Compile Remove="PrusaI3-MK3\**" />
@@ -39,6 +41,8 @@
 		<EmbeddedResource Remove="MatterControl.Winforms\**" />
 		<EmbeddedResource Remove="MatterControlLib\**" />
 		<EmbeddedResource Remove="MatterHackers.gsSlicer\**" />
+		<EmbeddedResource Remove="MeshThumbnails\**" />
+		<EmbeddedResource Remove="Platform\**" />
 		<EmbeddedResource Remove="Plugins\**" />
 		<EmbeddedResource Remove="PrinterDriverInstaller\**" />
 		<EmbeddedResource Remove="PrusaI3-MK3\**" />
@@ -56,6 +60,8 @@
 		<None Remove="MatterControl.Winforms\**" />
 		<None Remove="MatterControlLib\**" />
 		<None Remove="MatterHackers.gsSlicer\**" />
+		<None Remove="MeshThumbnails\**" />
+		<None Remove="Platform\**" />
 		<None Remove="Plugins\**" />
 		<None Remove="PrinterDriverInstaller\**" />
 		<None Remove="PrusaI3-MK3\**" />

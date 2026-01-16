@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Company>MatterHackers Inc.</Company>
+    <ReleaseVersion>2.20.12</ReleaseVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Platform\DataConverters3D\Platform.DataConverters3D.csproj" />
+    <ProjectReference Include="..\..\Submodules\agg-sharp\ImageProcessing\ImageProcessing.csproj" />
+    <ProjectReference Include="..\..\Submodules\agg-sharp\\PolygonMesh\PolygonMesh.csproj" />
+    <ProjectReference Include="..\..\Submodules\agg-sharp\agg\Agg.csproj" />
+    <ProjectReference Include="..\..\Submodules\agg-sharp\VectorMath\VectorMath.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers" Version="1.1.118" />
+  </ItemGroup>
+
+</Project>
