@@ -39,6 +39,7 @@ using MatterHackers.Agg.UI;
 using MatterHackers.MatterControl.DesignTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SQLite;
 
 namespace MatterHackers.MatterControl.DataStorage
 {

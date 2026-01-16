@@ -14,7 +14,6 @@
     <DefineConstants>TRACE;USE_OPENGL;IS_WINDOWS;IS_WINDOWS_FORMS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Community.CsharpSqlite\Community.CsharpSqlite.csproj" />
     <ProjectReference Include="..\MatterControl.Common\MatterControl.Common.csproj" />
     <ProjectReference Include="..\MatterControlLib\MatterControlLib.csproj" />
     <ProjectReference Include="..\Submodules\agg-sharp\agg\Agg.csproj" />

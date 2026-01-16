@@ -12,7 +12,6 @@
 		<BaseOutputPath></BaseOutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<Compile Remove="Community.CsharpSqlite\**" />
 		<Compile Remove="Launcher\**" />
 		<Compile Remove="MatterControl.Common\**" />
 		<Compile Remove="MatterControl.MeshOperations\**" />
@@ -31,7 +30,6 @@
 		<Compile Remove="Submodules\**" />
 		<Compile Remove="Tests\**" />
 		<Compile Remove="Tools\**" />
-		<EmbeddedResource Remove="Community.CsharpSqlite\**" />
 		<EmbeddedResource Remove="Launcher\**" />
 		<EmbeddedResource Remove="MatterControl.Common\**" />
 		<EmbeddedResource Remove="MatterControl.MeshOperations\**" />
@@ -50,7 +48,6 @@
 		<EmbeddedResource Remove="Submodules\**" />
 		<EmbeddedResource Remove="Tests\**" />
 		<EmbeddedResource Remove="Tools\**" />
-		<None Remove="Community.CsharpSqlite\**" />
 		<None Remove="Launcher\**" />
 		<None Remove="MatterControl.Common\**" />
 		<None Remove="MatterControl.MeshOperations\**" />
@@ -71,7 +68,6 @@
 		<None Remove="Tools\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="Community.CsharpSqlite\Community.CsharpSqlite.csproj" />
 		<ProjectReference Include="MatterControl.Printing\MatterControl.Printing.csproj" />
 		<ProjectReference Include="MatterControl.SLA\MatterControl.SLA.csproj" />
 		<ProjectReference Include="MatterControl.Winforms\MatterControl.Winforms.csproj" />

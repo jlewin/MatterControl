@@ -42,7 +42,7 @@ using MatterHackers.MatterControl.SettingsManagement;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.SerialPortCommunication.FrostedSerial;
 using Microsoft.Extensions.Configuration;
-using SQLiteWin32;
+using SQLite;
 
 namespace MatterHackers.MatterControl
 {
@@ -233,7 +233,8 @@ namespace MatterHackers.MatterControl
 			// Make sure we have the right working directory as we assume everything relative to the executable.
 			Directory.SetCurrentDirectory(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
 
-			Datastore.Instance.Initialize(DesktopSqlite.CreateInstance());
+			var connection = new SQLiteConnection(ApplicationDataStorage.Instance.DatastorePath);
+			Datastore.Instance.Initialize(connection);
 
 			if (UserSettings.Instance.get(UserSettingsKey.ApplicationUseHeigResDisplays) == "true")
 			{

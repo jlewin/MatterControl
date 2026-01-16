@@ -20,7 +20,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Compile Remove="Community.CsharpSqlite\**" />
     <Compile Remove="Launcher\**" />
     <Compile Remove="MatterControl.OpenGL\**" />
     <Compile Remove="MatterControl.Printing\**" />
@@ -33,7 +32,6 @@
     <Compile Remove="Submodules\**" />
     <Compile Remove="Tests\**" />
     <Compile Remove="Tools\**" />
-    <EmbeddedResource Remove="Community.CsharpSqlite\**" />
     <EmbeddedResource Remove="Launcher\**" />
     <EmbeddedResource Remove="MatterControl.OpenGL\**" />
     <EmbeddedResource Remove="MatterControl.Printing\**" />
@@ -46,7 +44,6 @@
     <EmbeddedResource Remove="Submodules\**" />
     <EmbeddedResource Remove="Tests\**" />
     <EmbeddedResource Remove="Tools\**" />
-    <None Remove="Community.CsharpSqlite\**" />
     <None Remove="Launcher\**" />
     <None Remove="MatterControl.OpenGL\**" />
     <None Remove="MatterControl.Printing\**" />
@@ -105,6 +102,7 @@
     <PackageReference Include="PDFsharpNetStandard2" Version="1.51.4845" />
     <PackageReference Include="QRCoder" Version="1.4.3" />
     <PackageReference Include="SocketIOSharp" Version="2.0.3" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="9.0.8" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />

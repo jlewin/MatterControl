@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using SQLite;
 
 namespace MatterHackers.MatterControl.DataStorage
 {
@@ -148,7 +149,7 @@ namespace MatterHackers.MatterControl.DataStorage
 		/// </summary>
 		/// <param name="path">The new AppData path.</param>
 		/// <param name="sqliteBuilder">The Sqlite generator with platform specific bindings</param>
-		internal void OverrideAppDataLocation(string path, Func<ISQLite> sqliteBuilder)
+		internal void OverrideAppDataLocation(string path, Func<SQLiteConnection> sqliteBuilder)
 		{
 			Console.WriteLine("   Overriding ApplicationUserDataPath: " + path);
 

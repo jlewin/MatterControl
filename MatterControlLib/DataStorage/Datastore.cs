@@ -32,13 +32,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using MatterHackers.Agg.UI;
+using SQLite;
 
 namespace MatterHackers.MatterControl.DataStorage
 {
 	public class Datastore
 	{
 		private bool wasExited = false;
-		public ISQLite dbSQLite;
+		public SQLiteConnection dbSQLite;
 		private string datastoreLocation = ApplicationDataStorage.Instance.DatastorePath;
 		private static Datastore globalInstance;
 		private ApplicationSession activeSession;
@@ -123,7 +124,7 @@ namespace MatterHackers.MatterControl.DataStorage
 		}
 
 		// Run initial checks and operations on sqlite datastore
-		public void Initialize(ISQLite dbSQLite)
+		public void Initialize(SQLiteConnection dbSQLite)
 		{
 			this.dbSQLite = dbSQLite;
 			ValidateSchema();
