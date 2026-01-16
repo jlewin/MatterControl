@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using MatterHackers.MatterControl;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -21,6 +22,9 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("b2b001ee-a142-4e20-acf8-ae4a9cb984f8")]
+
+// Add this near the top of Program.cs (after using statements, before namespace)
+[assembly: MainOutputDirectory("bin/Debug/net9.0", @"D:\MatterControl")]
 
 // Version information for an assembly consists of the following four values:
 //
