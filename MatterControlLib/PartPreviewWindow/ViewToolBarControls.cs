@@ -295,16 +295,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			// add the options menu
 			this.AddChild(new HorizontalSpacer());
 
-			optionsButton = new PopupMenuButton("Tools".Localize(), theme)
-			{
-				AlignToRightEdge = true,
-				DrawArrow = true,
-			};
-			this.AddChild(optionsButton);
-			optionsButton.Name = "ToolBar Overflow Menu";
-			optionsButton.ToolTipText = "Tool Bar Options".Localize();
-			optionsButton.DynamicPopupContent = () => GenerateToolBarOptionsMenu(theme);
-
 			// Register listeners
 			undoBuffer.Changed += UndoBuffer_Changed;
 			sceneContext.Scene.SelectionChanged += UpdateToolbarButtons;
@@ -312,31 +302,17 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			// Run on load
 			UpdateToolbarButtons(null, null);
-
-			this.MouseDown += (s, mouseEvent) =>
-			{
-				if (mouseEvent.Button == MouseButtons.Right)
-				{
-					UiThread.RunOnIdle(() =>
-					{
-						var popupMenu = GenerateToolBarOptionsMenu(theme);
-						popupMenu.ShowMenu(this, mouseEvent);
-					});
-				}
-			};
 		}
 
-        private string Collapsed;
+		private string Collapsed;
 		private string Expanded;
 		private string Hidden;
 
 		private string Default;
 		private string Hide_All;
 		private string Expand_All;
-        private PopupMenuButton optionsButton;
 
-        private IEnumerable<OperationGroup> GroupOperations
-
+		private IEnumerable<OperationGroup> GroupOperations
 		{
 			get
 			{
@@ -348,115 +324,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					}
 				}
 			}
-		}
-
-		private PopupMenu GenerateToolBarOptionsMenu(ThemeConfig theme)
-		{
-			var popupMenu = new PopupMenu(theme)
-			{
-				Padding = new BorderDouble(0, 7),
-			};
-
-#if true
-			void DefaultClicked(object e, MouseEventArgs mouseEvent)
-			{
-				foreach (var operationGroup in GroupOperations)
-				{
-					switch(operationGroup.Id)
-                    {
-						case "Path":
-						case "Printing":
-						case "Design Apps":
-							operationGroup.Visible = false;
-							break;
-
-						default:
-							operationGroup.Collapse = true;
-							operationGroup.Visible = true;
-							break;
-                    }
-				}
-
-				optionsButton.InvokeClick();
-				UiThread.RunOnIdle(optionsButton.InvokeClick);
-			}
-
-			void HideAll(object e, MouseEventArgs mouseEvent)
-			{
-				foreach (var operationGroup in GroupOperations)
-				{
-					operationGroup.Visible = false;
-				}
-
-				optionsButton.InvokeClick();
-				UiThread.RunOnIdle(optionsButton.InvokeClick);
-			}
-
-			void ExpandAll(object e, MouseEventArgs mouseEvent)
-			{
-				foreach (var operationGroup in GroupOperations)
-				{
-					operationGroup.Collapse = false;
-					operationGroup.Visible = true;
-				}
-
-				optionsButton.InvokeClick();
-				UiThread.RunOnIdle(optionsButton.InvokeClick);
-			}
-
-			// buttons for the control of defaults
-			var topButtonData = new (string, string, EventHandler<MouseEventArgs>)[]
-			{
-				(nameof(Default), nameof(Default).Replace("_", " ").Localize(), DefaultClicked),
-				(nameof(Expand_All), nameof(Expand_All).Replace("_", " ").Localize(), ExpandAll),
-				(nameof(Hide_All), nameof(Hide_All).Replace("_", " ").Localize(), HideAll),
-			};
-
-			popupMenu.CreateButtonMenuItem("Design Tools".Localize(), topButtonData, 40 * GuiWidget.DeviceScale, true);
-
-			popupMenu.CreateSeparator(5);
-#endif
-
-			// the buttons per setting
-			var buttonData = new (string, string)[]
-			{
-				(nameof(Collapsed), "Collapse".Localize()),
-				(nameof(Expanded), "Expand".Localize()),
-				(nameof(Hidden), "Hide".Localize()),
-			};
-
-			foreach (var operationGroup in GroupOperations)
-			{
-				var startingValue = operationGroup.Collapse ? nameof(Collapsed) : nameof(Expanded);
-				if (!operationGroup.Visible)
-				{
-					startingValue = nameof(Hidden);
-				}
-
-				popupMenu.CreateButtonSelectMenuItem(operationGroup.Title, buttonData, startingValue, (value) =>
-				{
-					switch (value)
-					{
-						case nameof(Expanded):
-							operationGroup.Collapse = false;
-							operationGroup.Visible = true;
-							break;
-
-						case nameof(Collapsed):
-							operationGroup.Collapse = true;
-							operationGroup.Visible = true;
-							break;
-
-						case nameof(Hidden):
-							operationGroup.Visible = false;
-							break;
-					}
-				}, 40 * GuiWidget.DeviceScale);
-
-				popupMenu.CreateSeparator();
-			};
-
-			return popupMenu;
 		}
 
 		private FlowLayoutWidget CreateOperationButtonGroup(ThemeConfig theme, OperationGroup operationGroup)
