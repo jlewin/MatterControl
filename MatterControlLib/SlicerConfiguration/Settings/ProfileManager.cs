@@ -307,9 +307,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			ProfileManager.UserChanged?.Invoke(loadedInstance, null);
 
-			// Ensure SQLite printers are imported
-			loadedInstance?.EnsurePrintersImported();
-
 			return loadedInstance;
 		}
 
@@ -882,23 +879,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					}
 				},
 				Path.Combine("Profiles", make, model + ProfileManager.ProfileExtension));
-		}
-
-		private void EnsurePrintersImported()
-		{
-			if (IsGuestProfile && !PrintersImported)
-			{
-				int intialCount = this.Profiles.Count;
-
-				// Import Sqlite printer profiles into local json files
-				DataStorage.ClassicDB.ClassicSqlitePrinterProfiles.ImportPrinters(Instance);
-				PrintersImported = true;
-
-				if (intialCount != this.Profiles.Count)
-				{
-					this.Save();
-				}
-			}
 		}
 
 		private static void Profiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
