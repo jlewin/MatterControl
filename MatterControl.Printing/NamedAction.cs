@@ -64,16 +64,4 @@ namespace MatterHackers.MatterControl
 	{
 		public NamedAction[] Group { get; set; }
 	}
-
-	public static class NamedActionExtensions
-	{
-		public static void Add(this List<NamedAction> list, string title, Action action)
-		{
-			list.Add(new NamedAction()
-			{
-				Title = title,
-				Action = action
-			});
-		}
-	}
 }
