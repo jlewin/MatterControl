@@ -40,6 +40,7 @@ using MatterHackers.ImageProcessing;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.VectorMath;
+using static MatterHackers.MatterControl.CustomWidgets.LibraryListView;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
 {
@@ -83,6 +84,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				HAnchor = HAnchor.Right,
 				Name = "Tumble Cube Control"
 			};
+			tumbleCubeControl.Visible = printer.ViewState.ViewMode == PartViewMode.Model;
 
 			var cubeCenterFromRightTop = new Vector2(tumbleCubeControl.Margin.Right * scale + tumbleCubeControl.Width / 2,
 				tumbleCubeControl.Margin.Top * scale + tumbleCubeControl.Height / 2);

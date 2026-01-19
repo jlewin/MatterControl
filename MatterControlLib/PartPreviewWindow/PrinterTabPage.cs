@@ -149,8 +149,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			var trackball = view3DWidget.Object3DControlLayer.Children<TrackballTumbleWidget>().FirstOrDefault();
 
-			tumbleCubeControl = view3DWidget.Object3DControlLayer.Children<TumbleCubeControl>().FirstOrDefault();
-
 			var position = view3DWidget.Object3DControlLayer.Children.IndexOf(trackball);
 
 			gcodePanel = new GCodePanel(this, Printer, sceneContext, theme)
@@ -219,7 +217,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			this.SetViewMode(Printer.ViewState.ViewMode);
 
-			this.LayerScrollbar.Margin = LayerScrollbar.Margin.Clone(top: tumbleCubeControl.Height + tumbleCubeControl.Margin.Height + 4);
+			var layerParent = view3DWidget.Object3DControlLayer;
+			this.LayerScrollbar.Margin = LayerScrollbar.Margin.Clone(top: layerParent.Height + layerParent.Margin.Height + 4);
 
 			// On load, switch to gcode view if previously editing gcode file. Listeners would normally do this but workspace loads before this UI widget
 			if (this?.PrinterActionsBar?.modelViewButton is GuiWidget button)
@@ -419,8 +418,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			gcodeContainer.Visible = viewMode != PartViewMode.Model;
 
-			tumbleCubeControl.Visible = !gcode2DWidget.Visible;
-
 			if (viewMode == PartViewMode.Layers3D)
 			{
 				Printer.Bed.Scene.ClearSelection();
@@ -480,8 +477,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		}
 
 		private double lastPosition = 0;
-		private TumbleCubeControl tumbleCubeControl;
-
+		
 		private bool SetAnimationPosition()
 		{
 			LayerScrollbar.Value = Printer.Connection.CurrentlyPrintingLayer;
