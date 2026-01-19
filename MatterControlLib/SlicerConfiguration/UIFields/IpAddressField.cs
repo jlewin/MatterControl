@@ -1,17 +1,13 @@
-﻿using MatterHackers.Agg;
-using MatterHackers.Agg.UI;
-using MatterHackers.Localizations;
-using MatterHackers.MatterControl.PrinterCommunication;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using MatterHackers.SerialPortCommunication.FrostedSerial;
-using Zeroconf;
-using MatterHackers.MatterControl.CustomWidgets;
+using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
+using MatterHackers.Agg.UI;
 using MatterHackers.ImageProcessing;
+using MatterHackers.MatterControl.PrinterCommunication;
+using Zeroconf;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -98,8 +94,8 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			try
 			{
-				IReadOnlyList<Zeroconf.IZeroconfHost> possibleHosts = await ProbeForNetworkedTelnetConnections();
-				foreach (Zeroconf.IZeroconfHost host in possibleHosts)
+				IReadOnlyList<IZeroconfHost> possibleHosts = await ProbeForNetworkedTelnetConnections();
+				foreach (IZeroconfHost host in possibleHosts)
 				{
 					// Add each found telnet host to the dropdown list
 					IService service;
@@ -129,17 +125,12 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			refreshButton.Enabled = true;
 		}
 
-		private void DefaultOption_Selected(object sender, EventArgs e)
-		{
-			throw new NotImplementedException();
-		}
-
-		public static async Task<IReadOnlyList<Zeroconf.IZeroconfHost>> ProbeForNetworkedTelnetConnections()
+		public static async Task<IReadOnlyList<IZeroconfHost>> ProbeForNetworkedTelnetConnections()
 		{
 			return await ZeroconfResolver.ResolveAsync("_telnet._tcp.local.");
 		}
 
-		public static async Task<IReadOnlyList<Zeroconf.IZeroconfHost>> EnumerateAllServicesFromAllHosts()
+		public static async Task<IReadOnlyList<IZeroconfHost>> EnumerateAllServicesFromAllHosts()
 		{
 			ILookup<string, string> domains = await ZeroconfResolver.BrowseDomainsAsync();
 			return await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key));
