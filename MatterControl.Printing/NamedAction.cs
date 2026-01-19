@@ -40,6 +40,8 @@ namespace MatterHackers.MatterControl
 
 		public Func<bool> IsEnabled { get; set; } = () => true;
 
+		public Func<bool> IsVisible { get; set; } = () => true;
+
 		public ImageBuffer Icon { get; set; }
 
 		public string ID { get; set; }

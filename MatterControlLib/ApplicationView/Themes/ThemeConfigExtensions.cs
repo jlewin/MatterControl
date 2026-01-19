@@ -36,6 +36,7 @@ using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrinterCommunication;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MatterHackers.MatterControl
 {
@@ -135,7 +136,7 @@ namespace MatterHackers.MatterControl
         public static FlowLayoutWidget CreateMenuItems(this ThemeConfig theme, PopupMenu popupMenu, IEnumerable<NamedAction> menuActions)
         {
             // Create menu items in the DropList for each element in this.menuActions
-            foreach (var menuAction in menuActions)
+            foreach (var menuAction in menuActions.Where(action => action.IsVisible()))
             {
                 if (menuAction is ActionSeparator)
                 {
@@ -209,6 +210,7 @@ namespace MatterHackers.MatterControl
                         menuItem.Name = $"{menuAction.Title} Menu Item";
 
                         menuItem.Enabled = menuAction is NamedActionGroup
+                            || (menuAction is NamedBoolAction && menuAction.IsEnabled() != false)
                             || (menuAction.Action != null && menuAction.IsEnabled?.Invoke() != false);
 
                         menuItem.ClearRemovedFlag();
@@ -217,7 +219,7 @@ namespace MatterHackers.MatterControl
                         {
                             menuItem.Click += (s, e) =>
                             {
-                                menuAction.Action();
+                                menuAction.Action?.Invoke();
                             };
                         }
                     }
