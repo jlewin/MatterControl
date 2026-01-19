@@ -786,7 +786,6 @@ namespace MatterHackers.MatterControl
 				new OperationGroup("Path")
 				{
 					TitleGetter = () => "Path".Localize(),
-					Visible = OperationGroup.GetVisible("Path", false),
 					Operations = new List<SceneOperation>()
 					{
 						LinearExtrudeOperation(),
@@ -832,7 +831,6 @@ namespace MatterHackers.MatterControl
 				new OperationGroup("Printing")
 				{
 					TitleGetter = () => "Printing".Localize(),
-					Visible = OperationGroup.GetVisible("Path", false),
 					Operations = new List<SceneOperation>()
 					{
 						ToggleSupportOperation(),
@@ -843,7 +841,6 @@ namespace MatterHackers.MatterControl
 				new OperationGroup("Constraints")
 				{
 					TitleGetter = () => "Constraints".Localize(),
-					Visible = OperationGroup.GetVisible("Path", false),
 					Operations = new List<SceneOperation>()
 					{
 						FitToBoundsOperation(),

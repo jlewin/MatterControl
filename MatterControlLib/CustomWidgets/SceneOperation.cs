@@ -101,11 +101,7 @@ namespace MatterHackers.Agg.UI
 
 		public bool Collapse
 		{
-			get
-			{
-				return UserSettings.Instance.Fields.GetBool(CollapseKey(this.Id), true);
-			}
-
+			get => UserSettings.Instance.Fields.GetBool(CollapseKey(this.Id), true);
 			set
 			{
 				if (Collapse != value)
@@ -123,18 +119,10 @@ namespace MatterHackers.Agg.UI
 			return $"scene_operation_visible_{operationGroupName}";
 		}
 
-		public static bool GetVisible(string id, bool defaultIfNotSet)
-		{
-			return UserSettings.Instance.Fields.GetBool(VisibleKey(id), defaultIfNotSet);
-		}
-
+		
 		public bool Visible
 		{
-			get
-			{
-				return GetVisible(this.Id, true);
-			}
-
+			get => UserSettings.Instance.Fields.GetBool(VisibleKey(Id), true);
 			set
 			{
 				if (Visible != value)
