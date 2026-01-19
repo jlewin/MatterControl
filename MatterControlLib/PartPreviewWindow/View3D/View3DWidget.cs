@@ -272,6 +272,15 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			splitContainer.AddChild(modelViewSidePanel);
 
 
+			Object3DControlLayer.AddChild(
+				new SceneViewControls(
+					this,
+					theme,
+					printer,
+					sceneContext,
+					Object3DControlLayer,
+					TrackballTumbleWidget,
+					viewControls3D));
 
 			Object3DControlLayer.AddChild(
 				new MCSceneViewControls(

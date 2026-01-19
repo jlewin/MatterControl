@@ -38,7 +38,7 @@ namespace MatterHackers.MatterControl
 	{
 		public Action Action { get; set; }
 
-		public Func<bool> IsEnabled { get; set; }
+		public Func<bool> IsEnabled { get; set; } = () => true;
 
 		public ImageBuffer Icon { get; set; }
 
