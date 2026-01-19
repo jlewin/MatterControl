@@ -847,7 +847,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					break;
 #if !__ANDROID__
 				case SliceSettingData.DataEditTypes.IP_LIST:
-					uiField = new IpAddessField(printer, theme);
+					uiField = new IpAddressField(printer, theme);
 					break;
 #endif
 

@@ -15,7 +15,7 @@ using MatterHackers.ImageProcessing;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
-	class IpAddessField : UIField
+	class IpAddressField : UIField
 	{
 		private DropDownList dropdownList;
 		private ThemedIconButton refreshButton;
@@ -23,7 +23,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 		private PrinterConfig printer;
 		private ThemeConfig theme;
 
-		public IpAddessField(PrinterConfig printer, ThemeConfig theme)
+		public IpAddressField(PrinterConfig printer, ThemeConfig theme)
 		{
 			this.printer = printer;
 			this.theme = theme;
@@ -32,6 +32,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 		public override void Initialize(ref int tabIndex)
 		{
 			base.Initialize(ref tabIndex);
+
 			bool canChangeComPort = !printer.Connection.IsConnected && printer.Connection.CommunicationState != CommunicationStates.AttemptingToConnect;
 			//This setting defaults to Manual
 			var selectedMachine = printer.Settings.GetValue(SettingsKey.selector_ip_address);
@@ -97,7 +98,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 			try
 			{
-				IReadOnlyList<Zeroconf.IZeroconfHost> possibleHosts = await ProbeForNetworkedTelenetConnections();
+				IReadOnlyList<Zeroconf.IZeroconfHost> possibleHosts = await ProbeForNetworkedTelnetConnections();
 				foreach (Zeroconf.IZeroconfHost host in possibleHosts)
 				{
 					// Add each found telnet host to the dropdown list
@@ -122,7 +123,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				}
 			}
 			catch (Exception ex) {
-				Console.WriteLine("Error in ProbeForNetworkedTelenetConnections: " + ex.Message);
+				Console.WriteLine("Error in ProbeForNetworkedTelnetConnections: " + ex.Message);
 			}
 
 			refreshButton.Enabled = true;
@@ -133,7 +134,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			throw new NotImplementedException();
 		}
 
-		public static async Task<IReadOnlyList<Zeroconf.IZeroconfHost>> ProbeForNetworkedTelenetConnections()
+		public static async Task<IReadOnlyList<Zeroconf.IZeroconfHost>> ProbeForNetworkedTelnetConnections()
 		{
 			return await ZeroconfResolver.ResolveAsync("_telnet._tcp.local.");
 		}
