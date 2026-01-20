@@ -209,7 +209,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				EnableReduceWidth(tab, theme);
 			}
 
-			if (false && !OemSettings.Instance.DesignToolsOnly)
+			if (!OemSettings.Instance.DesignToolsOnly)
 			{
 				// Hardware tab
 				tabControl.AddTab(
