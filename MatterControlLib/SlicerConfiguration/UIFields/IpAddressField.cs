@@ -8,6 +8,8 @@ using MatterHackers.Agg.UI;
 using MatterHackers.ImageProcessing;
 using MatterHackers.MatterControl.PrinterCommunication;
 using Zeroconf;
+using System.Threading;
+using System.Net.NetworkInformation;
 
 namespace MatterHackers.MatterControl.SlicerConfiguration
 {
@@ -127,13 +129,32 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 		public static async Task<IReadOnlyList<IZeroconfHost>> ProbeForNetworkedTelnetConnections()
 		{
-			return await ZeroconfResolver.ResolveAsync("_telnet._tcp.local.");
+			try
+			{
+				// Pass the filtered interfaces to ZeroconfResolver
+				return await ZeroconfResolver.ResolveAsync("_telnet._tcp.local.",
+					scanTime: TimeSpan.FromSeconds(5),
+					retries: 2,
+					retryDelayMilliseconds: 2000,
+					callback: null,
+					cancellationToken: CancellationToken.None,
+					netInterfacesToSendRequestOn: GetValidInterfaces());
+			}
+			catch (Exception)
+			{
+				// If filtering fails or no valid interfaces found, return empty list
+				return new List<IZeroconfHost>();
+			}
 		}
 
-		public static async Task<IReadOnlyList<IZeroconfHost>> EnumerateAllServicesFromAllHosts()
+		private static NetworkInterface[] GetValidInterfaces()
 		{
-			ILookup<string, string> domains = await ZeroconfResolver.BrowseDomainsAsync();
-			return await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key));
+			// Get only network interfaces that are operational and have IPv4 support
+			return NetworkInterface.GetAllNetworkInterfaces()
+				.Where(ni => ni.OperationalStatus == OperationalStatus.Up
+						&& ni.NetworkInterfaceType != NetworkInterfaceType.Loopback
+						&& ni.Supports(NetworkInterfaceComponent.IPv4))
+				.ToArray();
 		}
 	}
 }
