@@ -72,6 +72,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				ToolTipText = this.HelpText,
 				Margin = new BorderDouble(),
 				Name = "com_port Field",
+				VAnchor = VAnchor.Center,
 				// Prevent droplist interaction when connected
 				Enabled = canChangeComPort,
                 TabIndex = tabIndex++,

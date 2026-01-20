@@ -39,7 +39,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				ToolTipText = HelpText,
 				Margin = new BorderDouble(),
 				TabIndex = tabIndex,
-
+				VAnchor = VAnchor.Center,
 				Enabled = canChangeComPort,
 				TextColor = canChangeComPort ? theme.TextColor : new Color(theme.TextColor, 150),
 			};
