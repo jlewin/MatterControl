@@ -306,7 +306,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 							}
 
 							var groupSection = this.CreateGroupSection(group, errors);
-
 							groupSection.Name = group.Name + " Panel";
 
 							if (groupSection.Descendants<SliceSettingsRow>().Any())
@@ -493,7 +492,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			{
 				VAnchor = VAnchor.Fit,
 				HAnchor = HAnchor.Stretch,
-				Padding = new BorderDouble(6, 4, 6, 0),
+				Padding = new BorderDouble(6, 0, 6, 0),
 				Name = "GroupPanel" + groupPanelCount++
 			};
 
@@ -945,7 +944,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 						Name = "row",
 						VAnchor = VAnchor.Fit,
 						HAnchor = HAnchor.Stretch,
-						MinimumSize = new Vector2(0, 28),
+						MinimumSize = new Vector2(0, theme.ButtonHeight),
 						BackgroundColor = settingsRow.BackgroundColor,
 						Border = settingsRow.Border,
 						Padding = settingsRow.Padding,
@@ -957,8 +956,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					{
 						Name = "contentWrapper",
 						HAnchor = HAnchor.Stretch,
-						VAnchor = VAnchor.Fit,
-						Padding = new BorderDouble(bottom: 10),
+						VAnchor = VAnchor.Fit | VAnchor.Stretch,
 					};
 					contentWrapper.AddChild(uiField.Content);
 

@@ -79,7 +79,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				{
 					HAnchor = HAnchor.Fit | HAnchor.Right,
 					VAnchor = VAnchor.Fit,
-					MinimumSize = new Vector2(0, 28)
+					MinimumSize = new Vector2(0,  theme.ButtonHeight)
 				};
 				column.AddChild(row);
 
