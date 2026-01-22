@@ -274,7 +274,7 @@ namespace MatterHackers.MatterControl
             };
         }
 
-        public static PopupMenuButton CreateSplitButton(this ThemeConfig theme, SplitButtonParams buttonParams, OperationGroup operationGroup = null)
+        public static PopupMenuButton CreateSplitButton(this ThemeConfig theme, SplitButtonParams buttonParams)
         {
             PopupMenuButton menuButton = null;
 
@@ -319,15 +319,7 @@ namespace MatterHackers.MatterControl
                 buttonParams.ButtonAction.Invoke(menuButton);
             };
 
-            if (operationGroup == null)
-            {
-                menuButton = new PopupMenuButton(innerButton, theme);
-            }
-            else
-            {
-                menuButton = new OperationGroupButton(operationGroup, innerButton, theme);
-            }
-
+            menuButton = new PopupMenuButton(innerButton, theme);
             menuButton.DynamicPopupContent = () =>
             {
                 var popupMenu = new PopupMenu(theme);

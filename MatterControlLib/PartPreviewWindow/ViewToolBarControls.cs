@@ -427,8 +427,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 							DoWrappingLayout();
 						});
 					}
-				},
-				operationGroup);
+				});
 
 			operationButtons.Add(actionAndDropDown, operationGroup);
 
