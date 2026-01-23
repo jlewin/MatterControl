@@ -55,6 +55,11 @@ namespace MatterHackers.MatterControl
 	{
 	}
 
+	public class NamedToggleAction : NamedAction
+	{
+		public Func<bool> IsActive { get; set; }
+	}
+
 	public class NamedBoolAction : NamedAction
 	{
 		public Func<bool> GetIsActive { get; set; }
@@ -65,5 +70,9 @@ namespace MatterHackers.MatterControl
 	public class NamedActionGroup : NamedAction
 	{
 		public NamedAction[] Group { get; set; }
+
+		public bool Sticky { get; set; }
+
+		public bool Collapse { get; set; }
 	}
 }

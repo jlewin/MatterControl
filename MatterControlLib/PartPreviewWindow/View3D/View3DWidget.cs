@@ -270,8 +270,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			historyAndProperties.Panel2.AddChild(selectedObjectPanel);
 			splitContainer.AddChild(modelViewSidePanel);
-
-
+	
 			Object3DControlLayer.AddChild(
 				new SceneViewControls(
 					this,
@@ -282,15 +281,15 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					TrackballTumbleWidget,
 					viewControls3D));
 
-			Object3DControlLayer.AddChild(
-				new MCSceneViewControls(
-					this,
-					theme,
-					printer,
-					sceneContext,
-					Object3DControlLayer,
-					TrackballTumbleWidget,
-					viewControls3D));
+			//Object3DControlLayer.AddChild(
+			//	new MCSceneViewControls(
+			//		this,
+			//		theme,
+			//		printer,
+			//		sceneContext,
+			//		Object3DControlLayer,
+			//		TrackballTumbleWidget,
+			//		viewControls3D));
 
 			this.Object3DControlLayer.AfterDraw += AfterDraw3DContent;
 

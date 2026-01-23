@@ -45,7 +45,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			: base(theme)
 		{
 			this.object3DControlLayer = object3DControlLayer;
-			this.PopupContent = () => ShowGridOptions(theme);
+			this.PopupContent = () => CreateMenu(theme);
 
 			var gridDistance = object3DControlLayer.SnapGridDistance;
 
@@ -97,23 +97,28 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			popupMenu = null;
 		}
 
-		private GuiWidget ShowGridOptions(ThemeConfig theme)
+		private static GuiWidget CreateMenu(ThemeConfig theme)
 		{
-			popupMenu = new PopupMenu(ApplicationController.Instance.MenuTheme)
+			var popupMenu = new PopupMenu(ApplicationController.Instance.MenuTheme)
 			{
 				HAnchor = HAnchor.Absolute,
 				Width = 80 * GuiWidget.DeviceScale
 			};
 
+			return Extend(popupMenu, theme);
+		}
+
+		public static GuiWidget Extend(PopupMenu popupMenu, ThemeConfig theme)
+		{
 			var siblingList = new List<GuiWidget>();
+
+			double SnapGridDistance() => UserSettings.Instance.GetValue<double>(UserSettingsKey.SnapGridDistance, 1);
+			void SetSnap(double value) => UserSettings.Instance.set(UserSettingsKey.SnapGridDistance, value.ToString());
 
 			popupMenu.CreateBoolMenuItem(
 				"Off".Localize(),
-				() => object3DControlLayer.SnapGridDistance ==  0,
-				(isChecked) =>
-				{
-					object3DControlLayer.SnapGridDistance = 0;
-				},
+				() => SnapGridDistance() ==  0,
+				(isChecked) => SetSnap(0),
 				useRadioStyle: true,
 				siblingRadioButtonList: siblingList);
 
@@ -126,11 +131,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				popupMenu.CreateBoolMenuItem(
 					snap.ToString(),
-					() => object3DControlLayer.SnapGridDistance == snap,
-					(isChecked) =>
-					{
-						object3DControlLayer.SnapGridDistance =  snap;
-					},
+					() => SnapGridDistance() == snap,
+					(isChecked) => SetSnap(snap),
 					useRadioStyle: true,
 					siblingRadioButtonList: siblingList);
 			}
