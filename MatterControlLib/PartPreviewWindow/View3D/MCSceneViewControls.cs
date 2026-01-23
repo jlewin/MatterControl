@@ -364,7 +364,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			gridSnapButton.BorderColor = hudStrokeColor;
 
 #if DEBUG
-			var renderOptionsButton = new RenderOptionsButton(theme, controlsLayer)
+			var renderOptionsButton = new RenderOptionsButton(theme)
 			{
 				ToolTipText = "Debug Render Options".Localize(),
 				PopupMate = new MatePoint()
