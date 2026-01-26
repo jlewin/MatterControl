@@ -86,20 +86,7 @@ namespace MatterHackers.MatterControl.Library
 
 		public bool IsVisible => this.visibilityGetter();
 
-		private string _name;
-		public string Name
-		{
-			get => _name; set
-			{
-				if (_name != value)
-				{
-					_name = value;
-					NameChanged?.Invoke(this, EventArgs.Empty);
-				}
-			}
-		}
-
-		public event EventHandler NameChanged;
+		public string Name { get; set; }
 
 		public Task<ILibraryContainer> GetContainer(Action<double, string> reportProgress)
 		{

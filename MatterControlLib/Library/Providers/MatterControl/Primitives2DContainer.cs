@@ -40,7 +40,7 @@ namespace MatterHackers.MatterControl.Library
         public Primitives2DContainer()
         {
             Name = "Primitives 2D".Localize();
-            DefaultSort = new LibrarySortBehavior()
+            DefaultSort = new SortBehavior()
             {
                 SortKey = SortKey.ModifiedDate,
                 Ascending = true,

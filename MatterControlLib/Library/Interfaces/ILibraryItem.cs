@@ -29,23 +29,47 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Threading.Tasks;
+using MatterHackers.DataConverters3D;
 
 namespace MatterHackers.MatterControl.Library
 {
 	public interface ILibraryItem
 	{
 		string ID { get; }
-
-		string Name { get; set; }
-
-		event EventHandler NameChanged;
-
+		string Name { get; }
 		bool IsProtected { get; }
-
 		bool IsVisible { get; }
-
 		DateTime DateModified { get; }
-
 		DateTime DateCreated { get; }
+	}
+
+	public interface ILibraryObject3D : ILibraryAsset
+	{
+		Task<IObject3D> GetObject3D(Action<double, string> reportProgress);
+	}
+
+	public interface ILibraryAssetStream : ILibraryAsset
+	{
+		/// <summary>
+		// Gets the size, in bytes, of the current file.
+		/// </summary>
+		long FileSize { get; }
+
+		bool LocalContentExists { get; }
+
+		Task<StreamAndLength> GetStream(Action<double, string> progress);
+	}
+
+	public interface IRequireInitialize
+	{
+		Task Initialize();
+	}
+
+	public interface ILibraryAsset : ILibraryItem
+	{
+		string ContentType { get; }
+		string Category { get; }
+		string FileName { get; }
+		string AssetPath { get; }
 	}
 }

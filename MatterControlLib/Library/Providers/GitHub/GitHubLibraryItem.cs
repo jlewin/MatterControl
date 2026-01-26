@@ -68,8 +68,6 @@ namespace MatterHackers.MatterControl.Library
 
 		public virtual bool LocalContentExists => File.Exists(CachePath);
 
-		public event EventHandler NameChanged;
-
 		public string Name
 		{
 			get

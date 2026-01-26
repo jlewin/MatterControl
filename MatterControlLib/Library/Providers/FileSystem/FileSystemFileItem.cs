@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2022, John Lewin, Lars Brubaker
+Copyright (c) 2017, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,24 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using MatterHackers.DataConverters3D;
 
 namespace MatterHackers.MatterControl.Library
 {
 	public class FileSystemFileItem : FileSystemItem, ILibraryAssetStream
 	{
-		public FileSystemFileItem(string path)
+		public string FileName => System.IO.Path.GetFileName(this.Path);
+
+		public string ContentType => System.IO.Path.GetExtension(this.Path).ToLower().Trim('.');
+
+		public string AssetPath => this.Path;
+
+		/// <summary>
+		// Gets the size, in bytes, of the current file.
+		/// </summary>
+		public long FileSize { get; private set; }
+
+		public FileSystemFileItem(string path) 
 			: base(path)
 		{
 			var fileInfo = new FileInfo(path);
@@ -45,25 +57,14 @@ namespace MatterHackers.MatterControl.Library
 			}
 		}
 
-		public string AssetPath => this.FilePath;
-
-		public string ContentType => Path.GetExtension(this.FilePath).ToLower().Trim('.');
-
-		public string FileName => Path.GetFileName(this.FilePath);
-
-		/// <summary>
-		/// Gets the size, in bytes, of the current file.
-		/// </summary>
-		public long FileSize { get; private set; }
-
 		public Task<StreamAndLength> GetStream(Action<double, string> reportProgress)
 		{
-			if (File.Exists(this.FilePath)
-				&& (ApplicationController.Instance.IsLoadableFile(this.FilePath)
-					|| (Path.GetExtension(this.FilePath) is string extension
+			if (File.Exists(this.Path)
+				&& (ApplicationController.Instance.IsLoadableFile(this.Path)
+					|| (System.IO.Path.GetExtension(this.Path) is string extension
 						&& string.Equals(extension, ".zip", StringComparison.OrdinalIgnoreCase))))
 			{
-				var stream = File.OpenRead(this.FilePath);
+				var stream = File.OpenRead(this.Path);
 				return Task.FromResult(new StreamAndLength()
 				{
 					Stream = stream,
@@ -74,15 +75,4 @@ namespace MatterHackers.MatterControl.Library
 			return Task.FromResult<StreamAndLength>(null);
 		}
 	}
-
-	/// <summary>
-	/// This class is specifically used for drag drop of scene replacement files
-	/// </summary>
-    public class SceneReplacementFileItem : FileSystemFileItem
-    {
-        public SceneReplacementFileItem(string filePath)
-            : base(filePath)
-        {
-        }
-    }
 }

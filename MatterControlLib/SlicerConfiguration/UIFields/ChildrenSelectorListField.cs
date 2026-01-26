@@ -75,8 +75,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				TabIndex = tabIndex++,
 			};
 
-
-            var orderedItems = names.OrderBy(n => n.value);
+			var orderedItems = names.OrderBy(n => n.value);
 
 			foreach (var orderItem in orderedItems)
 			{

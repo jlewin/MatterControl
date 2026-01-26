@@ -473,7 +473,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
                 children.Add(content);
             });
 
-            return null;
+            return Task.CompletedTask;
         }
 
         public override void OnClosed(EventArgs e)

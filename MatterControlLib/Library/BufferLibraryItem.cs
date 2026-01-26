@@ -54,14 +54,11 @@ namespace MatterHackers.MatterControl.Library
 			get => _name; set
 			{
 				if (_name != value)
-                {
+				{
 					_name = value;
-					NameChanged?.Invoke(this, EventArgs.Empty);
 				}
 			}
 		}
-
-		public event EventHandler NameChanged;
 
 		public string FileName => $"{this.Name}.{this.ContentType}";
 

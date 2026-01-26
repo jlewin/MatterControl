@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2022, John Lewin, Lars Brubaker
+Copyright (c) 2017, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,463 +29,347 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
-using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
-using MatterHackers.DataConverters3D;
-using MatterHackers.Localizations;
-using MatterHackers.MatterControl.DataStorage;
 
 namespace MatterHackers.MatterControl.Library
 {
-    public class FileSystemContainer : WritableContainer, ICustomSearch
-    {
-        private FileSystemWatcher directoryWatcher;
+	public class FileSystemContainer : WritableContainer, ICustomSearch
+	{
+		private FileSystemWatcher directoryWatcher;
 
-        private bool isActiveContainer;
-        private bool isDirty;
-        private string keywordFilter;
+		private bool isActiveContainer;
+		private bool isDirty;
+		private string keywordFilter;
 
-        private long lastTimeContentsChanged;
+		public FileSystemContainer(string fullPath)
+		{
+			this.CustomSearch = this;
+			this.FullPath = fullPath;
+			this.Name = Path.GetFileName(fullPath);
 
-        private RunningInterval waitingForRefresh;
+			this.IsProtected = false;
 
-        public FileSystemContainer(string fullPath)
-        {
-            this.CustomSearch = this;
-            this.FullPath = fullPath;
-            this.Name = Path.GetFileName(fullPath);
+			this.ChildContainers = new List<ILibraryContainerLink>();
+			this.Items = new List<ILibraryItem>();
+#if !__ANDROID__
+			if (AggContext.OperatingSystem == OSType.Windows
+				&& Directory.Exists(fullPath))
+			{
+				directoryWatcher = new FileSystemWatcher(fullPath);
+				directoryWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+				directoryWatcher.Changed += DirectoryContentsChanged;
+				directoryWatcher.Created += DirectoryContentsChanged;
+				directoryWatcher.Deleted += DirectoryContentsChanged;
+				directoryWatcher.Renamed += DirectoryContentsChanged;
+				directoryWatcher.IncludeSubdirectories = false;
 
-            this.IsProtected = false;
-
-            this.ChildContainers = new SafeList<ILibraryContainerLink>();
-            this.Items = new SafeList<ILibraryItem>();
-
-            if (AggContext.OperatingSystem == OSType.Windows
-                && Directory.Exists(fullPath))
-            {
-                directoryWatcher = new FileSystemWatcher(fullPath);
-                directoryWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                directoryWatcher.Changed += DirectoryContentsChanged;
-                directoryWatcher.Created += DirectoryContentsChanged;
-                directoryWatcher.Deleted += DirectoryContentsChanged;
-                directoryWatcher.Renamed += DirectoryContentsChanged;
-                directoryWatcher.IncludeSubdirectories = false;
-
-                // Begin watching.
-                directoryWatcher.EnableRaisingEvents = true;
-            }
-        }
-
-        public override async Task Save(ILibraryItem item, IObject3D content)
-        {
-            if (item is FileSystemFileItem fileItem)
-            {
-                if (fileItem.FilePath.Contains(ApplicationDataStorage.Instance.ApplicationLibraryDataPath))
-                {
-                    // save using the normal uncompressed mcx file
-                    // Serialize the scene to disk using a modified Json.net pipeline with custom ContractResolvers and JsonConverters
-                    File.WriteAllText(fileItem.FilePath, content.ToJson().Result);
-
-                    this.OnItemContentChanged(new LibraryItemChangedEventArgs(fileItem));
-                }
-                else
-                {
-                    await ApplicationController.Instance.Tasks.Execute(
-                        "Saving Changes".Localize(),
-                        null,
-                        async (reporter, cancellationTokenSource) =>
-                        {
-                            var directory = Path.GetDirectoryName(fileItem.FilePath);
-                            var filename = Path.GetFileNameWithoutExtension(fileItem.FilePath);
-                            var backupName = Path.Combine(directory, Path.ChangeExtension(filename + "_bak", ".mcx"));
-
-                            try
-                            {
-                                if (File.Exists(backupName))
-                                {
-                                    File.Delete(backupName);
-                                }
-
-                                // rename any existing file
-                                if (File.Exists(fileItem.FilePath))
-                                {
-                                    File.Move(fileItem.FilePath, backupName);
-                                }
-                            }
-                            catch
-                            {
-                            }
-
-                            // make sure we have all the mesh items in the cache for saving to the archive
-                            await content.PersistAssets((percentComplete, text) =>
-                            {
-                                reporter?.Invoke(percentComplete * .9, null);
-                            }, true);
-
-                            var persistableItems = content.GetPersistable(true);
-                            var persistCount = persistableItems.Count();
-                            var savedCount = 0;
-
-                            // save to a binary mcx file (a zip with a scene.mcx and an assets folder)
-                            using (var file = File.OpenWrite(fileItem.FilePath))
-                            {
-                                using (var zip = new ZipArchive(file, ZipArchiveMode.Create))
-                                {
-                                    var savedItems = new HashSet<string>();
-                                    foreach (var persistableItem in persistableItems)
-                                    {
-                                        string sourcePath = null;
-                                        if (persistableItem.MeshPath != null)
-                                        {
-                                            sourcePath = Path.Combine(ApplicationDataStorage.Instance.LibraryAssetsPath, Path.GetFileName(persistableItem.MeshPath));
-                                        }
-
-                                        if (persistableItem is AssetObject3D assetObject3D)
-                                        {
-                                            sourcePath = Path.Combine(ApplicationDataStorage.Instance.LibraryAssetsPath, Path.GetFileName(assetObject3D.AssetPath));
-                                        }
-
-                                        var destFilename = Path.GetFileName(sourcePath);
-                                        if (File.Exists(sourcePath))
-                                        {
-                                            if (!savedItems.Contains(destFilename))
-                                            {
-                                                savedItems.Add(destFilename);
-                                                var assetName = Path.Combine("Assets", destFilename);
-                                                zip.CreateEntryFromFile(sourcePath, assetName);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            int a = 0;
-                                        }
-
-                                        savedCount++;
-                                        reporter?.Invoke(.9 + .1 * (savedCount / persistCount), null);
-                                    }
-
-                                    var sceneEntry = zip.CreateEntry("scene.mcx");
-                                    using (var sceneStream = sceneEntry.Open())
-                                    {
-                                        using (var writer = new StreamWriter(sceneStream))
-                                        {
-                                            writer.Write(await content.ToJson());
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Serialize the scene to disk using a modified Json.net pipeline with custom ContractResolvers and JsonConverters
-                            this.OnItemContentChanged(new LibraryItemChangedEventArgs(fileItem));
-
-                            // remove the existing file after a successfull save
-                            try
-                            {
-                                if (File.Exists(backupName))
-                                {
-                                    File.Delete(backupName);
-                                }
-                            }
-                            catch { }
-                        });
-                }
-            }
-        }
-
-        public override void SetThumbnail(ILibraryItem item, int width, int height, ImageBuffer imageBuffer)
-        {
-#if DEBUG
-            // throw new NotImplementedException();
+				// Begin watching.
+				directoryWatcher.EnableRaisingEvents = true;
+			}
 #endif
-        }
+		}
 
-        public override ICustomSearch CustomSearch { get; }
+		public string FullPath { get; protected set; }
 
-        public string FullPath { get; protected set; }
+		// Indicates if the new AMF file should use the original file name incremented until no name collision occurs
+		public bool UseIncrementedNameDuringTypeChange { get; internal set; }
 
-        // Indicates if the new AMF file should use the original file name incremented until no name collision occurs
-        public bool UseIncrementedNameDuringTypeChange { get; internal set; }
+		public override void Activate()
+		{
+			this.isActiveContainer = true;
+			base.Activate();
+		}
 
-        public override void Activate()
-        {
-            this.isActiveContainer = true;
-            base.Activate();
-        }
+		public override ICustomSearch CustomSearch { get; }
 
-        public async override void Add(IEnumerable<ILibraryItem> items)
-        {
-            if (!items.Any())
-            {
-                return;
-            }
+		public override void Deactivate()
+		{
+			this.isActiveContainer = false;
+			base.Deactivate();
+		}
 
-            if (directoryWatcher != null)
-            {
-                // turn them off whil ewe add the content
-                directoryWatcher.EnableRaisingEvents = false;
-            }
+		public override void Dispose()
+		{
+			if (directoryWatcher != null)
+			{
+				directoryWatcher.EnableRaisingEvents = false;
 
-            Directory.CreateDirectory(this.FullPath);
+				directoryWatcher.Changed -= DirectoryContentsChanged;
+				directoryWatcher.Created -= DirectoryContentsChanged;
+				directoryWatcher.Deleted -= DirectoryContentsChanged;
+				directoryWatcher.Renamed -= DirectoryContentsChanged;
+			}
+		}
 
-            await Task.Run(async () =>
-            {
-                foreach (var item in items)
-                {
-                    switch (item)
-                    {
-                        case CreateFolderItem newFolder:
-                            string targetFolderPath = Path.Combine(this.FullPath, newFolder.Name);
+		long lastTimeContentsChanged;
 
-                            // TODO: write adaption of GetNonCollidingName for directories
-                            Directory.CreateDirectory(targetFolderPath);
-                            this.isDirty = true;
+		private RunningInterval waitingForRefresh;
 
-                            break;
+		private void DirectoryContentsChanged(object sender, EventArgs e)
+		{
+			// Flag for reload
+			isDirty = true;
 
-                        case ILibraryAssetStream streamItem:
-                            string targetPath = Path.Combine(this.FullPath, streamItem.FileName);
+			lastTimeContentsChanged = UiThread.CurrentTimerMs;
 
-                            try
-                            {
-                                if (File.Exists(targetPath))
-                                {
-                                    targetPath = GetNonCollidingName(Path.GetFileName(targetPath));
-                                }
+			// Only refresh content if we're the active container
+			if (isActiveContainer
+				&& waitingForRefresh == null)
+			{
+				waitingForRefresh = UiThread.SetInterval(WaitToRefresh, .5);
+			}
+		}
 
-                                using (var outputStream = File.OpenWrite(targetPath))
-                                using (var contentStream = await streamItem.GetStream(null))
-                                {
-                                    contentStream.Stream.CopyTo(outputStream);
-                                }
+		private void WaitToRefresh()
+		{
+			if (UiThread.CurrentTimerMs > lastTimeContentsChanged + 500
+				&& waitingForRefresh != null)
+			{
+				UiThread.ClearInterval(waitingForRefresh);
 
-                                this.Items.Add(new FileSystemFileItem(targetPath));
-                                this.isDirty = true;
-                            }
-                            catch (Exception ex)
-                            {
-                                UiThread.RunOnIdle(() =>
-                                {
-                                    ApplicationController.Instance.LogError($"Error adding file: {targetPath}\r\n{ex.Message}");
-                                });
-                            }
+				waitingForRefresh = null;
+				this.ReloadContent();
+			}
+		}
 
-                            break;
-                    }
-                }
-            });
+		public override void Load()
+		{
+			this.Load(false);
+		}
 
-            if (directoryWatcher != null)
-            {
-                // turn them back on
-                directoryWatcher.EnableRaisingEvents = true;
-            }
+		public void Load(bool recursive)
+		{
+			SearchOption searchDepth = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 
-            if (this.isDirty)
-            {
-                this.ReloadContent();
-            }
-        }
+			try
+			{
+				string filter = keywordFilter?.Trim() ?? "";
 
-        public void ApplyFilter(string filter, ILibraryContext libraryContext)
-        {
-            keywordFilter = filter;
-            this.Load();
-            this.OnContentChanged();
-        }
+				var allFiles = Directory.GetFiles(FullPath, "*.*", searchDepth);
 
-        public void ClearFilter()
-        {
-            keywordFilter = null;
-            this.Load();
-            this.OnContentChanged();
-        }
+				var zipFiles = allFiles.Where(f => Path.GetExtension(f).IndexOf(".zip", StringComparison.OrdinalIgnoreCase) != -1);
 
-        public override void Deactivate()
-        {
-            this.isActiveContainer = false;
-            base.Deactivate();
-        }
+				var nonZipFiles = allFiles.Except(zipFiles);
 
-        public override void Dispose()
-        {
-            if (directoryWatcher != null)
-            {
-                directoryWatcher.EnableRaisingEvents = false;
+				List<ILibraryContainerLink> containers;
+				if (filter == "")
+				{
+					var directories = Directory.GetDirectories(FullPath, "*.*", searchDepth).Select(p => new DirectoryContainerLink(p)).ToList<ILibraryContainerLink>();
+					containers = directories.Concat(zipFiles.Select(f => new LocalZipContainerLink(f))).OrderBy(d => d.Name).ToList();
+				}
+				else
+				{
+					containers = new List<ILibraryContainerLink>();
+				}
 
-                directoryWatcher.Changed -= DirectoryContentsChanged;
-                directoryWatcher.Created -= DirectoryContentsChanged;
-                directoryWatcher.Deleted -= DirectoryContentsChanged;
-                directoryWatcher.Renamed -= DirectoryContentsChanged;
-            }
-        }
+				var matchedFiles = nonZipFiles.Where(filePath =>
+				{
+					string fileName = Path.GetFileName(filePath);
 
-        public override void Load()
-        {
-            this.Load(false);
-        }
+					return (filter == "" || FileNameContainsFilter(filePath, filter))
+						&& ApplicationController.Instance.Library.IsContentFileType(fileName);
+				});
 
-        public void Load(bool recursive)
-        {
-            SearchOption searchDepth = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+				// Matched containers
+				this.ChildContainers = containers;
 
-            try
-            {
-                string filter = keywordFilter?.Trim() ?? "";
+				// Matched files projected onto FileSystemFileItem
+				this.Items = matchedFiles.OrderBy(f => f).Select(f => new FileSystemFileItem(f)).ToList<ILibraryItem>();
 
-                var allFiles = Directory.GetFiles(FullPath, "*.*", searchDepth);
+				this.isDirty = false;
+			}
+			catch (Exception ex)
+			{
+				this.ChildContainers = new List<ILibraryContainerLink>();
+				this.Items = new List<ILibraryItem>()
+				{
+					new MessageItem("Error loading container - " + ex.Message)
+				};
+			}
+		}
 
-                var zipFiles = allFiles.Where(f => Path.GetExtension(f).IndexOf(".zip", StringComparison.OrdinalIgnoreCase) != -1);
+		private bool FileNameContainsFilter(string filename, string filter)
+		{
+			string nameWithSpaces = Path.GetFileNameWithoutExtension(filename.Replace('_', ' '));
 
-                var nonZipFiles = allFiles.Except(zipFiles);
+			// Split the filter on word boundaries and determine if all terms in the given file name
+			foreach (string word in filter.Split(' '))
+			{
+				if (nameWithSpaces.IndexOf(word, StringComparison.OrdinalIgnoreCase) == -1)
+				{
+					return false;
+				}
+			}
 
-                if (filter == "")
-                {
-                    var directories = Directory.GetDirectories(FullPath, "*.*", searchDepth).Select(p => new DirectoryContainerLink(p)).ToList<ILibraryContainerLink>();
-                    this.ChildContainers = new SafeList<ILibraryContainerLink>(directories.Concat(zipFiles.Select(f => new LocalZipContainerLink(f))));
-                    var libraryFiles = allFiles.Where(f => Path.GetExtension(f).IndexOf(".library", StringComparison.OrdinalIgnoreCase) != -1);
-                    this.ChildContainers.AddRange(libraryFiles.Select(f => LibraryJsonFile.ContainerFromLocalFile(f)));
-                }
-                else
-                {
-                    this.ChildContainers = new SafeList<ILibraryContainerLink>();
-                }
+			return true;
+		}
 
-                var matchedFiles = nonZipFiles.Where(filePath =>
-                {
-                    string fileName = Path.GetFileName(filePath);
+		private string GetNonCollidingName(string fileName)
+		{
+			// Switching from .stl, .obj or similar to AMF. Save the file and update the
+			// the filename with an incremented (n) value to reflect the extension change in the UI
+			var similarFileNames = Directory.GetFiles(this.FullPath, $"{Path.GetFileNameWithoutExtension(fileName)}.*");
 
-                    return (filter == "" || FileNameContainsFilter(filePath, filter))
-                        && ApplicationController.Instance.Library.IsContentFileType(fileName);
-                });
+			// ;
+			var validName = Util.GetNonCollidingName(fileName, (testName) => !File.Exists(testName));
 
-                this.ChildContainers.Modify((list) =>
-                {
-                    list.Sort((a, b) => a.Name.CompareTo(b.Name));
-                });
+			return validName;
+		}
 
-                // Matched files projected onto FileSystemFileItem
-                this.Items = new SafeList<ILibraryItem>(matchedFiles.OrderBy(f => f).Select(f => new FileSystemFileItem(f)));
+		public void ApplyFilter(string filter, ILibraryContext libraryContext)
+		{
+			keywordFilter = filter;
+			this.Load();
+			this.OnContentChanged();
+		}
 
-                var indexMd = nonZipFiles.Where(f => f.EndsWith("index.md")).FirstOrDefault();
-                if (indexMd != null)
-                {
-                    try
-                    {
-                        HeaderMarkdown = File.ReadAllText(indexMd);
-                    }
-                    catch { }
-                }
+		public void ClearFilter()
+		{
+			keywordFilter = null;
+			this.Load();
+			this.OnContentChanged();
+		}
 
-                this.isDirty = false;
-            }
-            catch (Exception ex)
-            {
-                this.ChildContainers = new SafeList<ILibraryContainerLink>();
-                this.Items = new SafeList<ILibraryItem>()
-                {
-                    new MessageItem("Error loading container - " + ex.Message)
-                };
-            }
-        }
+		public async override void Add(IEnumerable<ILibraryItem> items)
+		{
+			if (!items.Any())
+			{
+				return;
+			}
 
-        public override void Remove(IEnumerable<ILibraryItem> items)
-        {
-            if (AggContext.OperatingSystem == OSType.Windows)
-            {
-                foreach (var item in items)
-                {
-                    if (item is FileSystemItem fileItem
-                        && File.Exists(fileItem.FilePath))
-                    {
-                        File.Delete(fileItem.FilePath);
-                    }
-                }
+			if (directoryWatcher != null)
+			{
+				directoryWatcher.EnableRaisingEvents = false;
+			}
 
-                this.ReloadContent();
-            }
-        }
+			Directory.CreateDirectory(this.FullPath);
 
-        private void DirectoryContentsChanged(object sender, EventArgs e)
-        {
-            // Flag for reload
-            isDirty = true;
+			await Task.Run(async () =>
+			{
+				foreach (var item in items)
+				{
+					switch (item)
+					{
+						case CreateFolderItem newFolder:
+							string targetFolderPath = Path.Combine(this.FullPath, newFolder.Name);
 
-            lastTimeContentsChanged = UiThread.CurrentTimerMs;
+							// TODO: write adaption of GetNonCollidingName for directories
+							Directory.CreateDirectory(targetFolderPath);
+							this.isDirty = true;
 
-            // Only refresh content if we're the active container
-            if (isActiveContainer
-                && waitingForRefresh == null)
-            {
-                waitingForRefresh = UiThread.SetInterval(WaitToRefresh, .5);
-            }
-        }
+							break;
 
-        private bool FileNameContainsFilter(string filename, string filter)
-        {
-            string nameWithSpaces = Path.GetFileNameWithoutExtension(filename.Replace('_', ' '));
+						case ILibraryAssetStream streamItem:
+							string targetPath = Path.Combine(this.FullPath, streamItem.FileName);
 
-            // Split the filter on word boundaries and determine if all terms in the given file name
-            foreach (string word in filter.Split(' '))
-            {
-                if (nameWithSpaces.IndexOf(word, StringComparison.OrdinalIgnoreCase) == -1)
-                {
-                    return false;
-                }
-            }
+							try
+							{
+								if (File.Exists(targetPath))
+								{
+									targetPath = GetNonCollidingName(Path.GetFileName(targetPath));
+								}
 
-            return true;
-        }
+								using (var outputStream = File.OpenWrite(targetPath))
+								using (var contentStream = await streamItem.GetStream(null))
+								{
+									contentStream.Stream.CopyTo(outputStream);
+								}
 
-        private string GetNonCollidingName(string fileName)
-        {
-            // Switching from .stl, .obj or similar to AMF. Save the file and update the
-            // the filename with an incremented (n) value to reflect the extension change in the UI
-            var similarFileNames = Directory.GetFiles(this.FullPath, $"{Path.GetFileNameWithoutExtension(fileName)}.*");
+								this.Items.Add(new FileSystemFileItem(targetPath));
+								this.isDirty = true;
+							}
+							catch (Exception ex)
+							{
+								UiThread.RunOnIdle(() =>
+								{
+									ApplicationController.Instance.LogError($"Error adding file: {targetPath}\r\n{ex.Message}");
+								});
+							}
+							break;
+					}
+				}
+			});
 
-            // ;
-            var validName = Util.GetNonCollidingName(fileName, (testName) => !File.Exists(testName));
+			if (directoryWatcher != null)
+			{
+				directoryWatcher.EnableRaisingEvents = false;
+			}
 
-            return validName;
-        }
+			if (this.isDirty)
+			{
+				this.ReloadContent();
+			}
+		}
 
-        private void WaitToRefresh()
-        {
-            if (UiThread.CurrentTimerMs > lastTimeContentsChanged + 500
-                && waitingForRefresh != null)
-            {
-                UiThread.ClearInterval(waitingForRefresh);
+		public override void Remove(IEnumerable<ILibraryItem> items)
+		{
+			// Removing content from the filesystem can have devastating effects - open a shell window allowing the customer make changes as they seem fit
+			if (AggContext.OperatingSystem == OSType.Windows)
+			{
+				if (items.Count() == 1
+					&& items.FirstOrDefault() is FileSystemFileItem fileItem)
+				{
+					Process.Start("explorer.exe", $"/select, \"{fileItem.Path}\"");
+				}
+				else
+				{
+					Process.Start(this.FullPath);
+				}
+			}
+		}
 
-                waitingForRefresh = null;
-                this.ReloadContent();
-            }
-        }
+		public override void Rename(ILibraryItem item, string revisedName)
+		{
+			if (item is DirectoryContainerLink directoryLink)
+			{
+				if (Directory.Exists(directoryLink.Path))
+				{
+					Process.Start(this.FullPath);
+				}
+			}
+			else if (item is FileSystemFileItem fileItem)
+			{
+				string sourceFile = fileItem.Path;
+				if (File.Exists(sourceFile))
+				{
+					string extension = Path.GetExtension(sourceFile);
+					string destFile = Path.Combine(Path.GetDirectoryName(sourceFile), revisedName);
+					destFile = Path.ChangeExtension(destFile, extension);
 
-        public class DirectoryContainerLink : FileSystemItem, ILibraryContainerLink
-        {
-            public DirectoryContainerLink(string path)
-                : base(path)
-            {
-            }
+					File.Move(sourceFile, destFile);
 
-            public bool IsReadOnly { get; set; } = false;
+					fileItem.Path = destFile;
 
-            public bool UseIncrementedNameDuringTypeChange { get; set; }
+					this.ReloadContent();
+				}
+			}
+		}
 
-            public Task<ILibraryContainer> GetContainer(Action<double, string> reportProgress)
-            {
-                return Task.FromResult<ILibraryContainer>(
-                    new FileSystemContainer(this.FilePath)
-                    {
-                        UseIncrementedNameDuringTypeChange = this.UseIncrementedNameDuringTypeChange,
-                        Name = this.Name
-                    });
-            }
-        }
-    }
+		public class DirectoryContainerLink : FileSystemItem, ILibraryContainerLink
+		{
+			public DirectoryContainerLink(string path)
+				: base(path)
+			{
+			}
+
+			public bool IsReadOnly { get; set; } = false;
+
+			public bool UseIncrementedNameDuringTypeChange { get; set; }
+
+			public Task<ILibraryContainer> GetContainer(Action<double, string> reportProgress)
+			{
+				return Task.FromResult<ILibraryContainer>(
+					new FileSystemContainer(this.Path)
+					{
+						UseIncrementedNameDuringTypeChange = this.UseIncrementedNameDuringTypeChange
+					});
+			}
+		}
+	}
 }

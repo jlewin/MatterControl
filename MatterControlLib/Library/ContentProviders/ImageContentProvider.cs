@@ -55,7 +55,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
 					if (item is FileSystemFileItem fileItem)
 					{
-						assetPath = fileItem.FilePath;
+						assetPath = fileItem.Path;
 					}
 					else if (item is ILibraryAssetStream streamInterface)
 					{

@@ -42,8 +42,6 @@ namespace MatterHackers.MatterControl.Library
 
 		public PrintHistoryContainer()
 		{
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
-			this.Items = new SafeList<ILibraryItem>();
 			this.Name = "Print History".Localize();
 			this.ViewOverride = typeof(HistoryListView);
 
@@ -68,7 +66,7 @@ namespace MatterHackers.MatterControl.Library
 		public override void Load()
 		{
 			// PrintItems projected onto FileSystemFileItem
-			Items = new SafeList<ILibraryItem>(PrintHistoryData.Instance.GetHistoryItems(50).Select(f => new PrintHistoryItem(f)));
+			Items = PrintHistoryData.Instance.GetHistoryItems(50).Select(f => new PrintHistoryItem(f)).ToList<ILibraryItem>();
 		}
 	}
 }

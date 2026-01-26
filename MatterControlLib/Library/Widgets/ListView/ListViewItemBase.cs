@@ -248,12 +248,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 			if (IsDoubleClick(mouseEvent))
 			{
-				listViewItem.OnDoubleClick(mouseEvent);
+				listViewItem.OnDoubleClick();
 			}
-			else
-            {
-				listViewItem.OnClick(mouseEvent);
-            }
 
 			// On mouse down update the view3DWidget reference that will be used in MouseMove and MouseUp
 			view3DWidget = ApplicationController.Instance.DragDropData.View3DWidget;
@@ -301,21 +297,14 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			var delta = mouseDownAt - mouseEvent.Position;
 
 			// If mouseDown on us and we've moved past are drag determination threshold, notify view3DWidget
-			if (LibraryBrowserPage.AllowDragToBed
-				&& mouseDownInBounds 
-				&& delta.Length > 40
+			if (mouseDownInBounds && delta.Length > 40
 				&& view3DWidget != null
 				&& !(listViewItem.Model is MissingFileItem))
 			{
 				hitDragThreshold = true;
 
 				// Performs move and possible Scene add in View3DWidget
-				var listView = this.Parents<LibraryListView>().First();
-				var posRelListView = this.TransformToParentSpace(listView, mouseEvent.Position);
-				if (!listView.LocalBounds.Contains(posRelListView))
-				{
-					view3DWidget.ExternalDragOver(screenSpaceMousePosition: this.TransformToScreenSpace(mouseEvent.Position), sourceWidget: this.listViewItem.ListView);
-				}
+				view3DWidget.ExternalDragOver(screenSpaceMousePosition: this.TransformToScreenSpace(mouseEvent.Position), sourceWidget: this.listViewItem.ListView);
 			}
 
 			base.OnMouseMove(mouseEvent);
@@ -361,24 +350,43 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		{
 			if (!keyEvent.Handled)
 			{
-				var listView = listViewItem.ListView;
-				if (listView != null
-					&& listView.SelectedItems.Count == 1
-					&& listView.SelectedItems.FirstOrDefault()?.Model is ILibraryItem firstItem
-					&& !firstItem.IsProtected
-					&& listView.ActiveContainer is ILibraryWritableContainer)
-				{
 					switch (keyEvent.KeyCode)
 					{
 						case Keys.F2:
-							firstItem.Rename();
-							listView.SelectedItems.Clear();
-							break;
+
+							if (ShowRenameWindow())
+							{
+								keyEvent.Handled = true;
+							}
+						break;
 					}
-				}
 			}
 
 			base.OnKeyDown(keyEvent);
+		}
+
+		/// <summary>
+		/// Attempts to display the rename window for the currently selected library item in the list view.
+		/// </summary>
+		/// <remarks>
+		/// The method only displays the rename window if exactly one item is selected, the item is not
+		/// protected, and the containing library supports renaming. After showing the rename window, the selection is
+		/// cleared.</remarks>
+		/// <returns>true if the rename window is shown for a single, unprotected, selected item; otherwise, false.</returns>
+		public bool ShowRenameWindow()
+		{
+			if (listViewItem.ListView is LibraryListView listView
+				&& listView.SelectedItems.Count == 1
+				&& listView.SelectedItems.FirstOrDefault()?.Model is ILibraryItem firstItem
+				&& !firstItem.IsProtected
+				&& listView.ActiveContainer is ILibraryWritableContainer container)
+			{
+				container.ShowRenameWindow(firstItem);
+				listView.SelectedItems.Clear();
+				return true;
+			}
+
+			return false;
 		}
 
 		protected override void OnClick(MouseEventArgs mouseEvent)
@@ -464,5 +472,5 @@ namespace MatterHackers.MatterControl.CustomWidgets
 				}
 			}
 		}
-    }
+	}
 }

@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2022, John Lewin, Lars Brubaker
+Copyright (c) 2017, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,8 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg;
-using MatterHackers.Localizations;
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace MatterHackers.MatterControl.Library
 {
@@ -40,23 +37,32 @@ namespace MatterHackers.MatterControl.Library
 	/// </summary>
 	public class FileSystemItem : ILibraryItem
 	{
-		public FileSystemItem(string filePath)
+		private string fileName;
+
+		public string Path { get; set; }
+		public string Category { get; set; }
+		public virtual bool IsProtected => false;
+		public virtual bool IsVisible => true;
+		public virtual bool LocalContentExists => true;
+
+		public FileSystemItem(string path)
 		{
-			this.FilePath = filePath;
+			this.Path = path;
+
 			var type = GetType();
 
 			try
 			{
 				if (type == typeof(FileSystemFileItem))
 				{
-					var fileInfo = new FileInfo(filePath);
+					var fileInfo = new FileInfo(path);
 
 					this.DateCreated = fileInfo.CreationTime;
 					this.DateModified = fileInfo.LastWriteTime;
 				}
 				else
 				{
-					var directoryInfo = new DirectoryInfo(filePath);
+					var directoryInfo = new DirectoryInfo(path);
 
 					this.DateCreated = directoryInfo.CreationTime;
 					this.DateModified = directoryInfo.LastWriteTime;
@@ -68,87 +74,42 @@ namespace MatterHackers.MatterControl.Library
 				this.DateModified = DateTime.Now;
 			}
 		}
-
-		public string Category { get; set; }
+		public virtual string ID => this.Path.GetHashCode().ToString();
 
 		public DateTime DateCreated { get; }
 
 		public DateTime DateModified { get; }
 
-		public virtual string ID => Util.GetLongHashCode(this.FilePath + DateModified.ToString()).ToString();
-
-		public virtual bool IsProtected => false;
-
-		public virtual bool IsVisible => true;
-
-		public virtual bool LocalContentExists => true;
-
-		public event EventHandler NameChanged;
-
 		public virtual string Name
 		{
 			get
 			{
-				var finalDirectory = Path.GetFileName(this.FilePath);
-				if (string.IsNullOrEmpty(finalDirectory))
+				if (fileName == null)
 				{
-					if (FilePath.Length > 0)
-					{
-						return $"{FilePath[0]} " + "Drive".Localize();
-					}
-					else
-					{
-						return "Unknown".Localize();
-					}
+					fileName = System.IO.Path.GetFileName(this.Path);
 				}
 
-				return finalDirectory;
+				return fileName;
 			}
-
 			set
 			{
-				if (Name != value)
-				{
-					string sourceFile = this.FilePath;
-					if (File.Exists(sourceFile))
-					{
-						var extension = Path.GetExtension(sourceFile);
-						var fileNameNumberMatch = new Regex("\\s*\\(\\d+\\)" + extension, RegexOptions.Compiled);
-
-						var directory = Path.GetDirectoryName(sourceFile);
-						var destName = value;
-						var destPathAndName = Path.Combine(directory, Path.ChangeExtension(destName, extension));
-
-						var uniqueFileIncrement = 0;
-						while(File.Exists(destPathAndName))
-                        {
-							// remove any number
-							destName = fileNameNumberMatch.Replace(sourceFile, "");
-							// add the new number
-							destName += $" ({++uniqueFileIncrement})";
-							destName = Path.ChangeExtension(destName, extension);
-							destPathAndName = Path.Combine(directory, Path.ChangeExtension(destName, extension));
-
-							if (sourceFile == destPathAndName)
-                            {
-								// we have gotten back to the name we currently have (don't change it)
-								break;
-                            }
-						}
-
-						if (sourceFile != destPathAndName)
-						{
-							File.Move(sourceFile, destPathAndName);
-
-							this.FilePath = destPathAndName;
-
-							NameChanged?.Invoke(this, EventArgs.Empty);
-						}
-					}
-				}
+				fileName = value;
 			}
 		}
+	}
 
-		public string FilePath { get; set; }
+	public class MockLibraryItem : ILibraryItem
+	{
+		public string ID { get; set; }
+
+		public string Name { get; set; }
+
+		public bool IsProtected => true;
+
+		public bool IsVisible => true;
+
+		public DateTime DateCreated { get; } = DateTime.Now;
+
+		public DateTime DateModified { get; } = DateTime.Now;
 	}
 }

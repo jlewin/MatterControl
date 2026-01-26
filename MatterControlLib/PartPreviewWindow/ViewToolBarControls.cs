@@ -42,6 +42,7 @@ using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.DataStorage;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Library.Widgets;
+using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.MatterControl.SlicerConfiguration;
 using MatterHackers.VectorMath;
 
@@ -475,11 +476,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					int maxItemWidth = 0;
 
 					var recentFiles = new DirectoryInfo(ApplicationDataStorage.Instance.PlatingDirectory).GetFiles("*.mcx").OrderByDescending(f => f.LastWriteTime);
-					foreach (var item in recentFiles.Where(f => f.Length > 215).Select(f => new SceneReplacementFileItem(f.FullName)).Take(12))
+
+					foreach (var item in recentFiles.Where(f => f.Length > 215).Select(f => new FileSystemFileItem(f.FullName)).Take(12))
 					{
 						var imageBuffer = new ImageBuffer(thumbWidth, thumbWidth);
 
-						var title = new FileInfo(item.FilePath).LastWriteTime.ToString("MMMM d h:mm tt");
+						var title = new FileInfo(item.Path).LastWriteTime.ToString("MMMM d h:mm tt");
 
 						var bedHistory = subMenu.CreateMenuItem(title, imageBuffer);
 						bedHistory.GutterWidth = gutterWidth;
@@ -698,7 +700,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					// Compute slight highlight of openColor for use as listView background color
 					var slightHighlight = theme.ResolveColor(openColor, Color.White.WithAlpha(theme.IsDarkTheme ? 10 : 50));
 
-					var popupLibraryWidget = new PopupLibraryWidget(mainViewWidget, workspace, theme, slightHighlight, libraryPopup)
+					var popupLibraryWidget = new PrintLibraryWidget(mainViewWidget, workspace, theme, slightHighlight, libraryPopup)
 					{
 						HAnchor = HAnchor.Stretch,
 						VAnchor = VAnchor.Absolute,

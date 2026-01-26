@@ -43,7 +43,7 @@ using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrinterCommunication;
 using MatterHackers.MatterControl.PrintQueue;
-using static MatterHackers.MatterControl.Library.Widgets.PopupLibraryWidget;
+using static MatterHackers.MatterControl.PrintLibrary.PrintLibraryWidget;
 
 namespace MatterHackers.MatterControl.Library.Widgets
 {
@@ -698,7 +698,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				Icon = StaticData.Instance.LoadIcon("cube.png", 16, 16).GrayToColor(theme.TextColor),
 				Action = (selectedLibraryItems, listView) =>
 				{
-					listView.SelectedItems.FirstOrDefault()?.OnDoubleClick(null);
+					listView.SelectedItems.FirstOrDefault()?.OnDoubleClick();
 				},
 				IsEnabled = (selectedListItems, listView) =>
 				{
@@ -832,16 +832,9 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				Icon = StaticData.Instance.LoadIcon("icon_edit.png", 16, 16).GrayToColor(theme.TextColor),
 				Action = (selectedLibraryItems, listView) =>
 				{
-					if (libraryView.SelectedItems.Count == 1)
+					if (libraryView.SelectedItems.FirstOrDefault() is ListViewItem firstItem)
 					{
-						var selectedItem = libraryView.SelectedItems.FirstOrDefault();
-						if (selectedItem == null)
-						{
-							return;
-						}
-
-						selectedItem.Model.Rename();
-						libraryView.SelectedItems.Clear();
+						firstItem.ViewWidget.ShowRenameWindow();
 					}
 				},
 				IsEnabled = (selectedListItems, listView) =>
@@ -903,15 +896,15 @@ namespace MatterHackers.MatterControl.Library.Widgets
 						{
 							if (listView.SelectedItems.FirstOrDefault().Model is FileSystemFileItem fileItem)
 							{
-								Process.Start("explorer.exe", $"/select, \"{fileItem.FilePath}\"");
+								Process.Start("explorer.exe", $"/select, \"{fileItem.Path}\"");
 							}
 							else if (listView.SelectedItems.FirstOrDefault().Model is FileSystemContainer.DirectoryContainerLink container)
 							{
-								Process.Start("explorer.exe", $"/select, \"{container.FilePath}\"");
+								Process.Start("explorer.exe", $"/select, \"{container.Path}\"");
 							}
 							else if (listView.SelectedItems.FirstOrDefault().Model is LocalZipContainerLink zipContainer)
 							{
-								Process.Start("explorer.exe", $"/select, \"{zipContainer.FilePath}\"");
+								Process.Start("explorer.exe", $"/select, \"{zipContainer.Path}\"");
 							}
 						}
 					}

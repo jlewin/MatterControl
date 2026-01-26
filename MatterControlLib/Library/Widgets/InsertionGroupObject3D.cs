@@ -128,7 +128,7 @@ namespace MatterHackers.MatterControl.Library
 							&& item is FileSystemFileItem fileItem
 							&& item.IsMeshFileType())
 						{
-							loadedItem.MeshPath = fileItem.FilePath;
+							loadedItem.MeshPath = fileItem.Path;
 						}
 
 						this.Children.Add(loadedItem);

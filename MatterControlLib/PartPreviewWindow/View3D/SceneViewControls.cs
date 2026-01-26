@@ -80,7 +80,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
                 VAnchor = VAnchor.Top,
                 HAnchor = HAnchor.Right,
                 Name = "Tumble Cube Control",
-                Visible = printer.ViewState.ViewMode == PartViewMode.Model,
+                Visible = printer == null || printer.ViewState.ViewMode == PartViewMode.Model,
             };
             controlsLayer.AddChild(tumbleCubeControl);
         }

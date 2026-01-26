@@ -57,22 +57,7 @@ namespace MatterHackers.MatterControl.Library
 
 		public string ID => Object3D.ID;
 
-		private string _name;
-		public string Name
-		{
-			get => _name;
-			
-			set
-			{
-				if (_name != value)
-				{
-					_name = value;
-					NameChanged?.Invoke(this, EventArgs.Empty);
-				}
-			}
-		}
-
-		public event EventHandler NameChanged;
+		public string Name { get; set; }
 
 		public string FileName => Path.ChangeExtension(this.Name, this.ContentType);
 

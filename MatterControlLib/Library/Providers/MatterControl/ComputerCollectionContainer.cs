@@ -41,8 +41,6 @@ namespace MatterHackers.MatterControl.Library
     {
 		public ComputerCollectionContainer()
 		{
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
-			this.Items = new SafeList<ILibraryItem>();
 			this.Name = "Computer".Localize();
 
 			if (Directory.Exists(ApplicationDataStorage.Instance.DownloadsDirectory))
@@ -52,10 +50,12 @@ namespace MatterHackers.MatterControl.Library
 						"Downloads".Localize(),
 						StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
 						StaticData.Instance.LoadIcon(Path.Combine("Library", "download_icon.png")),
-						() => new FileSystemContainer(ApplicationDataStorage.Instance.DownloadsDirectory)
+						() => new FileSystemContainer(ApplicationDataStorage.Instance.DownloadsDirectory )
 						{
+							// Propagate name to the underlying file system container
+							Name = "Downloads".Localize(),
 							UseIncrementedNameDuringTypeChange = true,
-							DefaultSort = new LibrarySortBehavior()
+							DefaultSort = new SortBehavior()
 							{
 								SortKey = SortKey.ModifiedDate,
 							}
@@ -72,7 +72,7 @@ namespace MatterHackers.MatterControl.Library
 						() => new FileSystemContainer(ApplicationDataStorage.Instance.DesktopDirectory)
 						{
 							UseIncrementedNameDuringTypeChange = true,
-							DefaultSort = new LibrarySortBehavior()
+							DefaultSort = new SortBehavior()
 							{
 								SortKey = SortKey.ModifiedDate,
 							}
@@ -89,7 +89,7 @@ namespace MatterHackers.MatterControl.Library
 						() => new FileSystemContainer(ApplicationDataStorage.Instance.MyDocumentsDirectory)
 						{
 							UseIncrementedNameDuringTypeChange = true,
-							DefaultSort = new LibrarySortBehavior()
+							DefaultSort = new SortBehavior()
 							{
 								SortKey = SortKey.ModifiedDate,
 							}
@@ -106,7 +106,7 @@ namespace MatterHackers.MatterControl.Library
                         () => new FileSystemContainer(drive.RootDirectory.FullName)
                         {
                             UseIncrementedNameDuringTypeChange = true,
-                            DefaultSort = new LibrarySortBehavior()
+                            DefaultSort = new SortBehavior()
                             {
                                 SortKey = SortKey.ModifiedDate,
                             }

@@ -41,8 +41,6 @@ namespace MatterHackers.MatterControl.Library
 	{
 		public RootHistoryContainer()
 		{
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
-			this.Items = new SafeList<ILibraryItem>();
 			this.Name = "History".Localize();
 		}
 
@@ -65,7 +63,7 @@ namespace MatterHackers.MatterControl.Library
 					StaticData.Instance.LoadIcon(Path.Combine("Library", "history_icon.png")),
 					() => new PrintHistoryContainer()
 					{
-						DefaultSort = new LibrarySortBehavior()
+						DefaultSort = new SortBehavior()
 						{
 							SortKey = SortKey.ModifiedDate,
 						}
@@ -84,7 +82,7 @@ namespace MatterHackers.MatterControl.Library
 						() => new FileSystemContainer(ApplicationDataStorage.Instance.PrintHistoryPath)
 						{
 							UseIncrementedNameDuringTypeChange = true,
-							DefaultSort = new LibrarySortBehavior()
+							DefaultSort = new SortBehavior()
 							{
 								SortKey = SortKey.ModifiedDate,
 							}

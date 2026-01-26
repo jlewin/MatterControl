@@ -1,6 +1,5 @@
 ﻿/*
-Copyright (c) 2018, John Lewin
-Copyright (c) 2021 Lars Brubaker
+Copyright (c) 2018, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -32,7 +31,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.MatterControl.Library;
 
@@ -53,23 +51,19 @@ namespace MatterHackers.MatterControl
 
 		public string Name => _libraryContainer.Name;
 
-		public string CollectionKeyName { get; set; }
-
-		public string HeaderMarkdown => _libraryContainer.HeaderMarkdown;
-
 		public bool IsProtected => _libraryContainer.IsProtected;
 
 		public Type ViewOverride => _libraryContainer.ViewOverride;
 
-		public SafeList<ILibraryContainerLink> ChildContainers => new SafeList<ILibraryContainerLink>(this.ExtraContainers.Concat(_libraryContainer.ChildContainers));
+		public List<ILibraryContainerLink> ChildContainers => this.ExtraContainers.Concat(_libraryContainer.ChildContainers).ToList();
 
-		public SafeList<ILibraryItem> Items => _libraryContainer.Items;
+		public List<ILibraryItem> Items => _libraryContainer.Items;
 
 		public ILibraryContainer Parent { get => _libraryContainer.Parent; set => _libraryContainer.Parent = value; }
 
 		public ICustomSearch CustomSearch => _libraryContainer.CustomSearch;
 
-		public LibrarySortBehavior DefaultSort => _libraryContainer?.DefaultSort;
+		public SortBehavior DefaultSort => null;
 
 		public event EventHandler ContentChanged;
 

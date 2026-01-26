@@ -184,9 +184,22 @@ namespace MatterHackers.MatterControl
 					{
 						DialogWindow.Show(
 							new SaveAsPage(
-								(container, newName) =>
+								(destinationContainer, newName) =>
 								{
-									sceneContext.SaveAs(container, newName);
+									// Save to the destination provider
+									if (destinationContainer is ILibraryWritableContainer writableContainer)
+									{
+										// Wrap stream with ReadOnlyStream library item and add to container
+										writableContainer.Add(new[]
+										{
+											new InMemoryLibraryItem(selectedItem)
+											{
+												Name = newName
+											}
+										});
+
+										destinationContainer.Dispose();
+									}
 								}));
 					}),
 			 		IsEnabled = () => sceneContext.EditableScene
@@ -195,13 +208,12 @@ namespace MatterHackers.MatterControl
 				{
 					ID = "Export",
 					Title = "Export".Localize(),
-					Icon = StaticData.Instance.LoadIcon("cube_export.png", 16, 16).GrayToColor(MenuTheme.TextColor),
+					Icon = StaticData.Instance.LoadIcon("cube_export.png", 16, 16).GrayToColor(menuTheme.TextColor),
 					Action = () =>
 					{
-						Instance.ExportLibraryItems(
+						ApplicationController.Instance.ExportLibraryItems(
 							new[] { new InMemoryLibraryItem(selectedItem) },
-							centerOnBed: false,
-							printer: printer);
+							centerOnBed: false);
 					}
 				},
 				new ActionSeparator(),
@@ -1032,17 +1044,7 @@ namespace MatterHackers.MatterControl
 			// Create a new library context for the SaveAs view
 			this.LibraryTabContext = new LibraryConfig()
 			{
-				ActiveContainer = new WrappedLibraryContainer(this.Library.RootLibaryContainer)
-				{
-					ExtraContainers = new List<ILibraryContainerLink>()
-					{
-						new DynamicContainerLink(
-							"Printers".Localize(),
-							StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
-							StaticData.Instance.LoadIcon(Path.Combine("Library", "printer_icon.png")),
-							() => new OpenPrintersContainer())
-					}
-				}
+				ActiveContainer = new WrappedLibraryContainer(this.Library.RootLibaryContainer),
 			};
 		}
 

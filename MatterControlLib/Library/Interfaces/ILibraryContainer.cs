@@ -1,6 +1,5 @@
 ﻿/*
 Copyright (c) 2017, John Lewin
-Copyright (c) 2021, Lars Brubaker
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,60 +27,101 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.Agg;
-using MatterHackers.Agg.Image;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MatterHackers.Agg.Image;
+using MatterHackers.DataConverters3D;
 
 namespace MatterHackers.MatterControl.Library
 {
-	public enum ContainerActions
+	public enum SortKey
 	{
-		AddItems,
+		Default,
+		Name,
+		CreatedDate,
+		ModifiedDate,
+	}
 
-		AddContainers,
+	public class SortBehavior
+	{
+		public SortKey SortKey { get; set; }
+		public bool Ascending { get; set; }
+	}
 
-		RenameItems,
+	public interface ICustomSearch
+	{
+		void ApplyFilter(string filter, ILibraryContext libraryContext);
 
-		RemoveItems
+		void ClearFilter();
 	}
 
 	public interface ILibraryContainer : IDisposable
 	{
-		event EventHandler ContentChanged;
-
-		SafeList<ILibraryContainerLink> ChildContainers { get; }
-
-		string CollectionKeyName { get; }
-
-		ICustomSearch CustomSearch { get; }
-
-		LibrarySortBehavior DefaultSort { get; }
-
-		/// <summary>
-		/// Allows a container to override defaults and user preferences, to display a custom view type when constructed
-		/// </summary>
-		Type ViewOverride { get; }
-
 		string ID { get; }
-
-		bool IsProtected { get; }
-
-		SafeList<ILibraryItem> Items { get; }
 
 		string Name { get; }
 
+		bool IsProtected { get; }
+
+		Type ViewOverride { get; }
+
+		SortBehavior DefaultSort { get; }
+
+		event EventHandler ContentChanged;
+
+		List<ILibraryContainerLink> ChildContainers { get; }
+		List<ILibraryItem> Items { get; }
+		ICustomSearch CustomSearch { get; }
+
 		ILibraryContainer Parent { get; set; }
-
-		string HeaderMarkdown { get; }
-
-		void Activate();
-
-		void Deactivate();
 
 		Task<ImageBuffer> GetThumbnail(ILibraryItem item, int width, int height);
 
+		void Deactivate();
+		void Activate();
 		void Load();
+	}
+
+	public interface ILibraryWritableContainer : ILibraryContainer, IContentStore
+	{
+		event EventHandler<ItemChangedEventArgs> ItemContentChanged;
+
+		void Add(IEnumerable<ILibraryItem> items);
+		void Remove(IEnumerable<ILibraryItem> items);
+		void Rename(ILibraryItem item, string revisedName);
+
+		/// <summary>
+		/// Move the given items from the source container to this container
+		/// </summary>
+		/// <param name="items">The items to move</param>
+		/// <param name="sourceContainer">The current parent container</param>
+		void Move(IEnumerable<ILibraryItem> items, ILibraryWritableContainer sourceContainer);
+
+		void SetThumbnail(ILibraryItem item, int width, int height, ImageBuffer imageBuffer);
+		bool AllowAction(ContainerActions containerActions);
+	}
+
+	public enum ContainerActions
+	{
+		AddItems,
+		AddContainers,
+		RenameItems,
+		RemoveItems
+	}
+
+	public class ItemChangedEventArgs : EventArgs
+	{
+		public ILibraryItem LibraryItem { get; }
+
+		public ItemChangedEventArgs(ILibraryItem libraryItem)
+		{
+			this.LibraryItem = libraryItem;
+		}
+	}
+
+	public interface IContentStore
+	{
+		Task Save(ILibraryItem item, IObject3D content);
 	}
 }

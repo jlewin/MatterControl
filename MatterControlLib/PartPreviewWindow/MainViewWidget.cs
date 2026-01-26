@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -756,7 +757,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				if (workspace != null)
 				{
-					workspace.SceneContext?.EditContext?.SourceItem?.Rename();
+					Debugger.Break();
+					//workspace.SceneContext?.EditContext?.SourceItem?.Rename();
 				}
 				else if (printer != null)
 				{
@@ -851,21 +853,24 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			ILibraryItem sourceItem = editContext?.SourceItem;
 
 			void UpdateLinks(object s, EventArgs e)
-            {
+			{
 				editContext = workspace.SceneContext.EditContext;
-				// remove any exisitng delegate
+
+				// remove any existing delegate
+				Debugger.Break();
 				if (sourceItem != null)
 				{
-					sourceItem.NameChanged -= UpdateTabName;
+					//sourceItem.NameChanged -= UpdateTabName;
 				}
 
 				// hook up a new delegate
 				if (editContext != null)
 				{
 					sourceItem = editContext.SourceItem;
+					Debugger.Break();
 					if (sourceItem != null)
 					{
-						sourceItem.NameChanged += UpdateTabName;
+						//sourceItem.NameChanged += UpdateTabName;
 					}
 				}
 			}
@@ -878,7 +883,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 					partTab.Text = sourceItem.Name;
 					if (sourceItem is FileSystemFileItem fileSystemFileItem)
 					{
-						partTab.ToolTipText = fileSystemFileItem.FilePath;
+						partTab.ToolTipText = fileSystemFileItem.Path;
 					}
 				}
 
@@ -887,7 +892,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			if (sourceItem != null)
 			{
-				sourceItem.NameChanged += UpdateTabName;
+				Debugger.Break();
+				//sourceItem.NameChanged += UpdateTabName;
 			}
 
 			if (editContext != null)
@@ -901,7 +907,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				if (sourceItem != null)
 				{
-					sourceItem.NameChanged -= UpdateTabName;
+					Debugger.Break();
+					//sourceItem.NameChanged -= UpdateTabName;
 				}
 				editContext.SourceItemChanged -= UpdateTabName;
 				workspace.SceneContext.SceneLoaded -= UpdateTabName;

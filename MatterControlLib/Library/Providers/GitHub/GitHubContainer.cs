@@ -43,7 +43,12 @@ using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.Library
 {
-	public class GitHubContainer : LibraryContainer
+	public interface IMarkdownReadme
+	{
+		string HeaderMarkdown { get; }
+	}
+
+	public class GitHubContainer : LibraryContainer, IMarkdownReadme
 	{
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1310 // Field names should not contain underscore
@@ -67,20 +72,20 @@ namespace MatterHackers.MatterControl.Library
 
 		public string Repository { get; }
 
+		public string HeaderMarkdown { get; private set; } = "";
+
 		public string RepoDirectory { get; }
 
 		private object locker = new object();
 
 		public GitHubContainer(string containerName, string account, string repository, string repoDirectory)
 		{
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
 			this.Name = containerName;
 			this.Account = account;
 			this.Repository = repository;
 			this.RepoDirectory = repoDirectory;
 
 			// Initialize a default CollectionData with a "Loading..." entry
-			this.Items = new SafeList<ILibraryItem>();
 			this.Items.Add(new MessageItem("Loading".Localize() + "..."));
 		}
 
@@ -118,7 +123,7 @@ namespace MatterHackers.MatterControl.Library
 			// parse result
 			FileInfo[] dirContents = JsonConvert.DeserializeObject<FileInfo[]>(jsonStr);
 
-			var childContainers = new SafeList<ILibraryContainerLink>();
+			var childContainers = new List<ILibraryContainerLink>();
 
 			this.Items.Clear();
 
@@ -332,8 +337,6 @@ namespace MatterHackers.MatterControl.Library
 
 			public bool LocalContentExists => true;
 
-			public event EventHandler NameChanged;
-
 			public string Name
 			{
 				get => this.FileName;
@@ -375,20 +378,7 @@ namespace MatterHackers.MatterControl.Library
 						.GetLongHashCode(Path
 							.GetLongHashCode()))).ToString();
 
-			private string _name;
-			public string Name
-			{
-				get => _name; set
-				{
-					if (_name != value)
-					{
-						_name = value;
-						NameChanged?.Invoke(this, EventArgs.Empty);
-					}
-				}
-			}
-
-			public event EventHandler NameChanged;
+			public string Name { get; set; }
 
 			public bool IsProtected => false;
 

@@ -34,6 +34,7 @@ using MatterHackers.DataConverters3D;
 using MatterHackers.Localizations;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -77,9 +78,12 @@ namespace MatterHackers.MatterControl.Library.Export
                     ContentStore = ApplicationController.Instance.Library.PlatingHistory,
                     SourceItem = libraryItems.FirstOrDefault(),
                 };
+
+                ///////////////////////////////////////////////////////// no /////////////////
+                Debugger.Break();
                 var fileSystemContainer = new FileSystemContainer(outputPath)
                 {
-                    Items = new SafeList<ILibraryItem>(libraryItems)
+                    //Items = new SafeList<ILibraryItem>(libraryItems)
                 };
                 bedToSave.SaveAs(fileSystemContainer, outputPath);
                 return null;

@@ -45,7 +45,6 @@ namespace MatterHackers.MatterControl
 		Both = 3
 	}
 
-
 	public static class Graphics2DOverrides
 	{
 		public static void Ring(this Graphics2D graphics2D, Vector2 center, double radius, double width, Color color)

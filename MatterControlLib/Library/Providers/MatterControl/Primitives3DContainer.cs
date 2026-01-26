@@ -44,7 +44,7 @@ namespace MatterHackers.MatterControl.Library
         public Primitives3DContainer()
         {
             Name = "Primitives".Localize();
-            DefaultSort = new LibrarySortBehavior()
+            DefaultSort = new SortBehavior()
             {
                 SortKey = SortKey.ModifiedDate,
                 Ascending = true,

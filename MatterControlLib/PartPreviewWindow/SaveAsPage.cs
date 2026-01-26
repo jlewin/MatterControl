@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2022, Lars Brubaker, John Lewin
+Copyright (c) 2017, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,9 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
-using System.IO;
 using MatterHackers.Agg;
-using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
-using MatterHackers.ImageProcessing;
 using MatterHackers.Localizations;
-using MatterHackers.MatterControl.CustomWidgets;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.VectorMath;
 
@@ -42,165 +38,37 @@ namespace MatterHackers.MatterControl
 {
 	public class SaveAsPage : LibraryBrowserPage
 	{
-		public SaveAsPage(Action<ILibraryContainer, string> itemSaver)
+		public SaveAsPage(Action<ILibraryContainer, string> itemSaver, bool allowNameChange = true)
 			: base(itemSaver, "Save".Localize())
 		{
 			this.WindowTitle = "MatterControl - " + "Save As".Localize();
 			this.Name = "Save As Window";
-			this.WindowSize = new Vector2(480 * GuiWidget.DeviceScale, 500 * GuiWidget.DeviceScale);
+			this.WindowSize = new Vector2(480 *GuiWidget.DeviceScale, 500 * GuiWidget.DeviceScale);
 			this.HeaderText = "Save New Design".Localize() + ":";
 
 			// put in the area to type in the new name
-			var fileNameHeader = new TextWidget("Design Name".Localize(), pointSize: 12)
+			if (allowNameChange)
 			{
-				TextColor = theme.TextColor,
-				Margin = new BorderDouble(5),
-				HAnchor = HAnchor.Left
-			};
-			contentRow.AddChild(fileNameHeader);
-
-			// Adds text box and check box to the above container
-			itemNameWidget = new ThemedTextEditWidget("", theme, pixelWidth: 300, messageWhenEmptyAndNotSelected: "Enter a Design Name Here".Localize())
-			{
-				HAnchor = HAnchor.Stretch,
-				Margin = new BorderDouble(5),
-				Name = "Design Name Edit Field"
-			};
-
-			this.librarySelectorWidget.ClickItemEvent += (s, e) =>
-			{
-				if (s is ListViewItem listViewItem
-					&& this.AcceptButton.Enabled)
+				var fileNameHeader = new TextWidget("Design Name".Localize(), pointSize: 12)
 				{
-					itemNameWidget.ActualTextEditWidget.Text = Path.ChangeExtension(listViewItem.Model.Name, ".mcx");
-				}
-			};
+					TextColor = theme.TextColor,
+					Margin = new BorderDouble(5),
+					HAnchor = HAnchor.Left
+				};
+				contentRow.AddChild(fileNameHeader);
 
-			void ClickAccept()
-            {
-				if (this.acceptButton.Enabled)
+				// Adds text box and check box to the above container
+				itemNameWidget = new ThemedTextEditWidget("", theme, pixelWidth: 300, messageWhenEmptyAndNotSelected: "Enter a Design Name Here".Localize())
 				{
-					if (librarySelectorWidget.ActiveContainer is ILibraryWritableContainer)
-					{
-						acceptButton.InvokeClick();
-						// And disable it so there are not multiple fires. No need to re-enable, the dialog is going to close.
-						this.AcceptButton.Enabled = false;
-					}
-				}
+					HAnchor = HAnchor.Stretch,
+					Margin = new BorderDouble(5)
+				};
+				itemNameWidget.ActualTextEditWidget.EnterPressed += (s, e) =>
+				{
+					acceptButton.InvokeClick();
+				};
+				contentRow.AddChild(itemNameWidget);
 			}
-
-			this.librarySelectorWidget.DoubleClickItemEvent += (s, e) =>
-			{
-				ClickAccept();
-			};
-
-			itemNameWidget.ActualTextEditWidget.EnterPressed += (s, e) =>
-			{
-				ClickAccept();
-			};
-
-			itemNameWidget.ActualTextEditWidget.TextChanged += (s, e) =>
-			{
-				acceptButton.Enabled = libraryNavContext.ActiveContainer is ILibraryWritableContainer
-					&& !string.IsNullOrWhiteSpace(itemNameWidget.ActualTextEditWidget.Text);
-			};
-
-			contentRow.AddChild(itemNameWidget);
-
-			var icon = StaticData.Instance.LoadIcon("fa-folder-new_16.png", 16, 16).GrayToColor(ApplicationController.Instance.MenuTheme.TextColor);
-			var isEnabled = false;
-			if (librarySelectorWidget.ActiveContainer is ILibraryWritableContainer writableContainer)
-			{
-				isEnabled = writableContainer?.AllowAction(ContainerActions.AddContainers) == true;
-			}
-
-			var folderButtonRow = new FlowLayoutWidget()
-			{
-				HAnchor = HAnchor.Left | HAnchor.Fit,
-			};
-			contentRow.AddChild(folderButtonRow);
-
-			// add a create folder button
-			var createFolderButton = new ThemedTextIconButton("Create Folder".Localize(), icon, theme)
-			{
-				Enabled = isEnabled,
-				VAnchor = VAnchor.Absolute,
-				DrawIconOverlayOnDisabled = true
-			};
-			createFolderButton.Name = "Create Folder In Button";
-			folderButtonRow.AddChild(createFolderButton);
-
-			var refreshButton = new ThemedIconButton(StaticData.Instance.LoadIcon("fa-refresh_14.png", 16, 16).GrayToColor(theme.TextColor), theme)
-			{
-				ToolTipText = "Refresh Folder".Localize(),
-				Enabled = isEnabled,
-			};
-			refreshButton.Click += (s, e) =>
-			{
-				librarySelectorWidget.ActiveContainer.Load();
-			};
-
-			// folderButtonRow.AddChild(refreshButton);
-
-			createFolderButton.Click += CreateFolder_Click;
-
-			// add a message to navigate to a writable folder
-			var writableMessage = new TextWidget("Please select a writable folder".Localize(), pointSize: theme.DefaultFontSize)
-			{
-				TextColor = theme.TextColor,
-				Margin = new BorderDouble(5, 0),
-				VAnchor = VAnchor.Center
-			};
-			footerRow.AddChild(writableMessage, 0);
-
-			footerRow.AddChild(new HorizontalSpacer(), 1);
-
-			// change footer in this context
-			footerRow.HAnchor = HAnchor.Stretch;
-			footerRow.Margin = 0;
-
-			libraryNavContext.ContainerChanged += (s, e) =>
-			{
-				var writable = libraryNavContext.ActiveContainer is ILibraryWritableContainer;
-				createFolderButton.Enabled = writable;
-				refreshButton.Enabled = writable;
-				writableMessage.Visible = !writable;
-			};
-		}
-
-		public override void OnKeyDown(KeyEventArgs keyEvent)
-		{
-			if (keyEvent.KeyCode == Keys.F5)
-			{
-				librarySelectorWidget.ActiveContainer.Load();
-			}
-
-			base.OnKeyDown(keyEvent);
-		}
-
-		private void CreateFolder_Click(object sender, MouseEventArgs e)
-		{
-			DialogWindow.Show(
-				new InputBoxPage(
-					"Create Folder".Localize(),
-					"Folder Name".Localize(),
-					"",
-					"Enter New Name Here".Localize(),
-					"Create".Localize(),
-					(newName) =>
-					{
-						if (librarySelectorWidget.ActiveContainer is ILibraryWritableContainer writableContainer)
-						{
-							if (!string.IsNullOrEmpty(newName)
-								&& writableContainer != null)
-							{
-								writableContainer.Add(new[]
-								{
-									new CreateFolderItem() { Name = newName }
-								});
-							}
-						}
-					}));
 		}
 	}
 }

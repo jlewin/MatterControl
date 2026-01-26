@@ -49,7 +49,7 @@ namespace MatterHackers.MatterControl.Library
 		{
 			if (Thumbnail == null)
             {
-				Thumbnail = StaticData.Instance.LoadIcon(Path.Combine("Library", "zip_folder.png")).AlphaToPrimaryAccent().SetPreMultiply();
+				Thumbnail = StaticData.Instance.LoadIcon(System.IO.Path.Combine("Library", "zip_folder.png")).AlphaToPrimaryAccent().SetPreMultiply();
 			}
 
 			return Task.FromResult<ImageBuffer>(Thumbnail);
@@ -83,8 +83,9 @@ namespace MatterHackers.MatterControl.Library
 			return Task.FromResult<ILibraryContainer>(
 				new ZipMemoryContainer()
 				{
+					Name = this.Name,
 					RelativeDirectory = this.currentDirectory,
-					Path = this.FilePath
+					Path = this.Path
 				});
 		}
 	}

@@ -28,6 +28,7 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using MatterHackers.MatterControl.DataStorage;
 
@@ -52,17 +53,18 @@ namespace MatterHackers.MatterControl.Library
 
 		public string ID { get; } = Guid.NewGuid().ToString();
 
-		public event EventHandler NameChanged;
-
 		public string Name
 		{
 			get => this.PrintTask.PrintName;
 			set
 			{
+				Debugger.Break();
+				//NameChanged?.Invoke(this, EventArgs.Empty);
+
 				if (this.PrintTask.PrintName != value)
 				{
 					this.PrintTask.PrintName = value;
-					NameChanged?.Invoke(this, EventArgs.Empty);
+					
 				}
 			}
 		}

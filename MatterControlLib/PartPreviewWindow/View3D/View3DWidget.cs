@@ -836,20 +836,20 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				this.ClearPlate(); 
 			}
 
-			var firstItem = items.FirstOrDefault();
+			//var firstItem = items.FirstOrDefault();
 
-			if ((firstItem is ILibraryAssetStream contentStream
-				&& contentStream.ContentType == "gcode")
-				|| firstItem is SceneReplacementFileItem)
-			{
-				DragDropObject = null;
-				this.SceneReplacement = firstItem as ILibraryAssetStream;
+			//if ((firstItem is ILibraryAssetStream contentStream
+			//	&& contentStream.ContentType == "gcode")
+			//	|| firstItem is SceneReplacementFileItem)
+			//{
+			//	DragDropObject = null;
+			//	this.SceneReplacement = firstItem as ILibraryAssetStream;
 
-				// TODO: Figure out a mechanism to disable View3DWidget with dark overlay, displaying something like "Switch to xxx.gcode", make disappear on mouseLeaveBounds and dragfinish
-				this.Object3DControlLayer.BackgroundColor = new Color(Color.Black, 200);
+			//	// TODO: Figure out a mechanism to disable View3DWidget with dark overlay, displaying something like "Switch to xxx.gcode", make disappear on mouseLeaveBounds and dragfinish
+			//	this.Object3DControlLayer.BackgroundColor = new Color(Color.Black, 200);
 
-				return;
-			}
+			//	return;
+			//}
 
 			// Set the hitplane to the bed plane
 			CurrentSelectInfo.HitPlane = bedPlane;

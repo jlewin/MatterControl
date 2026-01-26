@@ -43,10 +43,11 @@ using MatterHackers.Localizations;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Library.Widgets;
 using MatterHackers.MatterControl.PartPreviewWindow;
+using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.VectorMath;
 using static MatterHackers.MatterControl.CustomWidgets.LibraryListView;
-using static MatterHackers.MatterControl.Library.Widgets.PopupLibraryWidget;
+using static MatterHackers.MatterControl.PrintLibrary.PrintLibraryWidget;
 
 namespace MatterHackers.MatterControl.CustomWidgets
 {
@@ -100,12 +101,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 			context.ContainerChanged += ActiveContainer_Changed;
 			context.ContentChanged += ActiveContainer_ContentChanged;
-
-            if (ActiveContainer != null)
-            {
-                ActiveContainer_Changed(this, new ContainerChangedEventArgs(ActiveContainer, null));
-            }
-        }
+		}
 
 		private void ContentView_Click(object sender, MouseEventArgs e)
 		{
@@ -240,31 +236,31 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.PersistUserView();
 		}
 
-		public void SetContentView(PopupLibraryWidget.ListViewModes viewMode, bool userDriven = true)
+		public void SetContentView(PrintLibraryWidget.ListViewModes viewMode, bool userDriven = true)
 		{
 			ApplicationController.Instance.ViewState.LibraryViewMode = viewMode;
 
 			switch (viewMode)
 			{
-				case PopupLibraryWidget.ListViewModes.RowListView:
+				case PrintLibraryWidget.ListViewModes.RowListView:
 					this.ListContentView = new RowListView(theme);
 					break;
 
-				case PopupLibraryWidget.ListViewModes.IconListView18:
+				case PrintLibraryWidget.ListViewModes.IconListView18:
 					this.ListContentView = new IconListView(theme, 18);
 					break;
 
-				case PopupLibraryWidget.ListViewModes.IconListView70:
+				case PrintLibraryWidget.ListViewModes.IconListView70:
 					this.ListContentView = new IconListView(theme, 70);
 					break;
 
-				case PopupLibraryWidget.ListViewModes.IconListView256:
+				case PrintLibraryWidget.ListViewModes.IconListView256:
 					this.ListContentView = new IconListView(theme, 256);
 					break;
 
-				case PopupLibraryWidget.ListViewModes.IconListView:
+				case PrintLibraryWidget.ListViewModes.IconListView:
 				default:
-					if (viewMode != PopupLibraryWidget.ListViewModes.IconListView)
+					if (viewMode != PrintLibraryWidget.ListViewModes.IconListView)
 					{
 						Debugger.Break(); // Unknown/unexpected value
 					}
@@ -285,7 +281,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.ActiveContainer.PersistUserView(new LibraryViewState()
 			{
 				ViewMode = ApplicationController.Instance.ViewState.LibraryViewMode,
-				SortBehavior = new LibrarySortBehavior()
+				SortBehavior = new SortBehavior()
 				{
 					SortKey = _activeSort,
 					Ascending = _ascending,
@@ -383,11 +379,6 @@ namespace MatterHackers.MatterControl.CustomWidgets
 						listViewItem.DoubleClick += ListViewItem_DoubleClick;
 					}
 
-					if (ClickItemEvent != null)
-					{
-						listViewItem.Click += ClickItemEvent;
-					}
-
 					items.Add(listViewItem);
 
 					listViewItem.ViewWidget = itemsContentView.AddItem(listViewItem);
@@ -419,10 +410,10 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		public EventHandler<MouseEventArgs> ClickItemEvent;
 		public EventHandler<MouseEventArgs> DoubleClickItemEvent;
 
-        private void AddHeaderMarkdown(IconListView listView)
+		private void AddHeaderMarkdown(IconListView listView)
 		{
-			if (sourceContainer != null
-				&& !string.IsNullOrEmpty(sourceContainer.HeaderMarkdown))
+			if (sourceContainer is IMarkdownReadme readme 
+				&& !string.IsNullOrEmpty(readme.HeaderMarkdown))
 			{
 				var markdownWidget = new MarkdownWidget(theme)
 				{
@@ -436,7 +427,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 					BorderColor = theme.PrimaryAccentColor
 				};
 				markdownWidget.ScrollArea.VAnchor = VAnchor.Fit | VAnchor.Center;
-				markdownWidget.Markdown = sourceContainer.HeaderMarkdown;
+				markdownWidget.Markdown = readme.HeaderMarkdown;
 				listView.AddHeaderItem(markdownWidget);
 			}
 		}
@@ -465,7 +456,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			}
 		}
 
-		private void WritableContainer_ItemContentChanged(object sender, LibraryItemChangedEventArgs e)
+		private void WritableContainer_ItemContentChanged(object sender, ItemChangedEventArgs e)
 		{
 			if (items.Where(i => i.Model.ID == e.LibraryItem.ID).FirstOrDefault() is ListViewItem listViewItem)
 			{
@@ -621,10 +612,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 												ContentStore = writableContainer,
 												SourceItem = firstItem
 											};
-											await workspace.SceneContext.LoadContent(editContext, (progress, message) =>
-											{
-												reporter?.Invoke(progress, message);
-											});
+											await workspace.SceneContext.LoadContent(editContext, reporter);
 										});
 								}
 								else

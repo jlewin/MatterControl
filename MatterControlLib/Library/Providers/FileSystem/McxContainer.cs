@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.DataConverters3D;
@@ -53,19 +54,17 @@ namespace MatterHackers.MatterControl.Library
 		{
 			try
 			{
-				this.ChildContainers = new SafeList<ILibraryContainerLink>();
-				if (sourceItem != null)
-				{
-					this.Items = new SafeList<ILibraryItem>(sourceItem.Children.Select(m => new InMemoryLibraryItem(m)));
-				}
+				this.Items = sourceItem.Children.Select(m => new InMemoryLibraryItem(m)).ToList<ILibraryItem>();
+
 			}
 			catch (Exception ex)
 			{
-				this.ChildContainers = new SafeList<ILibraryContainerLink>();
-				this.Items = new SafeList<ILibraryItem>()
-				{
-					new MessageItem("Error loading container - " + ex.Message)
-				};
+				Debugger.Break();
+				//this.ChildContainers = new SafeList<ILibraryContainerLink>();
+				//this.Items = new SafeList<ILibraryItem>()
+				//{
+				//	new MessageItem("Error loading container - " + ex.Message)
+				//};
 			}
 		}
 	}

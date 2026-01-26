@@ -55,6 +55,8 @@ namespace MatterHackers.MatterControl.Library
 			var items = new Dictionary<string, long>();
 			var directories = new HashSet<string>();
 
+			string activePath = System.IO.Path.Combine(this.Path, this.RelativeDirectory);
+
 			using (var file = File.OpenRead(this.Path))
 			using (var zip = new ZipArchive(file, ZipArchiveMode.Read))
 			{
@@ -85,15 +87,15 @@ namespace MatterHackers.MatterControl.Library
 				}
 			}
 
-			this.Name = System.IO.Path.GetFileNameWithoutExtension(this.Path);
+			this.Name = System.IO.Path.GetFileNameWithoutExtension(activePath);
 
-			this.ChildContainers = new SafeList<ILibraryContainerLink>(directories.Where(d => !string.IsNullOrEmpty(d)).Select(d =>
-			new LocalZipContainerLink(this.Path)
-			{
-				CurrentDirectory = RelativeDirectory.Length == 0 ? d : $"{RelativeDirectory}{pathSeparator}{d}"
-			}));
+			this.ChildContainers = directories.Where(d => !string.IsNullOrEmpty(d)).Select(d =>
+				new LocalZipContainerLink(this.Path, d)
+				{
+					CurrentDirectory = RelativeDirectory.Length == 0 ? d : $"{RelativeDirectory}{pathSeparator}{d}"
+				}).ToList<ILibraryContainerLink>();
 
-			this.Items = new SafeList<ILibraryItem>(items.Select(kvp => new ZipMemoryItem(this, this.Path, RelativeDirectory.Length == 0 ? kvp.Key : $"{RelativeDirectory}{pathSeparator}{kvp.Key}", kvp.Value)));
+			this.Items = items.Select(kvp => new ZipMemoryItem(this, this.Path, RelativeDirectory.Length == 0 ? kvp.Key : $"{RelativeDirectory}{pathSeparator}{kvp.Key}", kvp.Value)).ToList<ILibraryItem>();
 		}
 	}
 }

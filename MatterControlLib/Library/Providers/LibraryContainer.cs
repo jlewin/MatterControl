@@ -1,6 +1,5 @@
 ﻿/*
 Copyright (c) 2018, John Lewin
-Copyright (c) 2021 Lars Brubaker
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,9 +29,10 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
+using MatterHackers.Agg.Platform;
 
 namespace MatterHackers.MatterControl.Library
 {
@@ -48,29 +48,32 @@ namespace MatterHackers.MatterControl.Library
 
 		public Type ViewOverride { get; protected set; }
 
-		public SafeList<ILibraryContainerLink> ChildContainers { get; set; } = new SafeList<ILibraryContainerLink>();
+		public List<ILibraryContainerLink> ChildContainers { get; set; } = new List<ILibraryContainerLink>();
 
 		public bool IsProtected { get; protected set; } = true;
 
 		public virtual Task<ImageBuffer> GetThumbnail(ILibraryItem item, int width, int height)
 		{
+			if (item is LocalZipContainerLink)
+			{
+				return Task.FromResult(StaticData.Instance.LoadIcon(Path.Combine("Library", "zip_folder.png")).AlphaToPrimaryAccent().SetPreMultiply());
+			}
+
 			return Task.FromResult<ImageBuffer>(null);
 		}
 
-		public SafeList<ILibraryItem> Items { get; set; } = new SafeList<ILibraryItem>();
+		public List<ILibraryItem> Items { get; set; } = new List<ILibraryItem>();
 
 		public ILibraryContainer Parent { get; set; }
 
-		public string HeaderMarkdown { get; set; } = "";
-
 		public virtual ICustomSearch CustomSearch { get; } = null;
 
-		public LibrarySortBehavior DefaultSort { get; set; }
+		public SortBehavior DefaultSort { get; set; }
 
 		/// <summary>
 		/// Reloads the container when contents have changes and fires ContentChanged to notify listeners
 		/// </summary>
-		public void ReloadContent()
+		protected void ReloadContent()
 		{
 			// Call the container specific reload implementation
 			this.Load();

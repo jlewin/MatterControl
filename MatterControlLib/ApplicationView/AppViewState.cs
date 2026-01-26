@@ -28,12 +28,12 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 
-using MatterHackers.MatterControl.Library.Widgets;
+using static MatterHackers.MatterControl.PrintLibrary.PrintLibraryWidget;
 
 namespace MatterHackers.MatterControl
 {
 	public class AppViewState
 	{
-		public PopupLibraryWidget.ListViewModes LibraryViewMode { get; set; } = PopupLibraryWidget.ListViewModes.IconListView;
+		public ListViewModes LibraryViewMode { get; set; } = ListViewModes.IconListView;
 	}
 }

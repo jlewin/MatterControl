@@ -44,8 +44,6 @@ namespace MatterHackers.MatterControl.Library
 		public PrinterContainer(PrinterConfig printer)
 		{
 			this.printer = printer;
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
-			this.Items = new SafeList<ILibraryItem>();
 			this.Name = printer.PrinterName;
 		}
 
@@ -83,6 +81,7 @@ namespace MatterHackers.MatterControl.Library
 						"MatterHackers",
 						repository,
 						subPath),
+					// TODO: Absurd that has_fan toggles visibility of parts container
 					() => printer.Settings.GetValue<bool>(SettingsKey.has_fan)) // visibility (should be base on folder existing)
 				{
 					IsReadOnly = true

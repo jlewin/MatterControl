@@ -55,11 +55,9 @@ namespace MatterHackers.MatterControl.Library
 		public HistoryContainerBase(string fullPath)
 			: base(fullPath)
 		{
-			this.ChildContainers = new SafeList<ILibraryContainerLink>();
-			this.Items = new SafeList<ILibraryItem>();
 			this.IsProtected = false;
 
-			DefaultSort = new LibrarySortBehavior()
+			DefaultSort = new SortBehavior()
 			{
 				SortKey = SortKey.ModifiedDate,
 			};

@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -84,7 +85,7 @@ namespace MatterHackers.MatterControl.Library
 		}
 
 		public static void SaveAs(this ISceneContext sceneContext, ILibraryContainer libraryContainer, string newName)
-		{
+        {
 			var oldContentStore = sceneContext.EditContext.ContentStore;
 			var newContentStore = sceneContext.EditContext.ContentStore = libraryContainer as IContentStore;
 
@@ -118,7 +119,7 @@ namespace MatterHackers.MatterControl.Library
 				sceneContext.Scene.MarkSavePoint();
 			}
 
-			oldContentStore?.Dispose();
+			//oldContentStore?.Dispose();
 		}
 
 		public static IEnumerable<ILibraryContainer> AncestorsAndSelf(this ILibraryContainer item)
@@ -191,24 +192,30 @@ namespace MatterHackers.MatterControl.Library
 			return contentProvider?.CreateItem(item, reporter);
 		}
 
-		public static void Rename(this ILibraryItem item)
+		public static void ShowRenameWindow(this ILibraryWritableContainer libraryContainer, ILibraryItem libraryItem)
 		{
-			if (item == null)
+			if (libraryItem == null)
 			{
 				return;
 			}
+
+			var contentProvider = ApplicationController.Instance.Library.GetContentProvider(libraryItem) as ISceneContentProvider;
 
 			DialogWindow.Show(
 				new InputBoxPage(
 					"Rename Item".Localize(),
 					"Name".Localize(),
-					item.Name,
+					libraryItem.Name,
 					"Enter New Name Here".Localize(),
 					"Rename".Localize(),
 					(newName) =>
 					{
-						item.Name = newName;
+						if (libraryContainer is ILibraryWritableContainer writableContainer)
+						{
+							writableContainer.Rename(libraryItem, newName);
+						}
 					}));
 		}
+
 	}
 }

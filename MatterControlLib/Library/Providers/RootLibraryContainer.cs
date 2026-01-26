@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
@@ -40,10 +41,9 @@ namespace MatterHackers.MatterControl.Library
 	{
 		public event EventHandler ContentChanged;
 
-		public RootLibraryContainer(SafeList<ILibraryContainerLink> items)
+		public RootLibraryContainer(List<ILibraryContainerLink> items)
 		{
 			this.ChildContainers = items;
-			this.Items = new SafeList<ILibraryItem>();
 		}
 
 		public ILibraryContainer Parent { get; set; } = null;
@@ -58,19 +58,17 @@ namespace MatterHackers.MatterControl.Library
 
 		public bool IsProtected => true;
 
-		public SafeList<ILibraryContainerLink> ChildContainers { get; }
+		public List<ILibraryContainerLink> ChildContainers { get; }
 
-		public SafeList<ILibraryItem> Items { get; }
-
-		public string HeaderMarkdown { get; set; }
+		public List<ILibraryItem> Items { get; } = new List<ILibraryItem>();
 
 		public ICustomSearch CustomSearch { get; } = null;
 
-        public LibrarySortBehavior DefaultSort => new LibrarySortBehavior()
-        {
-            SortKey = SortKey.ModifiedDate,
-            Ascending = true
-        };
+		public SortBehavior DefaultSort => new SortBehavior()
+		{
+			SortKey = SortKey.ModifiedDate,
+			Ascending = true
+		};
 
         public Task<ImageBuffer> GetThumbnail(ILibraryItem item, int width, int height)
 		{

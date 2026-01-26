@@ -73,11 +73,11 @@ namespace MatterHackers.MatterControl.Library
 
 		private ILibraryContainer activeContainer;
 
-		private SafeList<ILibraryContainerLink> libraryProviders;
+		private readonly List<ILibraryContainerLink> libraryProviders;
 
 		public LibraryConfig()
 		{
-			libraryProviders = new SafeList<ILibraryContainerLink>();
+			libraryProviders = new List<ILibraryContainerLink>();
 
 			this.RootLibaryContainer = new RootLibraryContainer(libraryProviders);
 
@@ -292,10 +292,6 @@ namespace MatterHackers.MatterControl.Library
 		public void RegisterContainer(ILibraryContainerLink containerItem)
 		{
 			libraryProviders.Add(containerItem);
-			libraryProviders.Modify((list) =>
-			{
-				list.Sort(SortOnName);
-			});
 		}
 
 		public void RegisterCreator(ILibraryObject3D libraryItem)
