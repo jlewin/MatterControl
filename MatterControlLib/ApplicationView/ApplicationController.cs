@@ -1058,9 +1058,7 @@ namespace MatterHackers.MatterControl
 						printer = this.ActivePrinters.First();
 					}
 
-                    printer.ForceSceneSettingsUpdate();
-
-                    DialogWindow.Show(
+					DialogWindow.Show(
 						new ExportPrintItemPage(libraryItems, centerOnBed, printer));
 				}
 				else
@@ -2034,10 +2032,8 @@ namespace MatterHackers.MatterControl
 			var gcodeFilePath = await editContext.GCodeFilePath(printerConfig);
 			var printItemName = editContext.SourceItem.Name;
 
-			printerConfig.ForceSceneSettingsUpdate();
-
-            // Exit if called in a non-applicable state
-            if (printerConfig.Connection.CommunicationState != CommunicationStates.Connected
+			// Exit if called in a non-applicable state
+			if (printerConfig.Connection.CommunicationState != CommunicationStates.Connected
 				&& printerConfig.Connection.CommunicationState != CommunicationStates.FinishedPrint)
 			{
 				return;

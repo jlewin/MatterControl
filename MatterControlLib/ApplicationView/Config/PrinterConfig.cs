@@ -69,123 +69,12 @@ namespace MatterHackers.MatterControl
 			return !printingOrPause && !errors.Any(err => err.ErrorLevel == ValidationErrorLevel.Error);
 		}
 
-		private PrinterSettingsLayer sceneOverrides = new PrinterSettingsLayer();
-
 		private object locker = new object();
         private ulong undoBufferHashCode = ulong.MaxValue;
-        private int sceneChildrenCount = 0;
-		private RunningInterval sceneLayerUpdateInterval;
-
-		/// <summary>
-		/// Make sure any settings object that has been added to the scene is processed right away
-		/// </summary>
-		public void ForceSceneSettingsUpdate()
-		{
-            undoBufferHashCode = ulong.MaxValue;
-            UpdateSceneLayer();
-        }
-
-        private void UpdateSceneLayer()
-        {
-			var scene = Bed?.Scene;
-			if (scene != null)
-			{
-                var undoBuffer = scene.UndoBuffer;
-
-                if (undoBuffer != null
-                    && undoBufferHashCode == undoBuffer.GetLongHashCode()
-                    && sceneChildrenCount == scene.Children.Count)
-                {
-					return;
-                }
-
-				var newSceneOverrides = new PrinterSettingsLayer();
-				// accumulate all the scene overrides ordered by their names, which is the order they will be in the design tree
-				foreach (var partSettingsObject in scene.DescendantsAndSelf().Where(c => c is PartSettingsObject3D && c.Parent?.WorldPrintable() == true).OrderBy(i => i.Name))
-				{
-					var settings = ((PartSettingsObject3D)partSettingsObject).Overrides;
-					foreach (var setting in settings)
-					{
-						newSceneOverrides[setting.Key] = setting.Value;
-					}
-				}
-
-				var same = newSceneOverrides.Count == sceneOverrides.Count && !newSceneOverrides.Except(sceneOverrides).Any();
-				// if settings count and keys are the same, check the value of the settings
-				if (same && sceneOverrides.Count > 0)
-				{
-					// check each setting if it is the same
-					foreach (var kvp in newSceneOverrides)
-					{
-						if (sceneOverrides[kvp.Key] != newSceneOverrides[kvp.Key])
-						{
-							same = false;
-						}
-					}
-				}
-
-				// if they are different 
-				if (!same)
-                {
-                    var settingsToUpdate = new HashSet<string>();
-					var settingsToRevert = new PrinterSettingsLayer();
-                    var settingsToSet = new PrinterSettingsLayer();
-
-					foreach (var kvp in sceneOverrides)
-					{
-                        if (!newSceneOverrides.ContainsKey(kvp.Key))
-                        {
-                            settingsToRevert[kvp.Key] = kvp.Value;
-                        }
-                        settingsToUpdate.Add(kvp.Key);
-                    }
-                    
-					foreach (var kvp in newSceneOverrides)
-					{
-                        if (newSceneOverrides[kvp.Key] != kvp.Value)
-                        {
-                            settingsToSet[kvp.Key] = newSceneOverrides[kvp.Key];
-                        }
-                        settingsToUpdate.Add(kvp.Key);
-                    }
-
-                    // store that current set
-                    var storeSceneOverrides = new PrinterSettingsLayer();
-                    ProfileManager.SaveOnSingleSettingChange = false;
-					Settings.RestoreConflictingUserOverrides(settingsToRevert);
-                    foreach(var setting in newSceneOverrides)
-                    {
-                        Settings.SetValue(setting.Key, setting.Value, storeSceneOverrides);
-                    }
-                    sceneOverrides = storeSceneOverrides;
-                    foreach (var setting in settingsToUpdate)
-                    {
-                        Settings.OnSettingChanged(setting);
-                    }
-                    ProfileManager.SaveOnSingleSettingChange = true;
-                    ApplicationController.Instance.UpdateAllSettingsStyles(this);
-                }
-
-                // return the current set
-                if (undoBuffer != null)
-				{
-					undoBufferHashCode = undoBuffer.GetLongHashCode();
-                }
-                
-                sceneChildrenCount = scene.Children.Count;
-			}
-		}
-
-        private PrinterSettingsLayer GetSceneLayer()
-        {
-            return sceneOverrides;
-        }
-
-        public PrinterConfig(PrinterSettings settings)
+		
+		public PrinterConfig(PrinterSettings settings)
 		{
 			this.Settings = settings;
-
-			settings.GetSceneLayer = GetSceneLayer;
 
 			this.Bed = new BedConfig(ApplicationController.Instance.Library.PlatingHistory, this);
 			this.ViewState = new PrinterViewState();
@@ -207,11 +96,6 @@ namespace MatterHackers.MatterControl
 			this.Bed.InvalidateBedMesh();
 
 			this.Settings.SettingChanged += Printer_SettingChanged;
-
-            sceneLayerUpdateInterval = UiThread.SetInterval(() =>
-            {
-                UpdateSceneLayer();
-            }, .5);
 		}
 
 
@@ -473,11 +357,8 @@ namespace MatterHackers.MatterControl
 
 		public void Dispose()
 		{
-			UiThread.ClearInterval(sceneLayerUpdateInterval);
-			sceneLayerUpdateInterval = null;
-            
-            // Unregister listeners
-            this.Settings.SettingChanged -= Printer_SettingChanged;
+			// Unregister listeners
+			this.Settings.SettingChanged -= Printer_SettingChanged;
 			this.Connection.CommunicationStateChanged -= Connection_CommunicationStateChanged;
 			this.Connection.DetailedPrintingStateChanged -= Connection_CommunicationStateChanged;
 			this.Connection.PrintFinished -= Connection_PrintFinished;

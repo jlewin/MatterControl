@@ -521,10 +521,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 									{
 										highlightColor = theme.PresetColors.QualityPreset;
 									}
-									else if (layerName.StartsWith("Scene"))
-									{
-										highlightColor = theme.PresetColors.ScenePreset;
-									}
 									else
 									{
 										highlightColor = Color.Transparent;
@@ -554,10 +550,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 						highlightColor = theme.PresetColors.QualityPreset;
 						showRestoreButton = true;
 						break;
-					case NamedSettingsLayers.Scene:
-						highlightColor = theme.PresetColors.ScenePreset;
-						showRestoreButton = true;
-						break;
 				}
 			}
 			else if (settingsContext.IsPrimarySettingsView)
@@ -572,10 +564,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					&& settings.UserLayer[key] != defalutValue)
 				{
 					highlightColor = theme.PresetColors.UserOverride;
-				}
-				else if (settings.SettingExistsInLayer(key, NamedSettingsLayers.Scene))
-				{
-					highlightColor = theme.PresetColors.ScenePreset;
 				}
 				else if (settings.SettingExistsInLayer(key, NamedSettingsLayers.Material))
 				{
