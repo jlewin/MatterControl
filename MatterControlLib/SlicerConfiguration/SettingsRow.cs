@@ -28,6 +28,7 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Markdig.Agg;
 using MatterHackers.Agg;
@@ -123,7 +124,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.PerformLayout();
 		}
 
-		public SettingsRow SetTextRightMargin(SafeList<SettingsRow> rows)
+		public SettingsRow SetTextRightMargin(List<SettingsRow> rows)
 		{
 			var spacing = 11 * GuiWidget.DeviceScale;
 			var maxTextWidth = 0.0;

@@ -75,7 +75,7 @@ namespace MatterHackers.MatterControl.DesignTools
                                 return childrenSelector;
                             });
 
-                        rowContainer = propertyEditor.CreateSettingsRow(property, field.Content, theme);
+                        rowContainer = propertyEditor.CreateSettingsRow(property, field, theme);
                     }
                     else // show the subtract editor for boolean subtract and subtract and replace
                     {

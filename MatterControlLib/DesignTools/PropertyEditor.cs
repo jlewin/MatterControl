@@ -463,9 +463,7 @@ namespace MatterHackers.MatterControl.DesignTools
                         field.Content.Descendants<InternalNumberEdit>().First().MaxDecimalsPlaces = decimalPlaces.Number;
                     }
 
-                    rowContainer = CreateSettingsRow(property,
-                        PublicPropertySliderFunctions.GetFieldContentWithSlider(property, context, field, undoBuffer, (valueString) => { return double.Parse(valueString); }, theme),
-                        theme);
+                    rowContainer = CreateSettingsRow(property, field, theme);
                 }
             }
             else if (propertyValue is Color color)
@@ -479,7 +477,7 @@ namespace MatterHackers.MatterControl.DesignTools
                     propertyGridModifier?.UpdateControls(new PublicPropertyChange(context, property.PropertyInfo.Name));
                 };
 
-                rowContainer = CreateSettingsRow(property, field.Content, theme);
+                rowContainer = CreateSettingsRow(property, field, theme);
             }
             else if (propertyValue is Vector2 vector2)
             {
@@ -558,7 +556,7 @@ namespace MatterHackers.MatterControl.DesignTools
                     propertyGridModifier?.UpdateControls(new PublicPropertyChange(context, property.PropertyInfo.Name));
                 };
 
-                rowContainer = CreateSettingsRow(property, field.Content, theme);
+                rowContainer = CreateSettingsRow(property, field, theme);
             }
             else if (propertyValue is DirectionAxis directionAxis)
             {
@@ -819,7 +817,7 @@ namespace MatterHackers.MatterControl.DesignTools
                         field.Content.Closed += (s, e) => propertyIObject3D.Invalidated -= RefreshField;
                     }
 
-                    rowContainer = CreateSettingsRow(property, field.Content, theme);
+                    rowContainer = CreateSettingsRow(property, field, theme);
                 }
             }
             else if (propertyValue is bool boolValue)
@@ -833,7 +831,7 @@ namespace MatterHackers.MatterControl.DesignTools
                     field,
                     (valueString) => { return valueString == "1"; },
                     (value) => { return ((bool)value) ? "1" : "0"; });
-                rowContainer = CreateSettingsRow(property, field.Content, theme);
+                rowContainer = CreateSettingsRow(property, field, theme);
             }
             else if (propertyValue is DateTime dateTime)
             {
@@ -866,7 +864,7 @@ namespace MatterHackers.MatterControl.DesignTools
                     propertyGridModifier?.UpdateControls(new PublicPropertyChange(context, property.PropertyInfo.Name));
                 };
 
-                rowContainer = CreateSettingsRow(property, field.Content, theme);
+                rowContainer = CreateSettingsRow(property, field, theme);
             }
             else if (property.PropertyType.IsEnum)
             {
@@ -911,7 +909,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
                 if (addToSettingsRow)
                 {
-                    rowContainer = CreateSettingsRow(property, field.Content, theme);
+                    rowContainer = CreateSettingsRow(property, field, theme);
                 }
                 else
                 {
@@ -955,9 +953,9 @@ namespace MatterHackers.MatterControl.DesignTools
             return rowContainer;
         }
 
-        public SettingsRow CreateSettingsRow(EditableProperty property, GuiWidget content, ThemeConfig theme, bool alignRightMargin = false)
+        public SettingsRow CreateSettingsRow(EditableProperty property, UIField field, ThemeConfig theme, bool allowRightMargin = false, List<SettingsRow> rows = null)
         {
-            var row = new SettingsRow(property.DisplayName.Localize(), property.Description, content, theme);
+            var row = new SettingsRow(property.DisplayName.Localize(), property.Description, field.Content, theme);
             if (rows != null)
             {
                 rows.Add(row);

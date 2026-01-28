@@ -106,7 +106,7 @@ namespace MatterHackers.MatterControl.DesignTools
             field.ClearUndoHistory();
             field.Content.HAnchor = HAnchor.Stretch;
             PropertyEditor.RegisterValueChanged(property, undoBuffer, context, field, (valueString) => valueString);
-            rowContainer = propertyEditor.CreateSettingsRow(property, field.Content, theme, true);
+            rowContainer = propertyEditor.CreateSettingsRow(property, field, theme, true);
 
             return rowContainer;
         }
@@ -121,7 +121,7 @@ namespace MatterHackers.MatterControl.DesignTools
             field.ClearUndoHistory();
             field.Content.HAnchor = HAnchor.Stretch;
             PropertyEditor.RegisterValueChanged(property, undoBuffer, context, field, (valueString) => valueString);
-            rowContainer = propertyEditor.CreateSettingsRow(property, field.Content, theme, true);
+            rowContainer = propertyEditor.CreateSettingsRow(property, field, theme, true);
 
             // check for DirectoryPathAttribute
             var directoryPathAttribute = property.PropertyInfo.GetCustomAttributes(true).OfType<DirectoryPathAttribute>().FirstOrDefault();
