@@ -122,15 +122,15 @@ namespace MatterHackers.MatterControl.DesignTools
 		[MaxDecimalPlaces(2)]
 		[Description("The width from one side to the opposite side.")]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Diameter { get; set; } = 20;
+		public double Diameter { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Height { get; set; } = 20;
+		public double Height { get; set; } = 20;
 
 		[Description("The number of segments around the perimeter.")]
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 40;
+		public int Sides { get; set; } = 40;
 
 		public bool Advanced { get; set; } = false;
 
@@ -140,23 +140,19 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(0, 359, snapDistance: 1)]
-		public DoubleOrExpression StartingAngle { get; set; } = 0;
+		public double StartingAngle { get; set; } = 0;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 360, snapDistance: 1)]
-		public DoubleOrExpression EndingAngle { get; set; } = 360;
+		public double EndingAngle { get; set; } = 360;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression DiameterTop { get; set; } = 20;
+		public double DiameterTop { get; set; } = 20;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -169,14 +165,13 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
-			double height = Height.ClampIfNotCalculated(this, .01, 1000000, ref valuesChanged);
-			var diameter = Diameter.ClampIfNotCalculated(this, .01, 1000000, ref valuesChanged);
-			var diameterTop = DiameterTop.ClampIfNotCalculated(this, .01, 1000000, ref valuesChanged);
-			var sides = Sides.ClampIfNotCalculated(this, 3, 360, ref valuesChanged);
-			var startingAngle = StartingAngle.ClampIfNotCalculated(this, 0, 360 - .01, ref valuesChanged);
-			var endingAngle = EndingAngle.ClampIfNotCalculated(this, StartingAngle.Value(this) + .01, 360, ref valuesChanged);
+			double height = double.Clamp(Height, .01, 1000000);
+			var diameter = double.Clamp(Diameter, .01, 1000000);
+			var diameterTop = double.Clamp(DiameterTop, .01, 1000000);
+			var sides = int.Clamp(Sides, 3, 360);
+			var startingAngle = double.Clamp(StartingAngle, 0, 360 - .01);
+			var endingAngle = double.Clamp(EndingAngle, StartingAngle + .01, 360);
 
 			using (RebuildLock())
 			{
@@ -234,20 +229,23 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			double getHeight() => Height.Value(this);
-			void setHeight(double height) => Height = height;
-			var getDiameters = new List<Func<double>>() { () => Diameter.Value(this), () => DiameterTop.Value(this) };
+			var height = new Property<double>()
+			{
+				Get = () => Height,
+				Set = (height) => Height = height
+			};
+
+
+			var getDiameters = new List<Func<double>>() ;
 			var setDiameters = new List<Action<double>>() { (diameter) => Diameter = diameter, (diameter) => DiameterTop = diameter };
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
-				getHeight,
-				setHeight,
+				height,
 				getDiameters,
 				setDiameters,
 				0,
 				controlVisible: () => true));
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
-				getHeight,
-				setHeight,
+				height,
 				getDiameters,
 				setDiameters,
 				1,
@@ -256,10 +254,7 @@ namespace MatterHackers.MatterControl.DesignTools
 			object3DControlsLayer.Object3DControls.Add(new ScaleHeightControl(object3DControlsLayer,
 				null,
 				null,
-				null,
-				null,
-				getHeight,
-				setHeight,
+				height,
 				getDiameters,
 				setDiameters));
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);

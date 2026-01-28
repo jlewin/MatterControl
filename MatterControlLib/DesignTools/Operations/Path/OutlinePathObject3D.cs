@@ -54,10 +54,10 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		}
 
 		[Description("The with of the outline.")]
-		public DoubleOrExpression OutlineWidth { get; set; } = .5;
+		public double OutlineWidth { get; set; } = .5;
 
 		[Description("The offset of the outside of the outline as a ratio of the width.")]
-		public DoubleOrExpression Offset { get; set; } = .5;
+		public double Offset { get; set; } = .5;
 
 		[EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
 		public ExpandStyles InnerStyle { get; set; } = ExpandStyles.Sharp;
@@ -79,10 +79,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			{
 				await Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				base.OnInvalidate(invalidateArgs);
@@ -100,7 +96,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		{
 			this.DebugDepth("Rebuild");
 
-			var outlineWidth = OutlineWidth.Value(this);
+			var outlineWidth = OutlineWidth;
 			if (outlineWidth < .01 || outlineWidth > 1000)
 			{
 				OutlineWidth = Math.Min(1000, Math.Max(.01, outlineWidth));
@@ -136,8 +132,8 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 			var offseter = new ClipperOffset();
 
-			var outlineWidth = OutlineWidth.Value(this);
-			var ratio = Offset.Value(this);
+			var outlineWidth = OutlineWidth;
+			var ratio = Offset;
 
 			offseter.AddPaths(aPolys, InflatePathObject3D.GetJoinType(OuterStyle), EndType.etClosedPolygon);
 			var outerLoops = new List<List<IntPoint>>();

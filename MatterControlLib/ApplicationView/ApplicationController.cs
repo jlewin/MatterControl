@@ -1121,7 +1121,6 @@ namespace MatterHackers.MatterControl
 			};
 
 			this.EditorExtensions = new EditorExtensionsConfig(this.Library);
-			this.EditorExtensions.RegisterFactory((theme, undoBuffer) => new SheetEditor());
 			this.EditorExtensions.RegisterFactory((theme, undoBuffer) => new PropertyEditor(theme, undoBuffer));
 
 			HelpArticle helpArticle = null;

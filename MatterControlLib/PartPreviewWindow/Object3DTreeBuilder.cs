@@ -67,7 +67,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
             using (contextNode.LayoutLock())
             {
-                var componentObject3D = objectView.Source as IComponentObject3D;
+                var componentObject3D = objectView.Source as ComponentObject3D;
                 var hideChildren = objectView.Source.GetType().GetCustomAttributes(typeof(HideChildrenFromTreeViewAttribute), true).Any();
 
                 if ((componentObject3D?.Finalized == false

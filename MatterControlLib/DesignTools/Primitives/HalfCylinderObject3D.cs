@@ -58,23 +58,19 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Width { get; set; } = 20;
+		public double Width { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Depth { get; set; } = 20;
+		public double Depth { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 20;
+		public int Sides { get; set; } = 20;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -87,23 +83,22 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
 			using (RebuildLock())
 			{
-				var sides = Sides.ClampIfNotCalculated(this, 3, 180, ref valuesChanged);
+				var sides = double.Clamp(Sides, 3, 180);
 				using (new CenterAndHeightMaintainer(this))
 				{
 					var path = new VertexStorage();
-					path.MoveTo(Width.Value(this) / 2, 0);
+					path.MoveTo(Width / 2, 0);
 
 					for (int i = 1; i < sides; i++)
 					{
 						var angle = MathHelper.Tau * i / 2 / (sides - 1);
-						path.LineTo(Math.Cos(angle) * Width.Value(this) / 2, Math.Sin(angle) * Width.Value(this) / 2);
+						path.LineTo(Math.Cos(angle) * Width / 2, Math.Sin(angle) * Width / 2);
 					}
 
-					var mesh = VertexSourceToMesh.Extrude(path, Depth.Value(this));
+					var mesh = VertexSourceToMesh.Extrude(path, Depth);
 					mesh.Transform(Matrix4X4.CreateRotationX(MathHelper.Tau / 4));
 					Mesh = mesh;
 				}
@@ -118,9 +113,19 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			var controls = object3DControlsLayer.Object3DControls;
+			var width = new Property<double>
+			{
+				Get = () => Width,
+				Set = (value) => Width = value
+			};
 
-			object3DControlsLayer.AddWidthDepthControls(this, Width, Depth, null);
+			var depth = new Property<double>
+			{
+				Get = () => Depth,
+				Set = (value) => Depth = value
+			};
+
+			object3DControlsLayer.AddWidthDepthControls(this, width, depth, null);
 
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);
 			object3DControlsLayer.AddControls(ControlTypes.RotateXYZ);

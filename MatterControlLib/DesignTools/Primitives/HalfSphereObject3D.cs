@@ -72,21 +72,17 @@ namespace MatterHackers.MatterControl.DesignTools
 		}
 
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Diameter { get; set; } = 20;
+		public double Diameter { get; set; } = 20;
 		
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression LongitudeSides { get; set; } = 40;
+		public int LongitudeSides { get; set; } = 40;
 		
 		[Slider(3, 180, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression LatitudeSides { get; set; } = 10;
+		public int LatitudeSides { get; set; } = 10;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -99,12 +95,11 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 			using (RebuildLock())
 			{
-				var latitudeSides = LatitudeSides.ClampIfNotCalculated(this, 3, 180, ref valuesChanged);
-				var longitudeSides = LongitudeSides.ClampIfNotCalculated(this, 3, 360, ref valuesChanged);
-				var diameter = Diameter.Value(this);
+				var latitudeSides = int.Clamp(LatitudeSides, 3, 180);
+				var longitudeSides = int.Clamp(LongitudeSides, 3, 360);
+				var diameter = Diameter;
 
 				using (new CenterAndHeightMaintainer(this))
 				{
@@ -144,8 +139,7 @@ namespace MatterHackers.MatterControl.DesignTools
 		{
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
 				null,
-				null,
-				new List<Func<double>>() { () => Diameter.Value(this) },
+				new List<Func<double>>() { () => Diameter },
 				new List<Action<double>>() { (diameter) => Diameter = diameter },
 				0));
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);

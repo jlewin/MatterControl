@@ -516,12 +516,12 @@ namespace MatterHackers.DataConverters3D
 								json,
 								new JsonSerializerSettings
 								{
-                                    // we need the JsonIObject3DContractResolver.CreateObjectContract to set the parent on the children
-                                    ContractResolver = new JsonIObject3DContractResolver(),
+									// we need the JsonIObject3DContractResolver.CreateObjectContract to set the parent on the children
+									ContractResolver = new JsonIObject3DContractResolver(),
 									NullValueHandling = NullValueHandling.Ignore,
 									MaxDepth = MaxJsonDepth,
 									Converters = new List<JsonConverter> { new JsonIObject3DConverter() }
-                                });
+								});
 
 							loadedItem?.LoadMeshLinks(cancellationToken, cacheContext, progress);
 

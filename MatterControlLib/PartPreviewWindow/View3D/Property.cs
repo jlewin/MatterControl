@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2023, Lars Brubaker, John Lewin
+Copyright (c) 2026, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,13 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using System.ComponentModel;
-using MatterHackers.DataConverters3D;
+using System;
 
 namespace MatterHackers.MatterControl.DesignTools
 {
-    [TypeConverter(typeof(StringOrExpression))]
-    public class StringOrExpression : DirectOrExpression
-    {
-        public string Value(IObject3D owner)
-        {
-            var rebuilding = owner.RebuildLocked;
-            var value = Expressions.EvaluateExpression<string>(owner, Expression);
-            if (rebuilding)
-            {
-                ExpressionValueAtLastRebuild = value.ToString();
-            }
-
-            return value;
-        }
-
-        public StringOrExpression(string expression)
-        {
-            Expression = expression;
-        }
-
-        public static implicit operator StringOrExpression(string expression)
-        {
-            return new StringOrExpression(expression);
-        }
-    }
+	public record Property<T>
+	{
+		public Func<T> Get;
+		public Action<T> Set;
+	}
 }

@@ -50,7 +50,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
         [Description("The height of the extrusion")]
         [Slider(.1, 50, Easing.EaseType.Quadratic, useSnappingGrid: true)]
         [MaxDecimalPlaces(2)]
-        public DoubleOrExpression Height { get; set; } = 5;
+        public double Height { get; set; } = 5;
 
         [Description("Bevel the top of the extrusion")]
         public bool BevelTop { get; set; } = false;
@@ -59,10 +59,10 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
         public ExpandStyles Style { get; set; } = ExpandStyles.Sharp;
 
         [Slider(0, 20, Easing.EaseType.Quadratic, snapDistance: .1)]
-        public DoubleOrExpression Radius { get; set; } = 3;
+        public double Radius { get; set; } = 3;
 
         [Slider(1, 20, Easing.EaseType.Quadratic, snapDistance: 1)]
-        public IntOrExpression Segments { get; set; } = 9;
+        public int Segments { get; set; } = 9;
 
         public override bool CanApply => true;
 
@@ -113,10 +113,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
             {
                 await Rebuild();
             }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
-            {
-                await Rebuild();
-            }
             else
             {
                 base.OnInvalidate(invalidateArgs);
@@ -133,12 +129,11 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
             this.DebugDepth("Rebuild");
             var rebuildLock = RebuildLock();
 
-            bool valuesChanged = false;
-
-            var height = Height.Value(this);
-            var segments = Segments.ClampIfNotCalculated(this, 1, 32, ref valuesChanged);
+            var height = Height;
+            var segments = int.Clamp(Segments, 1, 32);
             var aabb = this.GetAxisAlignedBoundingBox();
-            var radius = Radius.ClampIfNotCalculated(this, 0, Math.Min(Math.Min(aabb.XSize, aabb.YSize) / 2, aabb.ZSize), ref valuesChanged);
+            var radius = double.Clamp(Radius, 0, Math.Min(Math.Min(aabb.XSize, aabb.YSize) / 2, aabb.ZSize));
+
             var bevelStart = height - radius;
 
             // now create a long running task to do the extrusion

@@ -50,7 +50,7 @@ namespace MatterHackers.MatterControl.DesignTools
 		[Description("Describes the percent that the back of the part will be pinched")]
 		[DescriptionImage("https://lh3.googleusercontent.com/CAi26qYHHdneoU0yhaY2bdVU4RJP7PDCjEUrC3i-smstyvm2FC_dteHU16eYyEyK9krCyK3C2TkSpE5YDcAkHBwq40ddaLBQ13yVdQCB")]
 		[Slider(0, 300, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression PinchPercent { get; set; } = 50;
+		public double PinchPercent { get; set; } = 50;
 
 		public override Task Rebuild()
 		{
@@ -72,9 +72,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
 					var aabb = SourceContainer.GetAxisAlignedBoundingBox();
 
-					bool valuesChanged = false;
-
-					var pinchPercent = PinchPercent.ClampIfNotCalculated(this, 0, 300, ref valuesChanged);
+					var pinchPercent = double.Clamp(PinchPercent, 0, 300);
 
 					foreach (var sourceItem in SourceContainer.VisibleMeshes())
 					{

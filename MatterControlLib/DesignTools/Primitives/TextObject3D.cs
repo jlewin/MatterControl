@@ -100,18 +100,18 @@ namespace MatterHackers.MatterControl.DesignTools
 		public TextAlign Alignment { get; set; } = TextAlign.Left;
 
 		[DisplayName("Text")]
-		public StringOrExpression NameToWrite { get; set; } = "Text";
+		public string NameToWrite { get; set; } = "Text";
 
 		[MultiLineEdit]
 		[DisplayName("Text")]
-		public StringOrExpression MultiLineText { get; set; } = "MultiLine\nText";
+		public string MultiLineText { get; set; } = "MultiLine\nText";
 
         [Slider(1, 48, snapDistance: 1)]
-		public DoubleOrExpression PointSize { get; set; } = 24;
+		public double PointSize { get; set; } = 24;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Height { get; set; } = 3;
+		public double Height { get; set; } = 3;
 
         [FontSelector]
         public string Font { get; set; } = "Nunito_Bold";
@@ -122,10 +122,10 @@ namespace MatterHackers.MatterControl.DesignTools
 		public bool WrapLines { get; set; } = false;
 
         [Description("The width to wrap at in mm")]
-        public DoubleOrExpression WrappingWidth { get; set; } = 200;
+        public double WrappingWidth { get; set; } = 200;
 
         [Description("The number of spaces to add after wrapping a line. Very useful for bullet points.")]
-        public IntOrExpression WrappingIndent { get; set; } = 0;
+        public int WrappingIndent { get; set; } = 0;
         
 		public override bool CanApply => true;
 
@@ -178,10 +178,6 @@ namespace MatterHackers.MatterControl.DesignTools
 			{
 				await Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				base.OnInvalidate(invalidateArgs);
@@ -198,10 +194,9 @@ namespace MatterHackers.MatterControl.DesignTools
 			{
 				using (new CenterAndHeightMaintainer(this))
 				{
-					bool valuesChanged = false;
-					var height = Height.ClampIfNotCalculated(this, .01, 1000000, ref valuesChanged);
-					var wrappingWidth_mm = WrappingWidth.Value(this);
-					var wrappingIndent = WrappingIndent.ClampIfNotCalculated(this, 0, 100, ref valuesChanged);
+					var height = double.Clamp(Height, .01, 1000000);
+					var wrappingWidth_mm = WrappingWidth;
+					var wrappingIndent = int.Clamp(WrappingIndent, 0, 100);
 
                     if (wrappingWidth_mm < 10)
 					{
@@ -209,10 +204,10 @@ namespace MatterHackers.MatterControl.DesignTools
 					}
 
 					var textToWrite = MultiLine
-						? MultiLineText.Value(this).Replace("\\n", "\n").Replace("\r", "\n")
-						: NameToWrite.Value(this).Replace("\\n", "\n").Replace("\r", "\n");
+						? MultiLineText.Replace("\\n", "\n").Replace("\r", "\n")
+						: NameToWrite.Replace("\\n", "\n").Replace("\r", "\n");
 
-                    var pointSize = PointSize.Value(this);
+                    var pointSize = PointSize;
 
 					var mmPerInch = 25.4;
                     var mmPerPoint = mmPerInch / StyledTypeFace.PointsPerInch;
@@ -233,7 +228,7 @@ namespace MatterHackers.MatterControl.DesignTools
 					else
 					{
 						Mesh = null;
-						var extrusionHeight = Output == OutputDimensions.Output2D ? Constants.PathPolygonsHeight : this.Height.Value(this);
+						var extrusionHeight = Output == OutputDimensions.Output2D ? Constants.PathPolygonsHeight : this.Height;
 						this.Children.Modify(list =>
 						{
 							list.Clear();

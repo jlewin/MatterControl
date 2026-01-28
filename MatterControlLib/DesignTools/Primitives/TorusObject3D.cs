@@ -61,14 +61,14 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Cubic, snapDistance: .1)]
-		public DoubleOrExpression OuterDiameter { get; set; } = 20;
+		public double OuterDiameter { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Cubic, snapDistance: .1)]
-		public DoubleOrExpression InnerDiameter { get; set; } = 10;
+		public double InnerDiameter { get; set; } = 10;
 
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 40;
+		public int Sides { get; set; } = 40;
 
 		public bool Advanced { get; set; } = false;
 
@@ -78,26 +78,22 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(0, 359, snapDistance: 1)]
-		public DoubleOrExpression StartingAngle { get; set; } = 0;
+		public double StartingAngle { get; set; } = 0;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 360, snapDistance: 1)]
-		public DoubleOrExpression EndingAngle { get; set; } = 360;
+		public double EndingAngle { get; set; } = 360;
 
 		[Slider(3, 260, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression RingSides { get; set; } = 15;
+		public int RingSides { get; set; } = 15;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 90, snapDistance: 1)]
-		public DoubleOrExpression RingPhaseAngle { get; set; } = 0;
+		public double RingPhaseAngle { get; set; } = 0;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -110,18 +106,17 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 			using (RebuildLock())
 			{
-				var outerDiameter = OuterDiameter.Value(this);
-				var innerDiameter = InnerDiameter.ClampIfNotCalculated(this, 0, outerDiameter - .1, ref valuesChanged);
-				var sides = Sides.ClampIfNotCalculated(this, 3, 360, ref valuesChanged);
-				var ringSides = RingSides.ClampIfNotCalculated(this, 3, 360, ref valuesChanged);
+				var outerDiameter = OuterDiameter;
+				var innerDiameter = double.Clamp(InnerDiameter, 0, outerDiameter - .1);
+				var sides = int.Clamp(Sides, 3, 360);
+				var ringSides = int.Clamp(RingSides, 3, 360);
 
-				var startingAngle = StartingAngle.ClampIfNotCalculated(this, 0, 360 - .01, ref valuesChanged);
-				var endingAngle = EndingAngle.ClampIfNotCalculated(this, startingAngle + .01, 360, ref valuesChanged);
+				var startingAngle = double.Clamp(StartingAngle, 0, 360 - .01);
+				var endingAngle = double.Clamp(EndingAngle, startingAngle + .01, 360);
 
-				var ringPhaseAngle = RingPhaseAngle.Value(this);
+				var ringPhaseAngle = RingPhaseAngle;
 				if (!Advanced)
 				{
 					ringSides = Math.Max(3, (int)(sides / 2));
@@ -174,17 +169,15 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			var getDiameters = new List<Func<double>>() { () => OuterDiameter.Value(this), () => InnerDiameter.Value(this) };
+			var getDiameters = new List<Func<double>>() { () => OuterDiameter, () => InnerDiameter };
 			var setDiameters = new List<Action<double>>() { (diameter) => OuterDiameter = diameter, (diameter) => InnerDiameter = diameter };
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
-				null,
 				null,
 				getDiameters,
 				setDiameters,
 				0,
 				ObjectSpace.Placement.Center));
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
-				null,
 				null,
 				getDiameters,
 				setDiameters,

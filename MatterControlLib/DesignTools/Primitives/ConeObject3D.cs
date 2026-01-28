@@ -60,22 +60,18 @@ namespace MatterHackers.MatterControl.DesignTools
 		}
 
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Diameter { get; set; } = 20;
+		public double Diameter { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Height { get; set; } = 20;
+		public double Height { get; set; } = 20;
 
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 40;
+		public int Sides { get; set; } = 40;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -92,9 +88,9 @@ namespace MatterHackers.MatterControl.DesignTools
 
 			using (RebuildLock())
 			{
-				var sides = Sides.ClampIfNotCalculated(this, 3, 360, ref changed);
-				var diameter = Diameter.ClampIfNotCalculated(this, .01, 1000000, ref changed);
-				var height = Height.ClampIfNotCalculated(this, .01, 1000000, ref changed);
+				var sides = int.Clamp(Sides, 3, 360);
+				var diameter = double.Clamp(Diameter, .01, 1000000);
+				var height = double.Clamp(Height, .01, 1000000);
 				using (new CenterAndHeightMaintainer(this))
 				{
 
@@ -114,23 +110,22 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			double getHeight() => Height.Value(this);
-			void setHeight(double height) => Height = height;
-			var getDiameters = new List<Func<double>>() { () => Diameter.Value(this) };
+			var height = new Property<double>
+			{
+				Get = () => Height,
+				Set = (value) => Height = value
+			};
+			var getDiameters = new List<Func<double>>() { () => Diameter };
 			var setDiameters = new List<Action<double>>() { (diameter) => Diameter = diameter };
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
-				getHeight,
-				setHeight,
+				height,
 				getDiameters,
 				setDiameters,
 				0));
 			object3DControlsLayer.Object3DControls.Add(new ScaleHeightControl(object3DControlsLayer,
 				null,
 				null,
-				null,
-				null,
-				getHeight,
-				setHeight,
+				height,
 				getDiameters,
 				setDiameters));
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);

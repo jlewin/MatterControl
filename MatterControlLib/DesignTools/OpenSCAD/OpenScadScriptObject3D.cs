@@ -73,7 +73,6 @@ namespace MatterHackers.MatterControl.Library
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 			using (RebuildLock())
 			{
 				if (Mesh == null)

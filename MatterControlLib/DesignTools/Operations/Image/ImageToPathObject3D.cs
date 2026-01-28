@@ -160,8 +160,8 @@ namespace MatterHackers.MatterControl.DesignTools
                 var graphics2D = _histogramDisplayCache.NewGraphics2D();
                 graphics2D.Clear(Color.Transparent);
                 _histogramDisplayCache.CopyFrom(_histogramRawCache);
-                var rangeStart = RangeStart.Value(this);
-                var rangeEnd = RangeEnd.Value(this);
+                var rangeStart = RangeStart;
+                var rangeEnd = RangeEnd;
                 graphics2D.FillRectangle(0, 0, rangeStart * _histogramDisplayCache.Width, _histogramDisplayCache.Height, new Color(Color.Red, 100));
                 graphics2D.FillRectangle(rangeEnd * _histogramDisplayCache.Width, 0, 255, _histogramDisplayCache.Height, new Color(Color.Red, 100));
                 graphics2D.Line(rangeStart * _histogramDisplayCache.Width, 0, rangeStart * _histogramDisplayCache.Width, _histogramDisplayCache.Height, new Color(Color.LightGray, 200));
@@ -173,10 +173,10 @@ namespace MatterHackers.MatterControl.DesignTools
         private ImageBuffer Image => this.Descendants<ImageObject3D>().FirstOrDefault()?.Image;
 
         [Slider(0, 1)]
-        public DoubleOrExpression RangeStart { get; set; } = .1;
+        public double RangeStart { get; set; } = .1;
 
         [Slider(0, 1)]
-        public DoubleOrExpression RangeEnd { get; set; } = 1;
+        public double RangeEnd { get; set; } = 1;
 
         private IThresholdFunction ThresholdFunction
         {
@@ -185,19 +185,19 @@ namespace MatterHackers.MatterControl.DesignTools
                 switch (FeatureDetector)
                 {
                     case ThresholdFunctions.Silhouette:
-                        return new SilhouetteThresholdFunction(RangeStart.Value(this), RangeEnd.Value(this));
+                        return new SilhouetteThresholdFunction(RangeStart, RangeEnd);
 
                     case ThresholdFunctions.Intensity:
-                        return new MapOnMaxIntensity(RangeStart.Value(this), RangeEnd.Value(this));
+                        return new MapOnMaxIntensity(RangeStart, RangeEnd);
 
                     case ThresholdFunctions.Alpha:
-                        return new AlphaThresholdFunction(RangeStart.Value(this), RangeEnd.Value(this));
+                        return new AlphaThresholdFunction(RangeStart, RangeEnd);
 
                     case ThresholdFunctions.Hue:
-                        return new HueThresholdFunction(RangeStart.Value(this), RangeEnd.Value(this));
+                        return new HueThresholdFunction(RangeStart, RangeEnd);
                 }
 
-                return new MapOnMaxIntensity(RangeStart.Value(this), RangeEnd.Value(this));
+                return new MapOnMaxIntensity(RangeStart, RangeEnd);
             }
         }
 
@@ -288,10 +288,6 @@ namespace MatterHackers.MatterControl.DesignTools
             {
                 await Rebuild();
             }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
-            {
-                await Rebuild();
-            }
 
             base.OnInvalidate(invalidateArgs);
         }
@@ -308,8 +304,8 @@ namespace MatterHackers.MatterControl.DesignTools
             UpdateHistogramDisplay();
             bool propertyUpdated = false;
             var minSeparation = .01;
-            var rangeStart = RangeStart.Value(this);
-            var rangeEnd = RangeEnd.Value(this);
+            var rangeStart = RangeStart;
+            var rangeEnd = RangeEnd;
             if (rangeStart < 0
                 || rangeStart > 1
                 || rangeEnd < 0

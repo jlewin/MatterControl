@@ -310,7 +310,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
             var rows = new SafeList<SettingsRow>();
 
             // put in the normal editor
-            if (selectedItem is IComponentObject3D componentObject
+            if (selectedItem is ComponentObject3D componentObject
                 && componentObject.Finalized)
             {
                 AddComponentEditor(selectedItem, undoBuffer, rows, componentObject, ref tabIndex);
@@ -362,20 +362,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
             }
         }
 
-        private void AddComponentEditor(IObject3D selectedItem, UndoBuffer undoBuffer, SafeList<SettingsRow> rows, IComponentObject3D componentObject, ref int tabIndex)
+        private void AddComponentEditor(IObject3D selectedItem, UndoBuffer undoBuffer, SafeList<SettingsRow> rows, ComponentObject3D componentObject, ref int tabIndex)
         {
             var context = new EditorContext();
             PropertyEditor.AddUnlockLinkIfRequired(selectedItem, editorPanel, theme);
             var editorList = componentObject.SurfacedEditors;
             for (var editorIndex = 0; editorIndex < editorList.Count; editorIndex++)
             {
-                // if it is a reference to a sheet cell
-                if (editorList[editorIndex].StartsWith("!"))
-                {
-                    AddSheetCellEditor(undoBuffer, componentObject, editorList, editorIndex);
-                }
-                else // parse it as a path to an object
-                {
                     // Get the named property via reflection
                     // Selector example:            '$.Children<CylinderObject3D>'
                     var match = pathGetter.Select(componentObject, editorList[editorIndex]).ToList();
@@ -414,67 +407,12 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
                             (context.Item as IPropertyGridModifier)?.UpdateControls(new PublicPropertyChange(context, "Update_Button"));
                         }
                     }
-                }
             }
 
             // Enforce panel padding
             foreach (var sectionWidget in editorPanel.Descendants<SectionWidget>())
             {
                 sectionWidget.Margin = 0;
-            }
-        }
-
-        private void AddSheetCellEditor(UndoBuffer undoBuffer, IComponentObject3D componentObject, List<string> editorList, int editorIndex)
-        {
-            var firtSheet = componentObject.Descendants<SheetObject3D>().FirstOrDefault();
-            if (firtSheet != null)
-            {
-                var (cellId, cellData) = componentObject.DecodeContent(editorIndex);
-                var cell = firtSheet.SheetData[cellId];
-                if (cell != null)
-                {
-                    // create an expresion editor
-                    var field = new TextField(theme)
-                    {
-                        Name = cellId + " Field",
-                    };
-                    int tabIndex = 0;
-                    field.Initialize(ref tabIndex);
-                    field.SetValue(cellData, false);
-                    field.ClearUndoHistory();
-                    field.Content.HAnchor = HAnchor.Stretch;
-
-                    var doOrUndoing = false;
-                    field.ValueChanged += (s, e) =>
-                    {
-                        if (!doOrUndoing)
-                        {
-                            var oldValue = componentObject.DecodeContent(editorIndex).cellData;
-                            var newValue = field.Value;
-                            undoBuffer.AddAndDo(new UndoRedoActions(() =>
-                            {
-                                doOrUndoing = true;
-                                editorList[editorIndex] = "!" + cellId + "," + oldValue;
-                                var expression = new StringOrExpression(oldValue);
-                                cell.Expression = expression.Value(componentObject).ToString();
-                                (componentObject as Object3D).Invalidate(InvalidateType.SheetUpdated);
-                                doOrUndoing = false;
-                            },
-                            () =>
-                            {
-                                doOrUndoing = true;
-                                editorList[editorIndex] = "!" + cellId + "," + newValue;
-                                var expression = new StringOrExpression(newValue);
-                                cell.Expression = expression.Value(componentObject).ToString();
-                                (componentObject as Object3D).Invalidate(InvalidateType.SheetUpdated);
-                                doOrUndoing = false;
-                            }));
-                        }
-                    };
-
-                    var row = new SettingsRow(cell.Name == null ? cellId : cell.Name.Replace("_", " "), null, field.Content, theme);
-                    editorPanel.AddChild(row);
-                }
             }
         }
 

@@ -39,18 +39,7 @@ using System.Threading;
 
 namespace MatterHackers.MatterControl.DesignTools
 {
-    public interface IComponentObject3D : IObject3D
-    {
-        bool Finalized { get; set; }
-        bool ProOnly { get; set; }
-
-        (string cellId, string cellData) DecodeContent(int editorIndex);
-
-        List<string> SurfacedEditors { get; set; }
-    }
-
-    [HideChildrenFromTreeView]
-    public class ComponentObject3D : Object3D, IRightClickMenuProvider, IComponentObject3D
+    public class ComponentObject3D : Object3D
     {
         private const string ImageConverterComponentID = "4D9BD8DB-C544-4294-9C08-4195A409217A";
 
@@ -65,28 +54,9 @@ namespace MatterHackers.MatterControl.DesignTools
 
         public override bool CanApply => !Finalized || Persistable;
 
-        public override bool Persistable => ApplicationController.Instance.UserHasPermission(this);
+        public override bool Persistable => true;
 
-        private bool _finalizade = true;
-
-        [Description("Switch from editing to distribution")]
-        public bool Finalized
-        {
-            get => _finalizade;
-
-            set
-            {
-                _finalizade = value;
-                // on any invalidate ensure that the visibility setting are correct for embedded sheet objects
-                foreach (var child in this.Descendants())
-                {
-                    if (child is SheetObject3D)
-                    {
-                        child.Visible = !this.Finalized;
-                    }
-                }
-            }
-        }
+		public bool Finalized { get; set; } = true;
 
         public List<string> SurfacedEditors { get; set; } = new List<string>();
 
@@ -143,108 +113,8 @@ namespace MatterHackers.MatterControl.DesignTools
             Invalidate(InvalidateType.Children);
         }
 
-        public (string cellId, string cellData) DecodeContent(int editorIndex)
-        {
-            if (SurfacedEditors[editorIndex].StartsWith("!"))
-            {
-                var cellData2 = SurfacedEditors[editorIndex].Substring(1);
-                var cellId2 = cellData2.ToLower();
-                // check if it has embededdata
-                var separator = cellData2.IndexOf(',');
-                if (separator != -1)
-                {
-                    cellId2 = cellData2.Substring(0, separator).ToLower();
-                    cellData2 = cellData2.Substring(separator + 1);
-                }
-                else
-                {
-                    var controledSheet = ControledSheet;
-                    if (controledSheet != null)
-                    {
-                        // We don't have any cache of the cell content, get the current content
-                        cellData2 = controledSheet.SheetData.GetCellValue(cellId2);
-                    }
-                }
-
-                return (cellId2, cellData2);
-            }
-
-            return (null, null);
-        }
-
-        private SheetObject3D ControledSheet => this.Descendants<SheetObject3D>().ToArray()[0];//.FirstOrDefault();
-                                                                                               // this.Children.Where(s => s is SheetObject3D).FirstOrDefault() as SheetObject3D;
-
-        private void RecalculateSheet()
-        {
-            // if there are editors that reference cells
-            for (int i = 0; i < SurfacedEditors.Count; i++)
-            {
-                var (cellId, cellData) = this.DecodeContent(i);
-                if (cellData != null
-                    && cellData.StartsWith("="))
-                {
-                    var expression = new DoubleOrExpression(cellData);
-                    var controledSheet = ControledSheet;
-                    if (controledSheet != null)
-                    {
-                        var cell = controledSheet.SheetData[cellId];
-                        if (cell != null)
-                        {
-                            cell.Expression = expression.Value(this).ToString();
-                        }
-                    }
-                }
-            }
-
-            if (SurfacedEditors.Any(se => se.StartsWith("!"))
-                && !this.RebuildLocked)
-            {
-                var controledSheet = ControledSheet;
-
-                var componentLock = this.RebuildLock();
-                controledSheet.SheetData.Recalculate();
-
-                UiThread.RunOnIdle(() =>
-                {
-                    // wait until the sheet is done rebuilding (or 30 seconds)
-                    var startTime = UiThread.CurrentTimerMs;
-                    while (controledSheet.RebuildLocked
-                        && startTime + 30000 < UiThread.CurrentTimerMs)
-                    {
-                        Thread.Sleep(1);
-                    }
-
-                    componentLock.Dispose();
-                });
-            }
-        }
-
-        public override void OnInvalidate(InvalidateArgs invalidateType)
-        {
-            switch (invalidateType.InvalidateType)
-            {
-                case InvalidateType.SheetUpdated:
-                case InvalidateType.Properties:
-                    RecalculateSheet();
-                    break;
-            }
-
-            base.OnInvalidate(invalidateType);
-        }
-
         public override void Cancel(UndoBuffer undoBuffer)
         {
-            // Make any hiden children visible
-            // on any invalidate ensure that the visibility setting are correct for embedded sheet objects
-            foreach (var child in this.Descendants())
-            {
-                if (child is SheetObject3D)
-                {
-                    child.Visible = true;
-                }
-            }
-
             // Custom remove for ImageConverter
             if (this.ComponentID == ImageConverterComponentID)
             {
@@ -304,28 +174,6 @@ namespace MatterHackers.MatterControl.DesignTools
                     base.Cancel(undoBuffer);
                 }
             }
-        }
-
-        public void AddRightClickMenuItemsItems(PopupMenu popupMenu, ThemeConfig theme)
-        {
-            popupMenu.CreateSeparator();
-
-            string componentID = this.ComponentID;
-
-            var helpItem = popupMenu.CreateMenuItem("Help".Localize());
-            var helpArticlesByID = ApplicationController.Instance.HelpArticlesByID;
-            helpItem.Enabled = !string.IsNullOrEmpty(componentID) && helpArticlesByID.ContainsKey(componentID);
-            helpItem.Click += (s, e) =>
-            {
-                var helpTab = ApplicationController.Instance.ActivateHelpTab("Docs");
-                if (helpTab.TabContent is HelpTreePanel helpTreePanel)
-                {
-                    if (helpArticlesByID.TryGetValue(componentID, out HelpArticle helpArticle))
-                    {
-                        helpTreePanel.ActiveNodePath = componentID;
-                    }
-                }
-            };
         }
     }
 }

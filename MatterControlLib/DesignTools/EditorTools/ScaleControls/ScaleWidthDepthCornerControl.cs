@@ -27,6 +27,8 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System;
+using System.Collections.Generic;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
 using MatterHackers.DataConverters3D;
@@ -40,7 +42,6 @@ using MatterHackers.PolygonMesh;
 using MatterHackers.RayTracer;
 using MatterHackers.RenderOpenGl;
 using MatterHackers.VectorMath;
-using System;
 
 namespace MatterHackers.Plugins.EditorTools
 {
@@ -56,13 +57,10 @@ namespace MatterHackers.Plugins.EditorTools
 		private readonly double selectCubeSize = 7 * GuiWidget.DeviceScale;
 
 		private readonly ThemeConfig theme;
-		private readonly Func<double> getWidth;
-		private readonly Action<double> setWidth;
-		private readonly Func<double> getDepth;
-		private readonly Action<double> setDepth;
-		private readonly Func<double> getHeight;
-		private readonly Action<double> setHeight;
-		private readonly InlineEditControl xValueDisplayInfo;
+        private readonly Property<double> width;
+        private readonly Property<double> depth;
+        private readonly Property<double> height;
+        private readonly InlineEditControl xValueDisplayInfo;
 
 		private readonly InlineEditControl yValueDisplayInfo;
 
@@ -77,23 +75,17 @@ namespace MatterHackers.Plugins.EditorTools
 		public override string UiHint => ScallingHint;
 
 		public ScaleWidthDepthCornerControl(IObject3DControlContext object3DControlContext,
-			Func<double> getWidth,
-			Action<double> setWidth,
-			Func<double> getDepth,
-			Action<double> setDepth,
-			Func<double> getHeight,
-			Action<double> setHeight,
+			Property<double> width,
+			Property<double> depth,
+			Property<double> height,
 			int quadrant)
 			: base(object3DControlContext)
 		{
 			theme = MatterControl.AppContext.Theme;
-			this.getWidth = getWidth;
-			this.setWidth = setWidth;
-			this.getDepth = getDepth;
-			this.setDepth = setDepth;
-			this.getHeight = getHeight;
-			this.setHeight = setHeight;
-			scaleController = new ScaleController(object3DControlContext, getWidth, setWidth, getDepth, setDepth, getHeight, setHeight);
+			this.width = width;
+			this.depth = depth;
+			this.height = height;
+			scaleController = new ScaleController(object3DControlContext, width, depth, height);
 
 			xValueDisplayInfo = new InlineEditControl()
 			{
@@ -285,7 +277,7 @@ namespace MatterHackers.Plugins.EditorTools
 				hitPlane = new PlaneShape(new Plane(planeNormal, edge0), null);
 
 				initialHitPosition = mouseEvent3D.info.HitPosition;
-				scaleController = new ScaleController(Object3DControlContext, getWidth, setWidth, getDepth, setDepth, getHeight, setHeight);
+				scaleController = new ScaleController(Object3DControlContext, width, depth, height);
 
 				Object3DControlContext.Scene.ShowSelectionShadow = false;
 			}
@@ -378,12 +370,12 @@ namespace MatterHackers.Plugins.EditorTools
 		{
 			if (hadClickOnControl)
 			{
-				if (getWidth() != scaleController.InitialState.Width
-					|| getDepth() != scaleController.InitialState.Depth)
+				if ((width != null && width.Get() != scaleController.InitialState.Width)
+					|| depth != null && depth.Get() != scaleController.InitialState.Depth)
 				{
 					scaleController.EditComplete();
 					// make a new controller so we will have new undo data
-					scaleController = new ScaleController(Object3DControlContext, getWidth, setWidth, getDepth, setDepth, getHeight, setHeight);
+					scaleController = new ScaleController(Object3DControlContext, width, depth, height);
 				}
 				Object3DControlContext.Scene.ShowSelectionShadow = true;
 			}
@@ -470,7 +462,7 @@ namespace MatterHackers.Plugins.EditorTools
 
 			scaleController.EditComplete();
 			// make a new controller so we will have new undo data
-			scaleController = new ScaleController(Object3DControlContext, getWidth, setWidth, getDepth, setDepth, getHeight, setHeight);
+			scaleController = new ScaleController(Object3DControlContext, width, depth, height);
 		}
 
 		private bool ForceHideScale()
@@ -568,16 +560,16 @@ namespace MatterHackers.Plugins.EditorTools
 		{
 			undoBuffer.AddAndDo(new UndoRedoActions(async () =>
 			{
-				setWidth(undoWidthDepth.X);
-				setDepth(undoWidthDepth.Y);
+				width?.Set(undoWidthDepth.X);
+				depth?.Set(undoWidthDepth.Y);
 				await selectedItem.Rebuild();
 				selectedItem.Matrix = undoMatrix;
 				selectedItem?.Invalidate(new InvalidateArgs(selectedItem, InvalidateType.DisplayValues));
 			},
 			async () =>
 			{
-				setWidth(doWidthDepth.X);
-				setDepth(doWidthDepth.Y);
+				width?.Set(doWidthDepth.X);
+				depth?.Set(doWidthDepth.Y);
 				await selectedItem.Rebuild();
 				selectedItem.Matrix = doMatrix;
 				selectedItem?.Invalidate(new InvalidateArgs(selectedItem, InvalidateType.DisplayValues));

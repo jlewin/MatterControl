@@ -71,7 +71,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
         [Description("Specifies the number of vertical cuts required to ensure the part can be pinched well.")]
         [Slider(0, 50, snapDistance: 1)]
-        public IntOrExpression PinchSlices { get; set; } = 20;
+        public int PinchSlices { get; set; } = 20;
 
         [EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
         [Description("Enable advanced features.")]
@@ -153,11 +153,9 @@ namespace MatterHackers.MatterControl.DesignTools
         {
             this.DebugDepth("Rebuild");
 
-            bool valuesChanged = false;
-
             var aabb = this.GetAxisAlignedBoundingBox();
 
-            var pinchSlices = PinchSlices.ClampIfNotCalculated(this, 0, 300, ref valuesChanged);
+            var pinchSlices = double.Clamp(PinchSlices, 0, 300);
             var rebuildLocks = this.RebuilLockAll();
 
             return ApplicationController.Instance.Tasks.Execute(

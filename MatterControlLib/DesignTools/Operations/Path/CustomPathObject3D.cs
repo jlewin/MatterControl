@@ -96,10 +96,6 @@ namespace MatterHackers.MatterControl.DesignTools.Primitives
             {
                 await Rebuild();
             }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
-            {
-                await Rebuild();
-            }
             else if (invalidateArgs.InvalidateType.HasFlag(InvalidateType.Path))
             {
                 await Rebuild();

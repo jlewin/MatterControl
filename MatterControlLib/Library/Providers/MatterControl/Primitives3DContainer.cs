@@ -159,10 +159,6 @@ namespace MatterHackers.MatterControl.Library
                     "Description".Localize(),
                     async () => await DescriptionObject3D.Create())
                     { DateCreated = new DateTime(index++) },
-                new GeneratorItem(
-                    "Variable Sheet".Localize(),
-                    async () => await SheetObject3D.Create())
-                    { DateCreated = new DateTime(index++) },
             };
 
             string title = "Primitive Shapes".Localize();

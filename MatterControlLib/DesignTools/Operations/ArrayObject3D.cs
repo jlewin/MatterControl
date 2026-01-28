@@ -27,6 +27,7 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System.Diagnostics;
 using System.Threading;
 using MatterHackers.DataConverters3D;
 
@@ -34,92 +35,13 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 {
     public abstract class ArrayObject3D : OperationSourceContainerObject3D
     {
-        public abstract IntOrExpression Count { get; set; }
+        public abstract int Count { get; set; }
 
-        public override void Apply(Agg.UI.UndoBuffer undoBuffer)
-        {
-            var indexExpansions = new (string key, int index)[]
-            {
-                ("[index]", 0),
-                ("[index0]", 0),
-                ("[index1]", 1),
-                ("[index2]", 2),
-            };
 
-            // convert [index] expressions to their constant values
-            foreach (var item in this.Descendants((item) => !(item is ArrayObject3D)))
-            {
-                foreach (var expansion in indexExpansions)
-                {
-                    foreach (var expression in Expressions.GetActiveExpression(item, expansion.key, false))
-                    {
-                        var expressionValue = expression.Expression;
-                        expression.Expression = expressionValue.Replace(expansion.key, Expressions.RetrieveArrayIndex(item, expansion.index).ToString());
-                    }
-
-                    // Also convert index expressions in ComponentObjects to their constants
-                    if (item is IComponentObject3D component)
-                    {
-                        for (int i = 0; i < component.SurfacedEditors.Count; i++)
-                        {
-                            var (cellId, cellData) = component.DecodeContent(i);
-
-                            if (cellId != null)
-                            {
-                                var newValue = cellData.Replace(expansion.key, Expressions.RetrieveArrayIndex(component, expansion.index).ToString());
-                                component.SurfacedEditors[i] = "!" + cellId + "," + newValue;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // then call base apply
-            base.Apply(undoBuffer);
-        }
 
         internal void ProcessIndexExpressions()
         {
-            var updateItems = Expressions.SortAndLockUpdateItems(this, (item) =>
-            {
-                if (!Expressions.HasExpressionWithString(item, "=", true))
-                {
-                    return false;
-                }
-
-                // WIP
-                if (item.Parent == this)
-                {
-                    // only process our children that are not the source object
-                    return !(item is OperationSourceObject3D);
-                }
-                else if (item.Parent is OperationSourceContainerObject3D)
-                {
-                    // If we find another source container
-                    // Only process its children that are the source container (they will be replicated and modified correctly by the source container)
-                    return item is OperationSourceObject3D;
-                }
-                else if (item.Parent is OperationSourceObject3D operationSourceObject3D
-                    && operationSourceObject3D.Parent == this)
-                {
-                    // we don't need to rebuild our source object
-                    return false;
-                }
-                else if (item.Parent is IComponentObject3D)
-                {
-                    return false;
-                }
-
-                // process everything else
-                return true;
-            }, true);
-
-            var runningInterval = Expressions.SendInvalidateInRebuildOrder(updateItems, InvalidateType.Properties);
-
-            while (runningInterval.Active)
-            {
-                Thread.Sleep(10);
-            }
+            Debugger.Break();
         }
     }
 }

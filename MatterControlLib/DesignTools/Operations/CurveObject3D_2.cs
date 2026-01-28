@@ -104,10 +104,8 @@ namespace MatterHackers.MatterControl.DesignTools
         {
             this.DebugDepth("Rebuild");
 
-            bool valuesChanged = false;
-
             // ensure we have good values
-            StartPercent = Util.Clamp(StartPercent, 0, 100, ref valuesChanged);
+            StartPercent = double.Clamp(StartPercent, 0, 100);
 
             if (Diameter < 1 || Diameter > 100000)
             {
@@ -119,10 +117,9 @@ namespace MatterHackers.MatterControl.DesignTools
                 }
 
                 Diameter = Math.Min(100000, Math.Max(1, Diameter));
-                valuesChanged = true;
             }
 
-            MinSidesPerRotation = Util.Clamp(MinSidesPerRotation, 3, 360, ref valuesChanged);
+            MinSidesPerRotation = double.Clamp(MinSidesPerRotation, 3, 360);
 
             var rebuildLocks = this.RebuilLockAll();
 

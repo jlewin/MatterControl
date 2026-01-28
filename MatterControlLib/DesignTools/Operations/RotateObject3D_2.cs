@@ -95,14 +95,14 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		[MaxDecimalPlaces(2)]
 		[DisplayName("Angle")]
 		[Slider(3, 360, Easing.EaseType.Cubic, snapDistance: 1)]
-		public DoubleOrExpression AngleDegrees { get; set; } = 0;
+		public double AngleDegrees { get; set; } = 0;
 
 		[JsonIgnore]
 		public Matrix4X4 RotationMatrix
 		{
 			get
 			{
-				var angleRadians = MathHelper.DegreesToRadians(AngleDegrees.Value(this));
+				var angleRadians = MathHelper.DegreesToRadians(AngleDegrees);
 				var rotation = Matrix4X4.CreateTranslation(-RotateAbout.Origin)
 					* Matrix4X4.CreateRotation(RotateAbout.Normal, angleRadians)
 					* Matrix4X4.CreateTranslation(RotateAbout.Origin);
@@ -139,10 +139,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 				|| invalidateArgs.InvalidateType.HasFlag(InvalidateType.Mesh))
 				&& invalidateArgs.Source != this
 				&& !RebuildLocked)
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}

@@ -50,22 +50,22 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 	{
 		[MaxDecimalPlaces(2)]
 		[Slider(0, 360, snapDistance: 1)]
-		public DoubleOrExpression Rotation { get; set; } = 0;
+		public double Rotation { get; set; } = 0;
         
 		[MaxDecimalPlaces(2)]
 		[Slider(-30, 30, snapDistance: 1)]
-		public DoubleOrExpression AxisPosition { get; set; } = 0;
+		public double AxisPosition { get; set; } = 0;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(0, 360, snapDistance: 1)]
-		public DoubleOrExpression StartingAngle { get; set; } = 0;
+		public double StartingAngle { get; set; } = 0;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(3, 360, snapDistance: 1)]
-		public DoubleOrExpression EndingAngle { get; set; } = 45;
+		public double EndingAngle { get; set; } = 45;
 
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 30;
+		public int Sides { get; set; } = 30;
 
 		public override bool CanApply => true;
 
@@ -126,7 +126,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			var aabb = this.GetAxisAlignedBoundingBox();
 			var vertexSource = path.Transform(Matrix);
 			var bounds = vertexSource.GetBounds();
-			var lineX = bounds.Left + AxisPosition.Value(this);
+			var lineX = bounds.Left + AxisPosition;
 
 			var start = new Vector3(lineX, aabb.MinXYZ.Y, aabb.MinXYZ.Z);
 			var end = new Vector3(lineX, aabb.MaxXYZ.Y, aabb.MinXYZ.Z);
@@ -138,7 +138,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			var path = this.CombinedVisibleChildrenPaths();
 			// we only draw the rotation line if we are not rotated
 			if (path != null
-				&& Rotation.Value(this) == 0)
+				&& Rotation == 0)
 			{
 				var (start, end) = GetStartEnd(this, path);
 				layer.World.Render3DLine(start, end, Color.Red, true);
@@ -167,21 +167,20 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
-            var rotation = MathHelper.DegreesToRadians(Rotation.ClampIfNotCalculated(this, 0, 360, ref valuesChanged));
-            var startingAngle = StartingAngle.ClampIfNotCalculated(this, 0, 360 - .01, ref valuesChanged);
-			var endingAngle = EndingAngle.ClampIfNotCalculated(this, startingAngle + .01, 360, ref valuesChanged);
-			var sides = Sides.Value(this);
-			var axisPosition = AxisPosition.Value(this);
+            var rotation = MathHelper.DegreesToRadians(double.Clamp(Rotation, 0, 360));
+            var startingAngle = double.Clamp(StartingAngle, 0, 360 - .01);
+			var endingAngle = double.Clamp(EndingAngle, startingAngle + .01, 360);
+			var sides = Sides;
+			var axisPosition = AxisPosition;
 
 			if (startingAngle > 0 || endingAngle < 360)
 			{
-				Sides = Util.Clamp(sides, 1, 360, ref valuesChanged);
+				Sides = int.Clamp(sides, 1, 360);
 			}
 			else
 			{
-				Sides = Util.Clamp(sides, 3, 360, ref valuesChanged);
+				Sides = int.Clamp(sides, 3, 360);
 			}
 
 			Invalidate(InvalidateType.DisplayValues);

@@ -123,7 +123,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression XOffset { get; set; } = 0;
+		public double XOffset { get; set; } = 0;
 
 		[SectionStart("Y Axis"), DisplayName("Align")]
 		[EnumDisplay(IconPaths = new string[] { "424.png", "align_bottom.png", "align_center_y.png", "align_top.png", "align_origin.png" }, InvertIcons = true)]
@@ -137,7 +137,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression YOffset { get; set; } = 0;
+		public double YOffset { get; set; } = 0;
 
 		[SectionStart("Z Axis"), DisplayName("Align")]
 		[EnumDisplay(IconPaths = new string[] { "424.png", "align_bottom.png", "align_center_y.png", "align_top.png", "align_origin.png" }, InvertIcons = true)]
@@ -151,7 +151,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression ZOffset { get; set; } = 0;
+		public double ZOffset { get; set; } = 0;
 
 		public override bool CanApply => true;
 
@@ -258,10 +258,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 				NameOverriden = false;
 				base.OnInvalidate(invalidateArgs);
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				// and also always pass back the actual type
@@ -325,7 +321,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 							AlignAxis(0,
 								(XOptions && XSubAlign != Align.None) ? MapSubAlign(XSubAlign) : XAlign,
 								GetSubAlignOffset(anchorBounds, 0, XAlign),
-								XOffset.Value(this),
+								XOffset,
 								child);
 						}
 						if (YAlign != Align.None)
@@ -333,7 +329,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 							AlignAxis(1,
 								(YOptions && YSubAlign != Align.None) ? MapSubAlign(YSubAlign) : YAlign,
 								GetSubAlignOffset(anchorBounds, 1, YAlign),
-								YOffset.Value(this),
+								YOffset,
 								child);
 						}
 						if (ZAlign != Align.None)
@@ -341,7 +337,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 							AlignAxis(2,
 								(ZOptions && ZSubAlign != Align.None) ? MapSubAlign(ZSubAlign) : ZAlign,
 								GetSubAlignOffset(anchorBounds, 2, ZAlign),
-								ZOffset.Value(this),
+								ZOffset,
 								child);
 						}
 					}

@@ -349,11 +349,6 @@ namespace MatterHackers.MatterControl.DesignTools
 			{
 				await Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-                CopyNewImageData();
-                await Rebuild();
-			}
 
 			base.OnInvalidate(invalidateArgs);
 		}

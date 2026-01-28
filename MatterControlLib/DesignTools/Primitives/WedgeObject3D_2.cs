@@ -66,29 +66,25 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Width { get; set; } = 20;
+		public double Width { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Depth { get; set; } = 20;
+		public double Depth { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Height { get; set; } = 20;
+		public double Height { get; set; } = 20;
 
 		[EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
 		public RoundTypes Round { get; set; } = RoundTypes.None;
 
 		[Slider(2, 90, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression RoundSegments { get; set; } = 15;
+		public int RoundSegments { get; set; } = 15;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -101,16 +97,15 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
-			var roundSegments = RoundSegments.ClampIfNotCalculated(this, 2, 90, ref valuesChanged);
+			var roundSegments = double.Clamp(RoundSegments, 2, 90);
 
 			Invalidate(InvalidateType.DisplayValues);
 
 			using (RebuildLock())
 			{
-				var height = Height.Value(this);
-				var width = Width.Value(this);
+				var height = Height;
+				var width = Width;
 				using (new CenterAndHeightMaintainer(this))
 				{
 					var path = new VertexStorage();
@@ -141,7 +136,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
 					path.LineTo(0, height);
 
-					Mesh = VertexSourceToMesh.Extrude(path, Depth.Value(this));
+					Mesh = VertexSourceToMesh.Extrude(path, Depth);
 					Mesh.Transform(Matrix4X4.CreateRotationX(MathHelper.Tau / 4));
 				}
 			}
@@ -159,8 +154,26 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			object3DControlsLayer.AddHeightControl(this, Width, Depth, Height);
-			object3DControlsLayer.AddWidthDepthControls(this, Width, Depth, Height);
+			var width = new Property<double>
+			{
+				Get = () => Width,
+				Set = (value) => Width = value
+			};
+
+			var depth = new Property<double>
+			{
+				Get = () => Depth,
+				Set = (value) => Depth = value
+			};
+
+			var height = new Property<double>
+			{
+				Get = () => Height,
+				Set = (value) => Height = value
+			};
+
+			object3DControlsLayer.AddHeightControl(this, width, depth, height);
+			object3DControlsLayer.AddWidthDepthControls(this, width, depth, height);
 
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);
 			object3DControlsLayer.AddControls(ControlTypes.RotateXYZ);

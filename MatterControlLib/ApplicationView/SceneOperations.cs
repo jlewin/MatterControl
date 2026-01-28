@@ -219,12 +219,12 @@ namespace MatterHackers.MatterControl
 			return new SceneOperation("EditComponent")
 			{
 				TitleGetter = () => "Edit Component".Localize(),
-				ResultType = typeof(IComponentObject3D),
+				ResultType = typeof(ComponentObject3D),
 				Action = (sceneContext) =>
 				{
 					var scene = sceneContext.Scene;
 					var sceneItem = scene.SelectedItem;
-					if (sceneItem is IComponentObject3D componentObject)
+					if (sceneItem is ComponentObject3D componentObject)
 					{
 						// Enable editing mode
 						componentObject.Finalized = false;
@@ -242,13 +242,13 @@ namespace MatterHackers.MatterControl
 					var sceneItem = scene.SelectedItem;
 					return sceneItem.Parent != null
 						&& sceneItem.Parent.Parent == null
-						&& sceneItem is IComponentObject3D componentObject
+						&& sceneItem is ComponentObject3D componentObject
 						&& componentObject.Finalized
 						&& !componentObject.ProOnly;
 				},
 				Icon = (theme) => StaticData.Instance.LoadIcon("scale_32x32.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
 				HelpTextGetter = () => "A component must be selected".Localize().Stars(),
-				IsEnabled = (sceneContext) => sceneContext.Scene.SelectedItem != null && (sceneContext.Scene.SelectedItem is IComponentObject3D),
+				IsEnabled = (sceneContext) => sceneContext.Scene.SelectedItem != null && (sceneContext.Scene.SelectedItem is ComponentObject3D),
 			};
 		}
 
@@ -274,7 +274,7 @@ namespace MatterHackers.MatterControl
 			return new SceneOperation("ImageConverter")
 			{
 				TitleGetter = () => "Image Converter".Localize(),
-				ResultType = typeof(IComponentObject3D),
+				ResultType = typeof(ComponentObject3D),
 				Action = (sceneContext) =>
 				{
 					var scene = sceneContext.Scene;
@@ -730,7 +730,6 @@ namespace MatterHackers.MatterControl
 				ArrangeAllPartsOperation(),
 				new SceneSelectionSeparator(),
 				LayFlatOperation(),
-				RebuildOperation(),
 				GroupOperation(),
 				UngroupOperation(),
 				new SceneSelectionSeparator(),
@@ -1106,42 +1105,6 @@ namespace MatterHackers.MatterControl
 				HelpTextGetter = () => "At least 1 part must be selected".Localize().Stars(),
 				IsEnabled = (sceneContext) => sceneContext.Scene.SelectedItem != null,
 				Icon = (theme) => StaticData.Instance.LoadIcon("lay_flat.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
-			};
-		}
-
-		private static SceneOperation RebuildOperation()
-		{
-			return new SceneOperation("Rebuild")
-			{
-				TitleGetter = () => "Rebuild".Localize(),
-				Action = (sceneContext) =>
-				{
-					var scene = sceneContext.Scene;
-					var selectedItem = scene.SelectedItem;
-					if (selectedItem != null)
-					{
-						try
-						{
-							var updateItems = Expressions.SortAndLockUpdateItems(selectedItem.Parent, (item) =>
-							{
-								if (item == selectedItem || item.Parent == selectedItem)
-								{
-									// don't process this
-									return false;
-								}
-								return true;
-							}, false);
-
-							Expressions.SendInvalidateInRebuildOrder(updateItems, InvalidateType.Properties, null);
-						}
-						catch
-						{
-						}
-					}
-				},
-				HelpTextGetter = () => "At least 1 part must be selected".Localize().Stars(),
-				IsEnabled = (sceneContext) => sceneContext.Scene.SelectedItem != null,
-				Icon = (theme) => StaticData.Instance.LoadIcon("update.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
 			};
 		}
 

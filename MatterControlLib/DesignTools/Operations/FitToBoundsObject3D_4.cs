@@ -74,13 +74,13 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
         public LockProportions LockProportion { get; set; } = LockProportions.X_Y_Z;
 
         [MaxDecimalPlaces(3)]
-        public DoubleOrExpression Width { get; set; } = 0;
+        public double Width { get; set; } = 0;
 
         [MaxDecimalPlaces(3)]
-        public DoubleOrExpression Depth { get; set; } = 0;
+        public double Depth { get; set; } = 0;
 
         [MaxDecimalPlaces(3)]
-        public DoubleOrExpression Height { get; set; } = 0;
+        public double Height { get; set; } = 0;
 
         [SectionStart("X Axis"), DisplayName("Stretch")]
         [EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
@@ -150,9 +150,9 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
             var aabb = FitBounds.GetAxisAlignedBoundingBox();
             var center = aabb.Center;
 
-            var width = Width.Value(this);
-            var depth = Depth.Value(this);
-            var height = Height.Value(this);
+            var width = Width;
+            var depth = Depth;
+            var height = Height;
 
             var minXyz = center - new Vector3(width / 2, depth / 2, height / 2);
             var maxXyz = center + new Vector3(width / 2, depth / 2, height / 2);
@@ -203,10 +203,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
             {
                 await Rebuild();
             }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
-            {
-                await Rebuild();
-            }
             else if (invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties)
                 || invalidateArgs.InvalidateType.HasFlag(InvalidateType.Matrix)
                 || invalidateArgs.InvalidateType.HasFlag(InvalidateType.Mesh)
@@ -243,7 +239,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
             {
                 var aabb = UntransformedChildren.GetAxisAlignedBoundingBox();
                 ItemWithTransform.Matrix = Matrix4X4.Identity;
-                var constraint = new Vector3(Width.Value(this), Depth.Value(this), Height.Value(this));
+                var constraint = new Vector3(Width, Depth, Height);
 
                 var scale = GetScale(constraint, aabb.Size);
 
@@ -303,7 +299,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
                 var transformAabb = ItemWithTransform.GetAxisAlignedBoundingBox();
                 var fitAabb = FitBounds.GetAxisAlignedBoundingBox();
                 var fitSize = fitAabb.Size;
-                var boundsSize = new Vector3(Width.Value(this), Depth.Value(this), Height.Value(this));
+                var boundsSize = new Vector3(Width, Depth, Height);
                 FitBounds.Matrix *= Matrix4X4.CreateScale(
                     boundsSize.X / fitSize.X,
                     boundsSize.Y / fitSize.Y,

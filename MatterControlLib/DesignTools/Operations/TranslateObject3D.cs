@@ -86,10 +86,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			{
 				await Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				base.OnInvalidate(invalidateArgs);

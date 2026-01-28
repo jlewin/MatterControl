@@ -116,13 +116,12 @@ namespace MatterHackers.MatterControl.DesignTools
 			// Z: Bottom .8
 
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
 			using (RebuildLock())
 			{
-				MaxTemperature = Util.Clamp(MaxTemperature, 140, 400, ref valuesChanged);
-				Sections = Util.Clamp(Sections, 2, 20, ref valuesChanged);
-				ChangeAmount = Util.Clamp(ChangeAmount, 1, 30, ref valuesChanged);
+				MaxTemperature = double.Clamp(MaxTemperature, 140, 400);
+				Sections = int.Clamp(Sections, 2, 20);
+				ChangeAmount = double.Clamp(ChangeAmount, 1, 30);
 
 				using (new CenterAndHeightMaintainer(this))
 				{

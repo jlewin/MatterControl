@@ -59,19 +59,19 @@ namespace MatterHackers.MatterControl.DesignTools.Primitives
         /// </summary>
         [MaxDecimalPlaces(2)]
         [Slider(1, 400, Easing.EaseType.Quadratic, useSnappingGrid: true)]
-        public DoubleOrExpression Width { get; set; } = 20;
+        public double Width { get; set; } = 20;
 
         [MaxDecimalPlaces(2)]
         [Slider(1, 400, Easing.EaseType.Quadratic, useSnappingGrid: true)]
-        public DoubleOrExpression Depth { get; set; } = 20;
+        public double Depth { get; set; } = 20;
 
         public bool Round { get; set; }
 
         [Slider(0, 20, Easing.EaseType.Quadratic, snapDistance: .1)]
-        public DoubleOrExpression Radius { get; set; } = 3;
+        public double Radius { get; set; } = 3;
 
         [Slider(1, 30, Easing.EaseType.Quadratic, snapDistance: 1)]
-        public IntOrExpression RoundSegments { get; set; } = 9;
+        public int RoundSegments { get; set; } = 9;
 
         public static async Task<BoxPathObject3D> Create()
         {
@@ -82,8 +82,20 @@ namespace MatterHackers.MatterControl.DesignTools.Primitives
 
         public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
         {
+            var width = new Property<double>
+            {
+	            Get = () => Width,
+	            Set = (value) => Width = value
+            };
+
+            var depth = new Property<double>
+            {
+	            Get = () => Depth,
+	            Set = (value) => Depth = value
+            };
+
             object3DControlsLayer.AddControls(ControlTypes.MoveInZ);
-            object3DControlsLayer.AddWidthDepthControls(this, Width, Depth, null);
+            object3DControlsLayer.AddWidthDepthControls(this, width, depth, null);
 
             object3DControlsLayer.AddControls(ControlTypes.MoveInZ);
             object3DControlsLayer.AddControls(ControlTypes.RotateXYZ);
@@ -92,10 +104,6 @@ namespace MatterHackers.MatterControl.DesignTools.Primitives
         public override async void OnInvalidate(InvalidateArgs invalidateArgs)
         {
             if (invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this)
-            {
-                await Rebuild();
-            }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
             {
                 await Rebuild();
             }
@@ -113,11 +121,10 @@ namespace MatterHackers.MatterControl.DesignTools.Primitives
             {
                 using (new CenterAndHeightMaintainer(this))
                 {
-                    bool valuesChanged = false;
-                    var width = Width.ClampIfNotCalculated(this, MinEdgeSize, 1000000, ref valuesChanged);
-                    var depth = Depth.ClampIfNotCalculated(this, MinEdgeSize, 1000000, ref valuesChanged);
-                    var roundSegments = RoundSegments.ClampIfNotCalculated(this, 1, 90, ref valuesChanged);
-                    var roundRadius = Radius.ClampIfNotCalculated(this, 0, Math.Min(width, depth) / 2, ref valuesChanged);
+                    var width = double.Clamp(Width, MinEdgeSize, 1000000);
+                    var depth = double.Clamp(Depth, MinEdgeSize, 1000000);
+                    var roundSegments = int.Clamp(RoundSegments, 1, 90);
+                    var roundRadius = double.Clamp(Radius, 0, Math.Min(width, depth) / 2);
 
                     if (Round)
                     {

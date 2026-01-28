@@ -59,23 +59,19 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Width { get; set; } = 20;
+		public double Width { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public DoubleOrExpression Depth { get; set; } = 20;
+		public double Depth { get; set; } = 20;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Height { get; set; } = 20;
+		public double Height { get; set; } = 20;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -95,10 +91,10 @@ namespace MatterHackers.MatterControl.DesignTools
 					var path = new VertexStorage();
 					path.MoveTo(0, 0);
 					path.LineTo(Math.Sqrt(2) * 100, 0);
-					path.LineTo(0, Height.Value(this) * 100);
+					path.LineTo(0, Height * 100);
 
 					var mesh = VertexSourceToMesh.Revolve(path, 4);
-					mesh.Transform(Matrix4X4.CreateRotationZ(MathHelper.DegreesToRadians(45)) * Matrix4X4.CreateScale(Width.Value(this) / 2 / 100.0, Depth.Value(this) / 2 / 100.0, 1 / 100.0));
+					mesh.Transform(Matrix4X4.CreateRotationZ(MathHelper.DegreesToRadians(45)) * Matrix4X4.CreateScale(Width / 2 / 100.0, Depth / 2 / 100.0, 1 / 100.0));
 					Mesh = mesh;
 				}
 			}
@@ -110,8 +106,26 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		public void AddObject3DControls(Object3DControlsLayer object3DControlsLayer)
 		{
-			object3DControlsLayer.AddHeightControl(this, Width, Depth, Height);
-			object3DControlsLayer.AddWidthDepthControls(this, Width, Depth, Height);
+			var width = new Property<double>
+			{
+				Get = () => Width,
+				Set = (value) => Width = value
+			};
+
+			var depth = new Property<double>
+			{
+				Get = () => Depth,
+				Set = (value) => Depth = value
+			};
+
+			var height = new Property<double>
+			{
+				Get = () => Height,
+				Set = (value) => Height = value
+			};
+
+			object3DControlsLayer.AddHeightControl(this, width, depth, height);
+			object3DControlsLayer.AddWidthDepthControls(this, width, depth, height);
 
 			object3DControlsLayer.AddControls(ControlTypes.MoveInZ);
 			object3DControlsLayer.AddControls(ControlTypes.RotateXYZ);

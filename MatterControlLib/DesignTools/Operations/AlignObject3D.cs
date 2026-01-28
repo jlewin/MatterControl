@@ -195,7 +195,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression XOffset { get; set; } = 0;
+		public double XOffset { get; set; } = 0;
 
 		[SectionStart("Y Axis"), DisplayName("Align")]
 		[EnumDisplay(IconPaths = new string[] { "424.png", "align_bottom.png", "align_center_y.png", "align_top.png", "align_origin.png" }, InvertIcons = true)]
@@ -207,7 +207,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression YOffset { get; set; } = 0;
+		public double YOffset { get; set; } = 0;
 
 		[SectionStart("Z Axis"), DisplayName("Align")]
 		[EnumDisplay(IconPaths = new string[] { "424.png", "align_bottom.png", "align_center_y.png", "align_top.png", "align_origin.png" }, InvertIcons = true)]
@@ -219,7 +219,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		[DisplayName("Offset")]
 		[Slider(-20, 20, useSnappingGrid: true)]
-		public DoubleOrExpression ZOffset { get; set; } = 0;
+		public double ZOffset { get; set; } = 0;
 
 		public override bool CanApply => true;
 
@@ -326,10 +326,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 				NameOverriden = false;
 				base.OnInvalidate(invalidateArgs);
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				// and also always pass back the actual type
@@ -375,9 +371,9 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 					// align all the objects to the anchor
 					foreach (var child in children)
 					{
-						AlignAxis(0, XAlign, GetAlignToOffset(anchorBounds, 0, (!Advanced || XAlignTo == Align.None) ? XAlign : XAlignTo), XOffset.Value(this), child);
-						AlignAxis(1, YAlign, GetAlignToOffset(anchorBounds, 1, (!Advanced || YAlignTo == Align.None) ? YAlign : YAlignTo), YOffset.Value(this), child);
-						AlignAxis(2, ZAlign, GetAlignToOffset(anchorBounds, 2, (!Advanced || ZAlignTo == Align.None) ? ZAlign : ZAlignTo), ZOffset.Value(this), child);
+						AlignAxis(0, XAlign, GetAlignToOffset(anchorBounds, 0, (!Advanced || XAlignTo == Align.None) ? XAlign : XAlignTo), XOffset, child);
+						AlignAxis(1, YAlign, GetAlignToOffset(anchorBounds, 1, (!Advanced || YAlignTo == Align.None) ? YAlign : YAlignTo), YOffset, child);
+						AlignAxis(2, ZAlign, GetAlignToOffset(anchorBounds, 2, (!Advanced || ZAlignTo == Align.None) ? ZAlign : ZAlignTo), ZOffset, child);
 					}
 				});
 

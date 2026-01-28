@@ -53,7 +53,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		public override bool CanApply => true;
 
-		public override IntOrExpression Count { get; set; } = 3;
+		public override int Count { get; set; } = 3;
 
 		[Description("Rotate the part to the same angle as the array.")]
 		public bool RotatePart { get; set; } = true;
@@ -90,7 +90,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 						var sourceItem = sourceContainer.Children.First();
 
 						var offset = Vector3.Zero;
-						var count = Count.Value(this);
+						var count = Count;
 						for (int i = 0; i < Math.Max(count, 1); i++)
 						{
 							var next = sourceItem.Clone();

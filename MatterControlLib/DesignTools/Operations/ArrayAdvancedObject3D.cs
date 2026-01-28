@@ -45,15 +45,15 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 		public override bool CanApply => true;
 
-		public override IntOrExpression Count { get; set; } = 3;
+		public override int Count { get; set; } = 3;
 
 		public Vector3 Offset { get; set; } = new Vector3(30, 0, 0);
 
-		public DoubleOrExpression Rotate { get; set; } = -15;
+		public double Rotate { get; set; } = -15;
 
 		public bool RotatePart { get; set; } = true;
 
-		public DoubleOrExpression Scale { get; set; } = .9;
+		public double Scale { get; set; } = .9;
 
 		public bool ScaleOffset { get; set; } = true;
 
@@ -76,9 +76,9 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 						var lastChild = sourceContainer.Children.First();
 						list.Add(lastChild.Clone());
 						var offset = Offset;
-						var count = Count.Value(this);
-						var rotate = Rotate.Value(this);
-						var scale = Scale.Value(this);
+						var count = Count;
+						var rotate = Rotate;
+						var scale = Scale;
 						for (int i = 1; i < count; i++)
 						{
 							var rotateRadians = MathHelper.DegreesToRadians(rotate);

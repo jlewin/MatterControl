@@ -137,10 +137,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow.View3D
             {
                 await Rebuild();
             }
-            else if (Expressions.NeedRebuild(this, invalidateArgs))
-            {
-                await Rebuild();
-            }
             else if (invalidateArgs.InvalidateType.HasFlag(InvalidateType.Name)
                 && !NameOverriden)
             {

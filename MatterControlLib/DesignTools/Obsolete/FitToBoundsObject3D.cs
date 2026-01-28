@@ -160,10 +160,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			{
 				Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				Rebuild();
-			}
 			else
 			{
 				base.OnInvalidate(invalidateArgs);

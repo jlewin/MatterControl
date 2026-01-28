@@ -90,11 +90,10 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 
 			using (RebuildLock())
 			{
-				Temperature = Util.Clamp(Temperature, 140, 400, ref valuesChanged);
+				Temperature = double.Clamp(Temperature, 140, 400);
 
 				using (new CenterAndHeightMaintainer(this))
 				{

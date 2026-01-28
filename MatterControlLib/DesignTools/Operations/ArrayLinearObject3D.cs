@@ -50,12 +50,12 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		public override bool CanApply => true;
 
 		[Slider(2, 10, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public override IntOrExpression Count { get; set; } = 3;
+		public override int Count { get; set; } = 3;
 
 		public DirectionVector Direction { get; set; } = new DirectionVector { Normal = new Vector3(1, 0, 0) };
 
 		[Slider(0, 200, Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Distance { get; set; } = 30;
+		public double Distance { get; set; } = 30;
 
 		public override async Task Rebuild()
 		{
@@ -77,8 +77,8 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 
 						var arrayItem = SourceContainer.Children.First();
 
-						var distance = Distance.Value(this);
-						var count = Count.Value(this);
+						var distance = Distance;
+						var count = Count;
 
 						// add in all the array items
 						for (int i = 0; i < Math.Max(count, 1); i++)

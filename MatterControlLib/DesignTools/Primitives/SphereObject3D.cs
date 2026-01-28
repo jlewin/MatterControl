@@ -78,10 +78,10 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 400, VectorMath.Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression Diameter { get; set; } = 20;
+		public double Diameter { get; set; } = 20;
 
 		[Slider(3, 360, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression Sides { get; set; } = 40;
+		public int Sides { get; set; } = 40;
 
 		public bool Advanced { get; set; } = false;
 
@@ -91,22 +91,18 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		[MaxDecimalPlaces(2)]
 		[Slider(0, 359, snapDistance: 1)]
-		public DoubleOrExpression StartingAngle { get; set; } = 0;
+		public double StartingAngle { get; set; } = 0;
 
 		[MaxDecimalPlaces(2)]
 		[Slider(1, 360, snapDistance: 1)]
-		public DoubleOrExpression EndingAngle { get; set; } = 360;
+		public double EndingAngle { get; set; } = 360;
 
 		[Slider(3, 180, Easing.EaseType.Quadratic, snapDistance: 1)]
-		public IntOrExpression LatitudeSides { get; set; } = 30;
+		public int LatitudeSides { get; set; } = 30;
 
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -119,14 +115,13 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override Task Rebuild()
 		{
 			this.DebugDepth("Rebuild");
-			bool valuesChanged = false;
 			using (RebuildLock())
 			{
-				var sides = Sides.ClampIfNotCalculated(this, 3, 360, ref valuesChanged);
-				var latitudeSides = LatitudeSides.ClampIfNotCalculated(this, 3, 180, ref valuesChanged);
-				var startingAngle = StartingAngle.ClampIfNotCalculated(this, 0, 360 - .01, ref valuesChanged);
-				var endingAngle = EndingAngle.ClampIfNotCalculated(this, startingAngle + .01, 360, ref valuesChanged);
-				var diameter = Diameter.Value(this);
+				var sides = int.Clamp(Sides, 3, 360);
+				var latitudeSides = int.Clamp(LatitudeSides, 3, 180);
+				var startingAngle = double.Clamp(StartingAngle, 0, 360 - .01);
+				var endingAngle = double.Clamp(EndingAngle, startingAngle + .01, 360);
+				var diameter = Diameter;
 
 				using (new CenterAndHeightMaintainer(this, MaintainFlags.Origin | MaintainFlags.Bottom))
 				{
@@ -195,8 +190,7 @@ namespace MatterHackers.MatterControl.DesignTools
 		{
 			object3DControlsLayer.Object3DControls.Add(new ScaleDiameterControl(object3DControlsLayer,
 				null,
-				null,
-				new List<Func<double>>() { () => Diameter.Value(this) },
+				new List<Func<double>>() { () => Diameter },
 				new List<Action<double>>() { (diameter) => Diameter = diameter },
 				0,
 				ObjectSpace.Placement.Center));

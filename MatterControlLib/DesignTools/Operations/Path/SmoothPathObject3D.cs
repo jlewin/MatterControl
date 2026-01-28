@@ -55,10 +55,10 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 		[Description("Max distance to move bumps to make lines")]
 		[MaxDecimalPlaces(2)]
 		[Slider(.01, 1, VectorMath.Easing.EaseType.Quadratic, snapDistance: .01)]
-		public DoubleOrExpression SmoothDistance { get; set; } = .3;
+		public double SmoothDistance { get; set; } = .3;
 
 		[Description("The number of smoothing passes")]
-		public IntOrExpression Iterations { get; set; } = 3;
+		public int Iterations { get; set; } = 3;
 
 		public override bool MeshIsSolidObject => false;
 
@@ -81,10 +81,6 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 			{
 				await Rebuild();
 			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
-			{
-				await Rebuild();
-			}
 			else
 			{
 				base.OnInvalidate(invalidateArgs);
@@ -101,7 +97,7 @@ namespace MatterHackers.MatterControl.DesignTools.Operations
 				null,
 				(reporter, cancellationToken) =>
 				{
-					DoSmoothing((long)(SmoothDistance.Value(this) * 1000), Iterations.Value(this));
+					DoSmoothing((long)(SmoothDistance * 1000), Iterations);
 
 					// set the mesh to show the path
 					this.Mesh = VertexStorage.Extrude(Constants.PathPolygonsHeight);

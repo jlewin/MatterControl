@@ -52,7 +52,7 @@ namespace MatterHackers.MatterControl.DesignTools
 
 
 		[Slider(1, 200, Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression CutHeight { get; set; } = 10;
+		public double CutHeight { get; set; } = 10;
 
 		private double cutMargin = .01;
 
@@ -63,7 +63,7 @@ namespace MatterHackers.MatterControl.DesignTools
 			var itemMatrix = item.WorldMatrix(SourceContainer);
 			mesh.Transform(itemMatrix);
 
-			var cutHeight = CutHeight.Value(this);
+			var cutHeight = CutHeight;
 
 			// calculate and add the PWN face from the loops
 			var cutPlane = new Plane(Vector3.UnitZ, new Vector3(0, 0, cutHeight));
@@ -89,7 +89,7 @@ namespace MatterHackers.MatterControl.DesignTools
 			var newFaces = new List<Face>();
 			var facesToRemove = new HashSet<int>();
 
-			var cutRemove = CutHeight.Value(this) - cutMargin;
+			var cutRemove = CutHeight - cutMargin;
 			for (int i = 0; i < mesh.Faces.Count; i++)
 			{
 				var face = mesh.Faces[i];

@@ -83,21 +83,21 @@ namespace MatterHackers.MatterControl.DesignTools
 		public BaseTypes BaseType { get; set; } = BaseTypes.Circle;
 
 		[Description("The height the base will be derived from (starting at the bottom).")]
-		public DoubleOrExpression CalculationHeight { get; set; } = .1;
+		public double CalculationHeight { get; set; } = .1;
 
 		[DisplayName("Expand")]
 		[Slider(0, 30, Easing.EaseType.Quadratic, snapDistance: .5)]
-		public DoubleOrExpression BaseSize { get; set; } = 3;
+		public double BaseSize { get; set; } = 3;
 
 		[Slider(0, 10, Easing.EaseType.Quadratic, snapDistance: .1)]
-		public DoubleOrExpression InfillAmount { get; set; } = 3;
+		public double InfillAmount { get; set; } = 3;
 
 		[EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
 		public ExpandStyles Style { get; set; } = ExpandStyles.Round;
 
 		[DisplayName("Height")]
 		[Slider(1, 50, Easing.EaseType.Quadratic, useSnappingGrid: true)]
-		public DoubleOrExpression ExtrusionHeight { get; set; } = 5;
+		public double ExtrusionHeight { get; set; } = 5;
 
 		[DisplayName("")]
 		[ReadOnly(true)]
@@ -144,7 +144,7 @@ namespace MatterHackers.MatterControl.DesignTools
 			var paths = this.CombinedVisibleChildrenPaths();
             if (paths == null)
             {
-				var calculationHeight = CalculationHeight.Value(this);
+				var calculationHeight = CalculationHeight;
 				if (VertexStorage == null || cacheHeight != calculationHeight)
 				{
 					var aabb = this.GetAxisAlignedBoundingBox();
@@ -194,10 +194,6 @@ namespace MatterHackers.MatterControl.DesignTools
 				await Rebuild();
 			}
 			else if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				await Rebuild();
 			}
@@ -378,9 +374,9 @@ namespace MatterHackers.MatterControl.DesignTools
 				{
 					Polygons basePolygons;
 
-					var infillAmount = InfillAmount.Value(this);
-					var baseSize = BaseSize.Value(this);
-					var extrusionHeight = ExtrusionHeight.Value(this);
+					var infillAmount = InfillAmount;
+					var baseSize = BaseSize;
+					var extrusionHeight = ExtrusionHeight;
 					var joinType = InflatePathObject3D.GetJoinType(Style);
 					if (BaseType == BaseTypes.Outline
 						&& infillAmount > 0)
@@ -451,7 +447,7 @@ namespace MatterHackers.MatterControl.DesignTools
 		Matrix4X4 CalcTransform()
 		{
 			var aabb = this.GetAxisAlignedBoundingBox(this.WorldMatrix());
-			return this.WorldMatrix() * Matrix4X4.CreateTranslation(0, 0, CalculationHeight.Value(this) - aabb.MinXYZ.Z + ExtrusionHeight.Value(this));
+			return this.WorldMatrix() * Matrix4X4.CreateTranslation(0, 0, CalculationHeight - aabb.MinXYZ.Z + ExtrusionHeight);
 		}
 
 		public void DrawEditor(Object3DControlsLayer layer, DrawEventArgs e)

@@ -81,10 +81,10 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		// WIFI:S:<SSID>;T:<WEP|WPA|blank>;P:<PASSWORD>;H:<true|false|blank>;;
 		[Description("The name of the WiFi network")]
-        public StringOrExpression SSID { get; set; } = "";
+        public string SSID { get; set; } = "";
 
         [Description("The password of the WiFi network")]
-        public StringOrExpression Password { get; set; } = "";
+        public string Password { get; set; } = "";
 
         public enum SecurityTypes
 		{
@@ -96,7 +96,7 @@ namespace MatterHackers.MatterControl.DesignTools
 		[EnumDisplay(Mode = EnumDisplayAttribute.PresentationMode.Buttons)]
 		public SecurityTypes Security { get; set; } = SecurityTypes.WPA;
 
-        public StringOrExpression Text { get; set; } = "https://www.matterhackers.com";
+        public string Text { get; set; } = "https://www.matterhackers.com";
 
         [DisplayName("")]
 		[JsonIgnore]
@@ -176,11 +176,6 @@ namespace MatterHackers.MatterControl.DesignTools
 		public override async void OnInvalidate(InvalidateArgs invalidateArgs)
 		{
 			if ((invalidateArgs.InvalidateType.HasFlag(InvalidateType.Properties) && invalidateArgs.Source == this))
-			{
-				RebuildImage();
-				await Rebuild();
-			}
-			else if (Expressions.NeedRebuild(this, invalidateArgs))
 			{
 				RebuildImage();
 				await Rebuild();
@@ -274,11 +269,11 @@ namespace MatterHackers.MatterControl.DesignTools
 
 		private ImageBuffer BuildImage()
 		{
-			var text = Text.Value(this);
+			var text = Text;
 
 			if (OutputOption == QrCodeTypes.WiFi)
 			{
-				var ssid = SSID.Value(this).Replace(":", "\\:");
+				var ssid = SSID.Replace(":", "\\:");
 				var security = "";
 				switch(Security)
 				{
@@ -289,7 +284,7 @@ namespace MatterHackers.MatterControl.DesignTools
 						security = "WEP";
 						break;
 				}
-				var password = Password.Value(this).Replace(":", "\\:");
+				var password = Password.Replace(":", "\\:");
 
 				text = $"WIFI:S:{ssid};T:{security};P:{password};H:;;";
 			}
