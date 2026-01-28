@@ -252,7 +252,8 @@ namespace MatterHackers.MatterControl
 
 					if (!string.IsNullOrWhiteSpace(article.Path))
 					{
-						markdownWidget.LoadUri(new Uri(ApplicationController.Instance.HelpArticleSource, article.Path).ToString());
+						// Load Markdown content from local zip archive
+						markdownWidget.Markdown = HelpDocs.LoadArticleContent(article.Path);
 					}
 					else
 					{

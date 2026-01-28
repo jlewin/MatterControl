@@ -44,6 +44,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using global::MatterControl.Printing;
 using Markdig.Agg;
+using MatterControlLib;
 using MatterControlLib.Library.OpenInto;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Font;
@@ -1125,19 +1126,7 @@ namespace MatterHackers.MatterControl
 			this.EditorExtensions = new EditorExtensionsConfig(this.Library);
 			this.EditorExtensions.RegisterFactory((theme, undoBuffer) => new PropertyEditor(theme, undoBuffer));
 
-			HelpArticle helpArticle = null;
-
-			string helpPath = Path.Combine("OEMSettings", "toc.json");
-			if (StaticData.Instance.FileExists(helpPath))
-			{
-				try
-				{
-					helpArticle = JsonConvert.DeserializeObject<HelpArticle>(StaticData.Instance.ReadAllText(helpPath));
-				}
-				catch { }
-			}
-
-			this.HelpArticles = helpArticle ?? new HelpArticle();
+			this.HelpArticles = HelpDocs.LoadToc();
 
 			Object3D.AssetsPath = Path.Combine(ApplicationDataStorage.Instance.ApplicationLibraryDataPath, "Assets");
 

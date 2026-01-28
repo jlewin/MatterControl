@@ -29,6 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
@@ -40,7 +41,6 @@ using Lucene.Net.QueryParsers.Classic;
 using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Lucene.Net.Util;
-using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl;
@@ -115,7 +115,7 @@ namespace MatterControlLib
 
 				using (var docStream = tocEntry.Open())
 				{
-					var reader = new System.IO.StreamReader(docStream);
+					var reader = new StreamReader(docStream);
 					var tocText = reader.ReadToEnd();
 
 					var rootHelpArticle = JsonConvert.DeserializeObject<HelpArticle>(tocText);
@@ -146,7 +146,7 @@ namespace MatterControlLib
 					{
 						using (var docStream = entry.Open())
 						{
-							var reader = new System.IO.StreamReader(docStream);
+							var reader = new StreamReader(docStream);
 
 							string text = reader.ReadToEnd();
 
