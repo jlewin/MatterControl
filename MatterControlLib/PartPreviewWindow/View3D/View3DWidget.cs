@@ -185,6 +185,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			{
 				Name = "DesignTree",
 				Margin = new BorderDouble(left: theme.DefaultContainerPadding + 12),
+				ShowLines = false,
 			};
 			treeView.NodeMouseClick += (s, e) =>
 			{
