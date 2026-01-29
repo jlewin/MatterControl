@@ -243,8 +243,7 @@ namespace MatterHackers.MatterControl
 					return sceneItem.Parent != null
 						&& sceneItem.Parent.Parent == null
 						&& sceneItem is ComponentObject3D componentObject
-						&& componentObject.Finalized
-						&& !componentObject.ProOnly;
+						&& componentObject.Finalized;
 				},
 				Icon = (theme) => StaticData.Instance.LoadIcon("scale_32x32.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
 				HelpTextGetter = () => "A component must be selected".Localize().Stars(),

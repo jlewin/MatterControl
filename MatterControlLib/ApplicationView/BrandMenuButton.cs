@@ -62,7 +62,7 @@ namespace MatterHackers.MatterControl
 			};
 			this.AddChild(row);
 
-			row.AddChild(new ThemedIconButton(StaticData.Instance.LoadIcon("mh-app-logo.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			row.AddChild(new ThemedIconButton(StaticData.Instance.LoadIcon("hamburger.png", 16, 16).GrayToColor(theme.TextColor), theme)
 			{
 				VAnchor = VAnchor.Center,
 				Margin = theme.ButtonSpacing,
@@ -93,17 +93,6 @@ namespace MatterHackers.MatterControl
 
 			PopupMenu.MenuItem menuItem;
 
-			menuItem = popupMenu.CreateMenuItem("Open System File", StaticData.Instance.LoadIcon("fa-folder-open_16.png", 16, 16).GrayToColor(menuTheme.TextColor));
-			menuItem.Click += (s, e) => ApplicationController.OpenFileWithSystemDialog((fileNames) =>
-			{
-				if (fileNames != null && fileNames.Any())
-				{
-					ApplicationController.Instance.MainView.OpenFile(fileNames.FirstOrDefault());
-				}
-			});
-
-			popupMenu.CreateSeparator();
-	
 			menuItem = popupMenu.CreateMenuItem("Help".Localize(), StaticData.Instance.LoadIcon("help_page.png", 16, 16).GrayToColor(menuTheme.TextColor));
 			menuItem.Click += (s, e) => ApplicationController.Instance.ShowApplicationHelp("Docs");
 
@@ -116,55 +105,13 @@ namespace MatterHackers.MatterControl
 				});
 			};
 
-			popupMenu.CreateSeparator();
-
 			menuItem = popupMenu.CreateMenuItem("Settings".Localize(), StaticData.Instance.LoadIcon("fa-cog_16.png", 16, 16).GrayToColor(menuTheme.TextColor));
 			menuItem.Click += (s, e) => DialogWindow.Show<ApplicationSettingsPage>();
 			menuItem.Name = "Settings MenuItem";
 
 			popupMenu.CreateSeparator();
 
-			ImageBuffer indicatorIcon = null;
-
-			if (IntPtr.Size == 8)
-			{
-				indicatorIcon = StaticData.Instance.LoadIcon("x64.png", 16, 16).GrayToColor(menuTheme.TextColor);
-			}
-
-			popupMenu.CreateSubMenu("Community".Localize(), menuTheme, (modifyMenu) =>
-			{
-				menuItem = modifyMenu.CreateMenuItem("Forums".Localize(), linkIcon);
-				menuItem.Click += (s, e) => ApplicationController.LaunchBrowser("https://forums.matterhackers.com/category/20/mattercontrol");
-
-				menuItem = modifyMenu.CreateMenuItem("Guides and Articles".Localize(), linkIcon);
-				menuItem.Click += (s, e) => ApplicationController.LaunchBrowser("https://www.matterhackers.com/topic/mattercontrol");
-
-				menuItem = modifyMenu.CreateMenuItem("Support".Localize(), linkIcon);
-				menuItem.Click += (s, e) => ApplicationController.LaunchBrowser("https://www.matterhackers.com/mattercontrol/support");
-
-				menuItem = modifyMenu.CreateMenuItem("Release Notes".Localize(), linkIcon);
-				menuItem.Click += (s, e) => ApplicationController.LaunchBrowser("https://www.matterhackers.com/mattercontrol/support/release-notes");
-
-				modifyMenu.CreateSeparator();
-
-				menuItem = modifyMenu.CreateMenuItem("Report a Bug".Localize(), StaticData.Instance.LoadIcon("feedback.png", 16, 16).GrayToColor(menuTheme.TextColor));
-				menuItem.Click += (s, e) => ApplicationController.LaunchBrowser("https://github.com/MatterHackers/MatterControl/issues");
-			}, StaticData.Instance.LoadIcon("feedback.png", 16, 16).GrayToColor(menuTheme.TextColor));
-
-			popupMenu.CreateSeparator();
-
-			var imageBuffer = new ImageBuffer(18, 18);
-
-			// x64 indicator icon
-			if (IntPtr.Size == 8)
-			{
-				var graphics = imageBuffer.NewGraphics2D();
-				graphics.Clear(menuTheme.BackgroundColor);
-				graphics.Rectangle(imageBuffer.GetBoundingRect(), menuTheme.PrimaryAccentColor);
-				graphics.DrawString("64", imageBuffer.Width / 2, imageBuffer.Height / 2, 8, Agg.Font.Justification.Center, Agg.Font.Baseline.BoundsCenter, color: menuTheme.PrimaryAccentColor);
-			}
-
-			menuItem = popupMenu.CreateMenuItem("About".Localize() + " " + ApplicationController.Instance.ProductName, imageBuffer);
+			menuItem = popupMenu.CreateMenuItem("About".Localize() + " " + ApplicationController.Instance.ProductName);
 			menuItem.Click += (s, e) => ApplicationController.Instance.ShowAboutPage();
 			return popupMenu;
 		}

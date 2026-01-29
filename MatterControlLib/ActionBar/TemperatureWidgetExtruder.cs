@@ -380,22 +380,6 @@ namespace MatterHackers.MatterControl.ActionBar
 				container.AddChild(materialSettingsRow);
 				// material can be changed even when the printer is not connected
 				alwaysEnabled.Add(materialSettingsRow);
-				// add in a shop button
-				var shopButton = new ThemedTextIconButton("Shop".Localize(), StaticData.Instance.LoadIcon("cart.png", 16, 16).GrayToColor(menuTheme.TextColor), theme)
-				{
-					BackgroundColor = theme.SlightShade,
-					HoverColor = theme.SlightShade.WithAlpha(75),
-					Margin = new BorderDouble(3, 3, 6, 3),
-                    ToolTipText = "Shop Filament at MatterHackers".Localize()
-                };
-                shopButton.Click += (s, e) =>
-				{
-					UiThread.RunOnIdle(() =>
-					{
-						ApplicationController.LaunchBrowser("https://www.matterhackers.com/store/c/3d-printer-filament");
-					});
-				};
-				materialSettingsRow.AddChild(shopButton);
 
 				presetsSelector.PerformLayout();
 			}

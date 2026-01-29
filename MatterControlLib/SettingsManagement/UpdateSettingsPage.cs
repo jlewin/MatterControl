@@ -27,6 +27,7 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
+using System.Collections.Generic;
 using System.Linq;
 using MatterHackers.Agg;
 using MatterHackers.Agg.UI;
@@ -77,11 +78,6 @@ namespace MatterHackers.MatterControl
 
 			settingsAreaScrollBox.AddChild(settingsColumn);
 
-			if (ProfileManager.GetOemSettingsNeedingUpdate(printer).Any())
-			{
-				AddUpgradeInfoPanel(settingsColumn);
-			}
-			else
 			{
 				settingsColumn.AddChild(new WrappedTextWidget("No setting currently need to be updated.".Localize(), pointSize: 11)
 				{
@@ -129,7 +125,8 @@ namespace MatterHackers.MatterControl
 
 			var oemPrinter = new PrinterConfig(serverOemSettings);
 
-			foreach (var setting in ProfileManager.GetOemSettingsNeedingUpdate(printer))
+			var settingsNeedingUpdating = Enumerable.Empty<(string key, string currentValue, string newValue)>();
+			foreach (var setting in settingsNeedingUpdating)
 			{
 				void AddSetting(PrinterConfig printer, string description, string key, Color overlay)
 				{

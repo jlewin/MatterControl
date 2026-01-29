@@ -119,10 +119,6 @@ namespace MatterHackers.MatterControl.Library
                     "Dual Contouring".Localize(),
                     async () => await DualContouringObject3D.Create())
                     { DateCreated = new DateTime(index++) },
-                new GeneratorItem(
-                    "QR Code".Localize(),
-                    async () => await QrCodeObject3D.Create())
-                    { DateCreated = new DateTime(index++) },
 #endif
 				new GeneratorItem(
                     "Image Converter".Localize(),
@@ -131,7 +127,7 @@ namespace MatterHackers.MatterControl.Library
 						// Construct an image
 						var imageObject = new ImageObject3D()
                         {
-                            AssetPath = StaticData.Instance.ToAssetPath(Path.Combine("Images", "mh-logo.png"))
+                            AssetPath = StaticData.Instance.ToAssetPath(Path.Combine("Images", "flower.png"))
                         };
 
 						// Construct a scene

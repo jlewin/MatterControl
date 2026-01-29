@@ -38,7 +38,6 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 			Default,
 			SkipWifiSetup,
 			ShowMakeModel,
-			ShowPulseModels
 		}
 
 		public static DialogPage GetBestStartPage(StartPageOptions options = StartPageOptions.Default)
@@ -52,7 +51,7 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 			}
 			else
 			{
-				return new SetupStepMakeModelName(options == StartPageOptions.ShowPulseModels);
+				return new SetupStepMakeModelName();
 			}
 		}
 	}

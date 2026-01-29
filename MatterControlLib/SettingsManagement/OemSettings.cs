@@ -31,13 +31,11 @@ using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
 using MatterHackers.Agg.VertexSource;
-using MatterHackers.MatterControl.SlicerConfiguration;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 namespace MatterHackers.MatterControl.SettingsManagement
 {
@@ -72,9 +70,6 @@ namespace MatterHackers.MatterControl.SettingsManagement
         public bool DesignToolsOnly = false;
 
         public bool CheckForUpdatesOnFirstRun = false;
-
-        public string UnregisteredProductName { get; set; } = "MatterControl";
-        public string RegisteredProductName { get; set; } = "MatterControl Pro";
 
         public List<string> PrinterWhiteList { get; private set; } = new List<string>();
 
@@ -174,8 +169,6 @@ namespace MatterHackers.MatterControl.SettingsManagement
 
         public Dictionary<string, string> OemUrls { get; }
 
-        public Dictionary<string, StorePrinterID> OemPrinters { get; }
-
         [OnDeserialized]
         private void Deserialized(StreamingContext context)
         {
@@ -203,7 +196,8 @@ namespace MatterHackers.MatterControl.SettingsManagement
 
             try
             {
-                return JsonConvert.DeserializeObject<OemProfileDictionary>(json);
+                var profiles = JsonConvert.DeserializeObject<OemProfileDictionary>(json);
+                return profiles;
             }
             catch
             {
@@ -215,73 +209,11 @@ namespace MatterHackers.MatterControl.SettingsManagement
             }
         }
 
-        public async Task ReloadOemProfiles()
-        {
-            // In public builds this won't be assigned to and we should exit
-            if (ApplicationController.GetPublicProfileList == null)
-            {
-                return;
-            }
-
-            await ApplicationController.LoadCacheableAsync<OemProfileDictionary>(
-                "oemprofiles.json",
-                "public-profiles",
-                async () =>
-                {
-                    var result = await ApplicationController.GetPublicProfileList();
-                    if (result != null)
-                    {
-                        // Refresh the in memory instance any time the server responds with updated content - caller will serialize
-                        OemProfiles = result;
-
-                        SetManufacturers(result.Keys.ToDictionary(oem => oem));
-                    }
-
-                    return result;
-                });
-
-            await DownloadMissingProfiles();
-        }
-
-        private async Task DownloadMissingProfiles()
-        {
-            int index = 0;
-            foreach (string oem in OemProfiles.Keys)
-            {
-                string cacheScope = Path.Combine("public-profiles", oem);
-
-                index++;
-                foreach (var model in OemProfiles[oem].Keys)
-                {
-                    var publicDevice = OemProfiles[oem][model];
-                    string cachePath = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey);
-                    if (!File.Exists(cachePath))
-                    {
-                        await Task.Delay(20000);
-                        await ProfileManager.LoadOemSettingsAsync(publicDevice, oem, model);
-
-                        if (ApplicationController.Instance.ApplicationExiting)
-                        {
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
         private OemSettings()
         {
             this.ManufacturerNameMappings = new List<ManufacturerNameMapping>();
             this.OemUrls = JsonConvert.DeserializeObject<Dictionary<string, string>>(StaticData.Instance.ReadAllText(Path.Combine("OEMSettings", "OEMUrls.json")));
-            this.OemPrinters = JsonConvert.DeserializeObject<Dictionary<string, StorePrinterID>>(StaticData.Instance.ReadAllText(Path.Combine("OEMSettings", "Printers.json")));
         }
-    }
-
-    public class StorePrinterID
-    {
-        public string SID { get; set; }
-
-        public string AltInfoUrl { get; set; }
     }
 
     public class ManufacturerNameMapping

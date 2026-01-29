@@ -98,21 +98,6 @@ namespace MatterHackers.MatterControl
 					HAnchor = HAnchor.Center
 				});
 
-			productInfo.AddChild(
-				new TextWidget("Developed By".Localize() + ": " + "MatterHackers", textColor: theme.TextColor, pointSize: theme.DefaultFontSize)
-				{
-					HAnchor = HAnchor.Center
-				});
-
-			contentRow.AddChild(
-				new WrappedTextWidget(
-					"{0} is made possible by the team at MatterHackers and other open source software".Localize().FormatWith(ApplicationController.Instance.ProductName) + ":",
-					pointSize: theme.DefaultFontSize,
-					textColor: theme.TextColor)
-				{
-					Margin = new BorderDouble(0, 15)
-				});
-
 			var licensePanel = new FlowLayoutWidget(FlowDirection.TopToBottom)
 			{
 				HAnchor = HAnchor.Stretch,
@@ -157,23 +142,6 @@ namespace MatterHackers.MatterControl
 			scrollable.ScrollArea.HAnchor = HAnchor.Stretch;
 			scrollable.AddChild(licensePanel);
 			contentRow.AddChild( scrollable);
-
-			contentRow.AddChild(
-				new TextWidget("Copyright © 2019 MatterHackers, Inc.", textColor: theme.TextColor, pointSize: theme.DefaultFontSize)
-				{
-					HAnchor = HAnchor.Center,
-				});
-
-			var siteLink = new LinkLabel("www.matterhackers.com", theme)
-			{
-				HAnchor = HAnchor.Center,
-				TextColor = theme.TextColor
-			};
-			siteLink.Click += (s, e) => UiThread.RunOnIdle(() =>
-			{
-				ApplicationController.LaunchBrowser("http://www.matterhackers.com");
-			});
-			contentRow.AddChild(siteLink);
 		}
 
 		private class LazyLicenseText : GuiWidget

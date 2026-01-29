@@ -50,7 +50,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 		private Action<bool> nextButtonEnabled;
 		private FlowLayoutWidget printerInfo;
 
-		public AddPrinterWidget(GuiWidget nextButton, ThemeConfig theme, Action<bool> nextButtonEnabled, bool filterToPulse)
+		public AddPrinterWidget(GuiWidget nextButton, ThemeConfig theme, Action<bool> nextButtonEnabled)
 			: base(theme)
 		{
 			this.nextButtonEnabled = nextButtonEnabled;
@@ -70,18 +70,12 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				{
 					nextButton.InvokeClick();
 				}
-			};			
-
+			};
 
 			UiThread.RunOnIdle(() =>
 			{
 				foreach (var oem in OemSettings.Instance.OemProfiles.OrderBy(o => o.Key))
 				{
-					if (filterToPulse && !oem.Key.Contains("Pulse"))
-                    {
-						continue;
-                    }
-
 					var rootNode = this.CreateTreeNode(oem);
 					rootNode.Expandable = true;
 					rootNode.TreeView = TreeView;
@@ -91,11 +85,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 
 						SetImage(rootNode, image);
 					};
-
-					if (filterToPulse)
-					{
-						rootNode.Expanded = true;
-					}
 
 					contentPanel.AddChild(rootNode);
 				}
@@ -240,31 +229,17 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			this.PrinterNameError.Visible = true;
 		}
 
-		private TreeNode CreateTreeNode(KeyValuePair<string, Dictionary<string, PublicDevice>> make)
+		private TreeNode CreateTreeNode(KeyValuePair<string, Dictionary<string, OemPrinter>> make)
 		{
 			var treeNode = new TreeNode(theme)
 			{
 				Text = make.Key,
 			};
 
-
-			string currentGroup = "";
-
 			var context = treeNode;
 
 			foreach (var printer in make.Value.OrderBy(p => p.Key))
 			{
-				if (make.Key == "Pulse"
-					&& currentGroup != printer.Key[0] + " Series")
-				{
-					currentGroup = printer.Key[0] + " Series";
-
-					treeNode.Nodes.Add(context = new TreeNode(theme, nodeParent: treeNode)
-					{
-						Text = currentGroup,
-					});
-				}
-
 				context.Nodes.Add(new TreeNode(theme, nodeParent: treeNode)
 				{
 					Text = printer.Key,
@@ -302,27 +277,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 						this.SelectedPrinter = TreeView.SelectedNode.Tag as MakeModelInfo;
 
 						printerInfo.CloseChildren();
-
-						if (this.SelectedPrinter != null
-							&& OemSettings.Instance.OemPrinters.TryGetValue($"{SelectedPrinter.Make}-{ SelectedPrinter.Model}", out StorePrinterID storePrinterID))
-						{
-							printerInfo.AddChild(
-								new PrinterDetails(
-									new PrinterInfo()
-									{
-										Make = SelectedPrinter.Make,
-										Model = SelectedPrinter.Model,
-									},
-									theme,
-									false)
-								{
-									ShowProducts = false,
-									ShowHeadingRow = false,
-									StoreID = storePrinterID?.SID,
-									HAnchor = HAnchor.Stretch,
-									VAnchor = VAnchor.Stretch
-								});
-						}
 
 						nextButtonEnabled(TreeView.SelectedNode != null
 							&& !string.IsNullOrWhiteSpace(printerNameInput.Text));

@@ -265,7 +265,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			}
 
 			var addString = layerType == NamedSettingsLayers.Material ? "New Material".Localize() : "New Quality Setting".Localize();
-			
+
 			MenuItem addNewPreset = dropDownList.AddItem(
 				StaticData.Instance.LoadIcon("icon_plus.png", 16, 16).GrayToColor(theme.TextColor),
 				addString + "...",
@@ -287,7 +287,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 				if (layerType == NamedSettingsLayers.Material)
 				{
 					var window = DialogWindow.Show(new AddMaterialDialog((newMaterial) =>
-                    {
+					{
 						printer.Settings.MaterialLayers.Add(newMaterial);
 						printer.Settings.ActiveMaterialKey = newMaterial.LayerID;
 
@@ -308,9 +308,9 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 					window.Closed += (s2, e2) =>
 					{
 						if (dropDownList.SelectedIndex >= dropDownList.MenuItems.Count - 1)
-                        {
+						{
 							dropDownList.SelectedIndex = selectedIndex < dropDownList.MenuItems.Count - 1 ? selectedIndex : 0;
-                        }
+						}
 					};
 				}
 				else

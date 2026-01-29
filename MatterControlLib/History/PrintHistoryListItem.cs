@@ -269,10 +269,6 @@ namespace MatterHackers.MatterControl.PrintHistory
 
 				popupMenu.CreateSeparator();
 
-				AddExportMenu(popupMenu, printTasks);
-
-				popupMenu.CreateSeparator();
-
 				AddClearHistorMenu(popupMenu, printTasks);
 
 				popupMenu.ShowMenu(this, mouseEvent);
@@ -302,38 +298,6 @@ namespace MatterHackers.MatterControl.PrintHistory
 				"Clear History".Localize());
 			};
 		}
-
-		private void AddExportMenu(PopupMenu popupMenu, IEnumerable<PrintTask> printTasks)
-		{
-			var exportPrintHistory = popupMenu.CreateMenuItem("Export History".Localize() + "...");
-			exportPrintHistory.Enabled = printTasks.Any();
-			exportPrintHistory.Click += (s, e) =>
-			{
-				if (ApplicationController.Instance.IsMatterControlPro())
-				{
-					ExportToCsv(printTasks);
-				}
-				else // upsell MatterControl Pro
-				{
-					string text = "Exporting print history is a {0} feature. Upgrade to Pro to unlock MatterControl Pro.".Localize().FormatWith(OemSettings.Instance.RegisteredProductName);
-					WebCache.RetrieveText(
-						"https://matterhackers.github.io/MatterControl-Docs/ProContent/Unlock_Export_Print_History.md",
-						(markDown) =>
-						{
-							// push the new text into the widget
-							text = markDown;
-						});
-
-					StyledMessageBox.ShowMessageBox(text,
-						"Upgrade to Pro".Localize(),
-						StyledMessageBox.MessageType.OK,
-						useMarkdown: true,
-						width: 540,
-						height: 400);
-				}
-			};
-		}
-
 		public class RowData
 		{
 			public string Printer { get; set; }

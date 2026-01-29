@@ -43,9 +43,8 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 		private readonly AddPrinterWidget printerPanel;
 
 		private readonly RadioButton createPrinterRadioButton = null;
-		private readonly RadioButton signInRadioButton;
 
-		public SetupStepMakeModelName(bool filterToPulse)
+		public SetupStepMakeModelName()
 		{
 			bool userIsLoggedIn = !ApplicationController.GuestUserActive?.Invoke() ?? false;
 
@@ -58,7 +57,7 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 			printerPanel = new AddPrinterWidget(nextButton, theme, (enabled) =>
 			{
 				nextButton.Enabled = enabled;
-			}, filterToPulse)
+			})
 			{
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Stretch
@@ -75,16 +74,6 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 				printerPanel.Margin = new BorderDouble(left: 15, top: theme.DefaultContainerPadding);
 
 				var commonMargin = new BorderDouble(4, 2);
-
-				// Create export button for each plugin
-				signInRadioButton = new RadioButton(new RadioButtonViewText("Sign in to access your existing printers".Localize(), theme.TextColor))
-				{
-					HAnchor = HAnchor.Left,
-					Margin = commonMargin.Clone(bottom: 10),
-					Cursor = Cursors.Hand,
-					Name = "Sign In Radio Button",
-				};
-				contentRow.AddChild(signInRadioButton);
 
 				createPrinterRadioButton = new RadioButton(new RadioButtonViewText("Create a new printer", theme.TextColor))
 				{
@@ -108,17 +97,6 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 			nextButton.Name = "Next Button";
 			nextButton.Click += (s, e) => UiThread.RunOnIdle(async () =>
 			{
-				if (signInRadioButton?.Checked == true)
-				{
-					var authContext = new AuthenticationContext();
-					authContext.SignInComplete += (s2, e2) =>
-					{
-						this.DialogWindow.ChangeToPage(new OpenPrinterPage("Finish".Localize()));
-					};
-
-					this.DialogWindow.ChangeToPage(ApplicationController.GetAuthPage(authContext));
-				}
-				else
 				{
 					bool controlsValid = printerPanel.ValidateControls();
 					if (controlsValid
@@ -165,8 +143,7 @@ namespace MatterHackers.MatterControl.PrinterControls.PrinterConnections
 
 		private void SetElementVisibility()
 		{
-			nextButton.Enabled = signInRadioButton?.Checked == true
-				|| printerPanel.SelectedPrinter != null;
+			nextButton.Enabled = printerPanel.SelectedPrinter != null;
 		}
 	}
 

@@ -29,21 +29,21 @@ either expressed or implied, of the FreeBSD Project.
 
 using System.Collections.Generic;
 using MatterHackers.MatterControl.SlicerConfiguration;
+using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl
 {
-	public class OemProfileDictionary : Dictionary<string, Dictionary<string, PublicDevice>>
+	public class OemProfileDictionary : Dictionary<string, Dictionary<string, OemPrinter>>
 	{
 	}
 
-	public class PublicDevice
+	public class OemPrinter
 	{
-		public string DeviceToken { get; set; }
+		public string Name { get; set; }
 
-		public string ProfileToken { get; set; }
+		public string Manufacturer { get; set; }
 
-		public string ShortProfileID { get; set; }
-
-		public string CacheKey => this.ShortProfileID + ProfileManager.ProfileExtension;
+		[JsonIgnore]
+		public string CacheKey => $"{Manufacturer}-{Name}{ProfileManager.ProfileExtension}";
 	}
 }

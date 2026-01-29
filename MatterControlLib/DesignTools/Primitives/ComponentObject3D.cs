@@ -63,9 +63,6 @@ namespace MatterHackers.MatterControl.DesignTools
         [HideFromEditor]
         public string ComponentID { get; set; } = "";
 
-        [Description("MatterHackers Internal Use")]
-        public bool ProOnly { get; set; }
-
         public override void Apply(UndoBuffer undoBuffer)
         {
             // we want to end up with just a group of all the visible mesh objects
@@ -145,34 +142,26 @@ namespace MatterHackers.MatterControl.DesignTools
             }
             else
             {
-                if (ProOnly)
-                {
-                    // just delete it
-                    var parent = this.Parent;
+                // just delete it
+                var parent = this.Parent;
 
-                    using (RebuildLock())
+                using (RebuildLock())
+                {
+                    if (undoBuffer != null)
                     {
-                        if (undoBuffer != null)
-                        {
-                            // and replace us with nothing
-                            undoBuffer.AddAndDo(new ReplaceCommand(new[] { this }, new List<IObject3D>(), false));
-                        }
-                        else
-                        {
-                            parent.Children.Modify(list =>
-                            {
-                                list.Remove(this);
-                            });
-                        }
+                        // and replace us with nothing
+                        undoBuffer.AddAndDo(new ReplaceCommand(new[] { this }, new List<IObject3D>(), false));
                     }
+                    else
+                    {
+                        parent.Children.Modify(list =>
+                        {
+                            list.Remove(this);
+                        });
+                    }
+                }
 
-                    parent.Invalidate(new InvalidateArgs(this, InvalidateType.Children));
-                }
-                else
-                {
-                    // remove the component and leave the inside parts
-                    base.Cancel(undoBuffer);
-                }
+                parent.Invalidate(new InvalidateArgs(this, InvalidateType.Children));
             }
         }
     }

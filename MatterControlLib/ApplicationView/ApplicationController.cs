@@ -112,7 +112,7 @@ namespace MatterHackers.MatterControl
 			{"Titan", null},
 			{"Titillium", null}
 		};
-        
+
 		public event EventHandler<string> ApplicationError;
 
 		public event EventHandler<string> ApplicationEvent;
@@ -386,7 +386,7 @@ namespace MatterHackers.MatterControl
 						{
 							NullValueHandling = NullValueHandling.Ignore
 						});
-				
+
 				// Persist workspace definition to disk
 				File.WriteAllText(ProfileManager.Instance.OpenTabsPath, content);
 			}
@@ -489,7 +489,7 @@ namespace MatterHackers.MatterControl
 						NamedSettingsLayers.All);
 
 				var sideBar = printerTabPage.Descendants<DockingTabControl>().FirstOrDefault();
-				
+
 				if (printer.ViewState.ConfigurePrinterVisible)
 				{
 					sideBar.ReplacePage(
@@ -572,32 +572,6 @@ namespace MatterHackers.MatterControl
 		{
 			UiThread.RunOnIdle(() =>
 			{
-                var affiliateCode = OemSettings.Instance.AffiliateCode;
-
-                if (!string.IsNullOrEmpty(affiliateCode)
-					&& targetUri.Contains("matterhackers.com"))
-				{
-					string internalLink = "";
-					// if we have a trailing internal link
-					if (targetUri.Contains("#"))
-					{
-						internalLink = targetUri.Substring(targetUri.IndexOf("#"));
-						targetUri = targetUri.Substring(0, targetUri.Length - internalLink.Length);
-					}
-
-					// if the affiliateCode is only numbers, we assume it is a tracking code
-					if (affiliateCode.All(char.IsDigit))
-					{
-                        targetUri = Util.AddQueryPram(targetUri, "aff", affiliateCode);
-					}
-                    else // it is an RCODE
-					{
-                        targetUri = Util.AddQueryPram(targetUri, "rcode", affiliateCode);
-                    }
-
-					targetUri += internalLink;
-				}
-
 				ProcessStart(targetUri);
 			});
 		}
@@ -636,51 +610,15 @@ namespace MatterHackers.MatterControl
 			}
 		}
 
-		internal void MakeGrayscale(ImageBuffer sourceImage)
-		{
-			var buffer = sourceImage.GetBuffer();
-			int destIndex = 0;
-			for (int y = 0; y < sourceImage.Height; y++)
-			{
-				for (int x = 0; x < sourceImage.Width; x++)
-				{
-					int b = buffer[destIndex + 0];
-					int g = buffer[destIndex + 1];
-					int r = buffer[destIndex + 2];
-
-					int c = (r * 77) + (g * 151) + (b * 28);
-					byte gray = (byte)(c >> 8);
-
-					buffer[destIndex + 0] = gray;
-					buffer[destIndex + 1] = gray;
-					buffer[destIndex + 2] = gray;
-
-					destIndex += 4;
-				}
-			}
-		}
 
 		// Plugin Registration Points
 
 		// Returns the user printer profile from the webservices plugin
 		public static Func<PrinterInfo, string, Task<PrinterSettings>> GetPrinterProfileAsync;
 
-		// Executes the user printer profile sync logic in the webservices plugin
-		public static Func<string, Action<double, string>, Task> SyncCloudProfiles;
-
-		public static Action<string> QueueCloudProfileSync;
-
-		// Returns all public printer profiles from the webservices plugin
-		public static Func<Task<OemProfileDictionary>> GetPublicProfileList;
-
-		// Returns the public printer profile from the webservices plugin
-		public static Func<string, Task<PrinterSettings>> DownloadPublicProfileAsync;
-
 		// Indicates if guest, rather than an authenticated user, is active
 		public static Func<bool> GuestUserActive { get; set; }
 
-		// Returns the authentication dialog from the authentication plugin
-		public static Func<AuthenticationContext, DialogPage> GetAuthPage;
 
 		public SlicePresetsPage AcitveSlicePresetsPage { get; set; }
 
@@ -762,7 +700,7 @@ namespace MatterHackers.MatterControl
 						if (Clipboard.Instance.ContainsText
 							&& Clipboard.Instance.GetText() == "!--IObjectSelection--!"
 							// there is a selected item to paste into
-							&& selectedItem != null 
+							&& selectedItem != null
 							// the selected item is not a primitve
 							&& !(selectedItem is PrimitiveObject3D)
 							&& clipboardItem != null)
@@ -885,7 +823,7 @@ namespace MatterHackers.MatterControl
 		public async Task OpenIntoNewTab(IEnumerable<ILibraryItem> selectedLibraryItems)
 		{
 			await this.MainView.CreateNewDesignTab(false);
-			
+
 			var workspace = this.Workspaces.Last();
 			var insertionGroup = workspace.SceneContext.AddToPlate(selectedLibraryItems);
 
@@ -1013,7 +951,7 @@ namespace MatterHackers.MatterControl
 				{
 					IsReadOnly = true
 				});
-		
+
 			if (File.Exists(ApplicationDataStorage.Instance.CustomLibraryFoldersPath))
 			{
 				// Add each path defined in the CustomLibraryFolders file as a new FileSystemContainerItem
@@ -1103,12 +1041,12 @@ namespace MatterHackers.MatterControl
 		{
 			Workspaces = new ObservableCollection<PartWorkspace>();
 
-            // get markdown working correctly
+			// get markdown working correctly
 			MarkdownWidget.LaunchBrowser = ApplicationController.LaunchBrowser;
 			MarkdownWidget.RetrieveText = WebCache.RetrieveText;
-            MarkdownWidget.RetrieveImageSquenceAsync = WebCache.RetrieveImageSquenceAsync;
+			MarkdownWidget.RetrieveImageSquenceAsync = WebCache.RetrieveImageSquenceAsync;
 
-            Workspaces.CollectionChanged += (s, e) =>
+			Workspaces.CollectionChanged += (s, e) =>
 			{
 				if (!restoringWorkspaces)
 				{
@@ -1354,7 +1292,7 @@ namespace MatterHackers.MatterControl
 					TypeFaceCache.Add(namedTypeFace, null);
 				}
 				else if (TypeFaceCache[namedTypeFace] == null)
-				{ 
+				{
 					// try and load it from the cache
 					var typeFace = new TypeFace();
 					var path = Path.Combine("Fonts", $"{namedTypeFace}.ttf");
@@ -1640,28 +1578,7 @@ namespace MatterHackers.MatterControl
 
 		public event EventHandler UiHintChanged;
 
-		public string ProductName
-		{
-			get
-			{
-				if (this.IsMatterControlPro())
-				{
-					return OemSettings.Instance.RegisteredProductName;
-				}
-
-				return OemSettings.Instance.UnregisteredProductName;
-            }
-		}
-
-		public void SwitchToPurchasedLibrary()
-		{
-			var purchasedContainer = Library.RootLibaryContainer.ChildContainers.Where(c => c.ID == "LibraryProviderPurchasedKey").FirstOrDefault();
-			if (purchasedContainer != null)
-			{
-				// TODO: Navigate to purchased container
-				throw new NotImplementedException("SwitchToPurchasedLibrary");
-			}
-		}
+		public string ProductName => "ArcticNC";
 
 		public void OnLoadActions()
 		{
@@ -1842,6 +1759,9 @@ namespace MatterHackers.MatterControl
 
 					var loadedPrinters = new HashSet<string>();
 
+					// TODO: Revert back to old loading behavior prior to changes after
+					// commit/569e316f383dae1efb3c
+
 					await Tasks.Execute(
 						"Restoring".Localize() + "...",
 						null,
@@ -1911,17 +1831,6 @@ namespace MatterHackers.MatterControl
 				{
 					// Suppress deserialization issues with opentabs.json and continue with an empty Workspaces lists
 				}
-			}
-
-			// If the use does not have a workspace open and has not setup any hardware, show the startup screen
-			if (this.Workspaces.Count == 0
-				&& !ProfileManager.Instance.ActiveProfiles.Any()
-				&& SystemWindow.AllOpenSystemWindows.Count() < 2)
-			{
-				UiThread.RunOnIdle(() =>
-				{
-					DialogWindow.Show<StartupPage>();
-				});
 			}
 
 			restoringWorkspaces = false;

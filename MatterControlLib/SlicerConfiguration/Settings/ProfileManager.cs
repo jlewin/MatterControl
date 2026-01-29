@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker, John Lewin
+Copyright (c) 2026, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -117,95 +118,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			return userProfilesDirectory;
 		}
 
-		private static Dictionary<string,  List<(string key, string currentValue, string newValue)>> oemSettingsNeedingUpdateCache
-			= new Dictionary<string, List<(string key, string currentValue, string newValue)>>();
-
-		public static IEnumerable<(string key, string currentValue, string newValue)> GetOemSettingsNeedingUpdate(PrinterConfig printer)
-		{
-			var key = printer.Settings.ID;
-			Task.Run(async () =>
-			{
-				ProfileManager.oemSettingsNeedingUpdateCache[key] = await GetChangedOemSettings(printer);
-			});
-
-			if (oemSettingsNeedingUpdateCache.TryGetValue(key, out List<(string key, string currentValue, string newValue)> cache))
-			{
-				foreach (var item in cache)
-				{
-					if (PrinterSettings.SettingsData.ContainsKey(item.key))
-					{
-						yield return (item.key, item.currentValue, item.newValue);
-					}
-				}
-			}
-		}
-
-		public static async Task<List<(string key, string currentValue, string newValue)>> GetChangedOemSettings(PrinterConfig printer)
-		{
-			var oemSettingsNeedingUpdateCache = new List<(string key, string currentValue, string newValue)>();
-
-			var make = printer.Settings.GetValue(SettingsKey.make);
-			var model = printer.Settings.GetValue(SettingsKey.model);
-			var serverOemSettings = await ProfileManager.LoadOemSettingsAsync(OemSettings.Instance.OemProfiles[make][model],
-				make,
-				model);
-
-			var ignoreSettings = new HashSet<string>()
-			{
-				SettingsKey.created_date,
-				SettingsKey.active_material_key,
-				SettingsKey.active_quality_key,
-				SettingsKey.oem_profile_token,
-				SettingsKey.extruder_offset,
-			};
-
-			var serverValuesToIgnore = new Dictionary<string, string>()
-			{
-				[SettingsKey.probe_offset] = "0,0,0"
-			};
-
-			foreach (var localOemSetting in printer.Settings.OemLayer)
-			{
-				var key = localOemSetting.Key;
-				if (!ignoreSettings.Contains(key)
-					&& !PrinterSettingsExtensions.SettingsToReset.ContainsKey(key)
-					&& serverOemSettings.GetValue(key) != localOemSetting.Value)
-				{
-					var serverSetting = serverOemSettings.GetValue(localOemSetting.Key);
-					if (!serverValuesToIgnore.ContainsKey(key)
-						|| serverSetting != serverValuesToIgnore[key])
-					{
-						oemSettingsNeedingUpdateCache.Add((localOemSetting.Key, localOemSetting.Value, serverSetting));
-					}
-				}
-			}
-
-			oemSettingsNeedingUpdateCache.Sort((a, b) =>
-			{
-				var aInfo = "Unknown";
-				if (PrinterSettings.SettingsData.ContainsKey(a.key))
-				{
-					var aData = PrinterSettings.SettingsData[a.key];
-					var aGroup = aData.OrganizerGroup;
-					var aCategory = aGroup?.Category;
-					aInfo = $"{aCategory?.Name}:{aGroup?.Name}:{aData.PresentationName}";
-				}
-
-				var bInfo = "Unknown";
-				if (PrinterSettings.SettingsData.ContainsKey(b.key))
-				{
-					var bData = PrinterSettings.SettingsData[b.key];
-					var bGroup = bData.OrganizerGroup;
-					var bCategory = bGroup?.Category;
-					bInfo = $"{bCategory?.Name}:{bGroup?.Name}:{bData.PresentationName}";
-				}
-
-				return string.Compare(aInfo, bInfo);
-			});
-
-			return oemSettingsNeedingUpdateCache;
-		}
-
 		public void DeletePrinter(string printerID)
 		{
 			var printerInfo = ProfileManager.Instance[printerID];
@@ -234,9 +146,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 
 				// Notify listeners of a ProfileListChange event due to this printers removal
 				ProfileManager.ProfilesListChanged.CallEvents(this, null);
-
-				// Queue sync after marking printer for delete
-				ApplicationController.QueueCloudProfileSync?.Invoke("SettingsHelpers.SetMarkedForDelete()");
 			});
 		}
 
@@ -853,7 +762,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			return await ApplicationController.Instance.OpenEmptyPrinter(guid, true);
 		}
 
-		public static async Task<PrinterSettings> LoadOemSettingsAsync(PublicDevice publicDevice, string make, string model)
+		public static async Task<PrinterSettings> LoadOemSettingsAsync(OemPrinter publicDevice, string make, string model)
 		{
 			string cacheScope = Path.Combine("public-profiles", make);
 			string cachePath = ApplicationController.CacheablePath(cacheScope, publicDevice.CacheKey);
@@ -861,23 +770,7 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			return await ApplicationController.LoadCacheableAsync<PrinterSettings>(
 				publicDevice.CacheKey,
 				cacheScope,
-				async () =>
-				{
-					// The collector specifically returns null to ensure LoadCacheable skips writing the
-					// result to the cache. After this result is returned, it will attempt to load from
-					// the local cache if the collector yielded no result
-					if (File.Exists(cachePath)
-						|| ApplicationController.DownloadPublicProfileAsync == null)
-					{
-						return null;
-					}
-					else
-					{
-						// If the cache file for the current deviceToken does not exist, attempt to download it.
-						// An http 304 results in a null value and LoadCacheable will then load from the cache
-						return await ApplicationController.DownloadPublicProfileAsync(publicDevice.ProfileToken);
-					}
-				},
+				() => null, // TODO: If at some point loading profiles from the web is desired, implement this
 				Path.Combine("Profiles", make, model + ProfileManager.ProfileExtension));
 		}
 
@@ -887,9 +780,6 @@ namespace MatterHackers.MatterControl.SlicerConfiguration
 			Instance.Save();
 
 			ProfilesListChanged.CallEvents(null, null);
-
-			// Queue sync after any collection change event
-			ApplicationController.QueueCloudProfileSync?.Invoke("ProfileManager.Profiles_CollectionChanged()");
 		}
 
 		private void Printer_SettingsChanged(object sender, StringEventArgs e)

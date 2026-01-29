@@ -18,9 +18,5 @@
   {
     "Name": "OpenTK",
     "Url": "https://github.com/opentk/opentk"
-  },
-  {
-    "Name": "GLFW",
-    "Url": "https://www.glfw.org/"
   }
 ]

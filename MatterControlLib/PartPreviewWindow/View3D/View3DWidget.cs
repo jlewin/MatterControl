@@ -270,7 +270,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			historyAndProperties.Panel2.AddChild(selectedObjectPanel);
 			splitContainer.AddChild(modelViewSidePanel);
-	
+
 			Object3DControlLayer.AddChild(
 				new SceneViewControls(
 					this,
@@ -568,7 +568,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			else if (ProfileManager.Instance.ActiveProfiles.Count() <= 0)
 			{
 				// If no printer profiles exist, show the printer setup wizard
-				var window = DialogWindow.Show(new SetupStepMakeModelName(false));
+				var window = DialogWindow.Show(new SetupStepMakeModelName());
 				window.Closed += (s2, e2) =>
 				{
 					if (ApplicationController.Instance.ActivePrinters.FirstOrDefault() is PrinterConfig printer
@@ -833,7 +833,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			if (sceneContext.Printer?.Bed?.LoadedGCode != null
 				&& sceneContext.EditContext.ContentStore == null)
 			{
-				this.ClearPlate(); 
+				this.ClearPlate();
 			}
 
 			//var firstItem = items.FirstOrDefault();
@@ -1013,7 +1013,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		private bool InSelectionBounds(BvhIterator iterator)
 		{
 			var world = sceneContext?.World;
-			if (world == null 
+			if (world == null
 				|| iterator == null
 				|| iterator.Bvh == null)
             {
@@ -1811,7 +1811,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 		private readonly bool assigningTreeNode;
 		private readonly FlowLayoutWidget treeNodeContainer;
-		
+
 		private readonly InlineStringEdit workspaceName;
 		private int lastSceneDescendantsCount;
 		private Vector2 beforeReubildScrollPosition;

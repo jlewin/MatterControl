@@ -65,31 +65,6 @@ namespace MatterHackers.MatterControl.Library
 				{
 					IsReadOnly = true
 				});
-
-			// a new container that holds custom parts for a given printer
-			var containerName = $"{printer.Settings.GetValue(SettingsKey.make)} {"Parts".Localize()}";
-			var settings = printer.Settings;
-			var repository = "Machine_Library_Parts";
-			// repository = "PulseOpenSource";
-			var subPath = $"{settings.GetValue(SettingsKey.make)}/{settings.GetValue(SettingsKey.model)}";
-			// subPath = "C Frame";
-			this.ChildContainers.Add(
-				new DynamicContainerLink(
-					containerName,
-					StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
-					() => new GitHubContainer(containerName,
-						"MatterHackers",
-						repository,
-						subPath),
-					// TODO: Absurd that has_fan toggles visibility of parts container
-					() => printer.Settings.GetValue<bool>(SettingsKey.has_fan)) // visibility (should be base on folder existing)
-				{
-					IsReadOnly = true
-				});
-
-			// TODO: An enumerable list of serialized container paths (or some other markup) to construct for this printer.
-			// This would allow for external repositories of parts that are not part of the MH library
-			// printer.Settings.GetValue(SettingsKey.library_containers);
 		}
 	}
 }

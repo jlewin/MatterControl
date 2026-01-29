@@ -428,24 +428,10 @@ namespace MatterHackers.MatterControl
 				}
 			};
 
-			// Hook SystemWindow load and spin up MatterControl once we've hit first draw
+			// Hook SystemWindow load and spin up once we've hit first draw
 			rootSystemWindow.Load += (s, e) =>
 			{
-				// Show the End User License Agreement if it has not been shown (on windows it is shown in the installer)
-				if (AggContext.OperatingSystem != OSType.Windows
-					&& UserSettings.Instance.get(UserSettingsKey.SoftwareLicenseAccepted) != "true")
-				{
-					var eula = new LicenseAgreementPage(LoadMC)
-					{
-						Margin = new BorderDouble(5)
-					};
-
-					rootSystemWindow.AddChild(eula);
-				}
-				else
-				{
-					LoadMC();
-				}
+				LoadMC();
 			};
 
 			void LoadMC()
