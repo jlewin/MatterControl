@@ -29,12 +29,7 @@ either expressed or implied, of the FreeBSD Project.
 
 using System;
 using MatterHackers.Agg;
-using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
-using MatterHackers.ImageProcessing;
-using MatterHackers.Localizations;
-using MatterHackers.MatterControl.CustomWidgets;
-using MatterHackers.MatterControl.Library;
 using MatterHackers.VectorMath;
 
 namespace MatterHackers.MatterControl.PartPreviewWindow
@@ -49,7 +44,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		protected GuiWidget view3DContainer;
 		protected FlowLayoutWidget topToBottom;
 		protected FlowLayoutWidget leftToRight;
-		protected LibraryListView favoritesBar;
 
 		public PrinterConfig Printer => Workspace.Printer;
 
@@ -61,6 +55,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.BackgroundColor = theme.BackgroundColor;
 			this.Padding = 0;
 			this.Workspace = workspace;
+			this.DebugShowBounds = true;
 
 			bool isPrinterType = this is PrinterTabPage;
 
@@ -134,93 +129,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			toolbarAndView3DWidget.AddChild(viewToolBarControls);
 
-			var favoritesBarContext = new LibraryConfig()
-			{
-				ActiveContainer = ApplicationController.Instance.Library.RootLibaryContainer
-			};
-
-			var leftBar = new GuiWidget()
-			{
-				VAnchor = VAnchor.Stretch,
-				HAnchor = HAnchor.Fit,
-				Border = new BorderDouble(top: 1, right: 1),
-				BorderColor = theme.BorderColor20,
-			};
-			favoritesBarAndView3DWidget.AddChild(leftBar);
-
-			bool expanded = UserSettings.Instance.get(UserSettingsKey.FavoritesBarExpansion) != "0";
-
-			favoritesBar = new LibraryListView(favoritesBarContext, theme)
-			{
-				Name = "LibraryView",
-				// Drop containers
-				ContainerFilter = (container) => false,
-				// HAnchor = HAnchor.Fit,
-				HAnchor = HAnchor.Absolute,
-				VAnchor = VAnchor.Stretch,
-				AllowContextMenu = false,
-				ActiveSort = SortKey.ModifiedDate,
-				Ascending = true,
-				// restore to state for favorites bar size
-				Width = expanded ? 55 * GuiWidget.DeviceScale : 33 * GuiWidget.DeviceScale,
-				ListContentView = new IconView(theme, expanded ? 48 * GuiWidget.DeviceScale : 24 * GuiWidget.DeviceScale)
-				{
-					VAnchor = VAnchor.Fit | VAnchor.Top
-				},
-			};
-
-			// favoritesBar.ScrollArea.HAnchor = HAnchor.Fit;
-			favoritesBar.ListContentView.HAnchor = HAnchor.Fit;
-			leftBar.AddChild(favoritesBar);
-
-			void UpdateWidth(object s, EventArgs e)
-			{
-				if (s is GuiWidget widget)
-				{
-					favoritesBar.Width = widget.Width;
-				}
-			}
-
-			favoritesBar.ListContentView.BoundsChanged += UpdateWidth;
-
-			favoritesBar.ScrollArea.VAnchor = VAnchor.Fit;
-
-			favoritesBar.VerticalScrollBar.Show = ScrollBar.ShowState.Never;
-
-			var expandedImage = StaticData.Instance.LoadIcon("expand.png", 16, 16).GrayToColor(theme.TextColor);
-			var collapsedImage = StaticData.Instance.LoadIcon("collapse.png", 16, 16).GrayToColor(theme.TextColor);
-
-			var expandBarButton = new ThemedIconButton(expanded ? collapsedImage : expandedImage, theme)
-			{
-				HAnchor = HAnchor.Center,
-				VAnchor = VAnchor.Absolute | VAnchor.Bottom,
-				Margin = new BorderDouble(bottom: 3, top: 3),
-				Height = theme.ButtonHeight - 6 * GuiWidget.DeviceScale,
-				Width = theme.ButtonHeight - 6 * GuiWidget.DeviceScale,
-				ToolTipText = expanded ? "Reduced Width".Localize() : "Expand Width".Localize(),
-			};
-
-			expandBarButton.Click += (s, e) => UiThread.RunOnIdle(async () =>
-			{
-				expanded = !expanded;
-
-				// remove from the one we are deleting
-				favoritesBar.ListContentView.BoundsChanged -= UpdateWidth;
-				UserSettings.Instance.set(UserSettingsKey.FavoritesBarExpansion, expanded ? "1" : "0");
-				favoritesBar.ListContentView = new IconView(theme, expanded ? 48 * GuiWidget.DeviceScale : 24 * GuiWidget.DeviceScale);
-				favoritesBar.ListContentView.HAnchor = HAnchor.Fit;
-				// add to the one we created
-				favoritesBar.ListContentView.BoundsChanged += UpdateWidth;
-				expandBarButton.SetIcon(expanded ? collapsedImage : expandedImage);
-				expandBarButton.Invalidate();
-				expandBarButton.ToolTipText = expanded ? "Reduced Width".Localize() : "Expand Width".Localize();
-
-				await favoritesBar.Reload();
-				UpdateWidth(favoritesBar.ListContentView, null);
-			});
-			leftBar.AddChild(expandBarButton);
-
-			favoritesBar.Margin = new BorderDouble(bottom: expandBarButton.Height + expandBarButton.Margin.Height);
+			var favoritesBar = new FavoritesBar(theme);
+			favoritesBarAndView3DWidget.AddChild(favoritesBar);
 
 			favoritesBarAndView3DWidget.AddChild(view3DWidget);
 			toolbarAndView3DWidget.AddChild(favoritesBarAndView3DWidget);
