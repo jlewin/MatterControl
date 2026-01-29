@@ -55,7 +55,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.BackgroundColor = theme.BackgroundColor;
 			this.Padding = 0;
 			this.Workspace = workspace;
-			this.DebugShowBounds = true;
 
 			bool isPrinterType = this is PrinterTabPage;
 
@@ -129,8 +128,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			toolbarAndView3DWidget.AddChild(viewToolBarControls);
 
-			var favoritesBar = new FavoritesBar(theme);
-			favoritesBarAndView3DWidget.AddChild(favoritesBar);
+			//favoritesBarAndView3DWidget.AddChild(new FavoritesBar(theme));
 
 			favoritesBarAndView3DWidget.AddChild(view3DWidget);
 			toolbarAndView3DWidget.AddChild(favoritesBarAndView3DWidget);
