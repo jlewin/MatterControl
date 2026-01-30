@@ -835,6 +835,47 @@ namespace MatterHackers.MatterControl.DesignTools
                     });
                 rowContainer = CreateSettingsColumn(property, field, fullWidth: true);
             }
+			else if (propertyValue is string stringValue)
+			{
+				if (property.PropertyInfo.GetCustomAttributes(true).OfType<MultiLineEditAttribute>().FirstOrDefault() != null)
+				{
+					// create a a multi-line string editor
+					var field = new MultilineStringField(theme);
+					field.Initialize(ref tabIndex);
+					field.SetValue(stringValue, false);
+					field.ClearUndoHistory();
+					field.Content.HAnchor = HAnchor.Stretch;
+					field.Content.Descendants<ScrollableWidget>().FirstOrDefault().MaximumSize = new Vector2(double.MaxValue, 200);
+					field.Content.Descendants<ScrollingArea>().FirstOrDefault().Parent.VAnchor = VAnchor.Top;
+					field.Content.MinimumSize = new Vector2(0, 100 * GuiWidget.DeviceScale);
+					field.Content.Margin = new BorderDouble(0, 0, 0, 5);
+					RegisterValueChanged(property, undoBuffer, context,
+						field,
+						(valueString) => valueString,
+						(value) =>
+						{
+							return value as string;
+						});
+					rowContainer = CreateSettingsColumn(property, field, fullWidth: true);
+				}
+				else
+				{
+					// create a string editor
+					var field = new TextField(theme);
+					field.Initialize(ref tabIndex);
+					field.SetValue(stringValue, false);
+					field.ClearUndoHistory();
+					field.Content.HAnchor = HAnchor.Stretch;
+					RegisterValueChanged(property, undoBuffer, context,
+						field,
+						(valueString) => valueString,
+						(value) =>
+						{
+							return value as string;
+						});
+					rowContainer = CreateSettingsRow(property, field, theme);
+				}
+            }
             else if (propertyValue is char charValue)
             {
                 // create a char editor
