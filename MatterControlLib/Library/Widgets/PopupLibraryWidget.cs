@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2019, Kevin Pope, John Lewin
+Copyright (c) 2022, Kevin Pope, John Lewin, Lars Brubaker
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ using MatterHackers.MatterControl.PrintQueue;
 
 namespace MatterHackers.MatterControl.Library.Widgets
 {
-	public class PrintLibraryWidget : GuiWidget, IIgnoredPopupChild
+	public class PopupLibraryWidget : GuiWidget, IIgnoredPopupChild
 	{
 		private FlowLayoutWidget buttonPanel;
 		private ILibraryContext libraryContext;
@@ -64,7 +64,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 
 		public bool ShowContainers { get; private set; } = true;
 
-		public PrintLibraryWidget(MainViewWidget mainViewWidget, PartWorkspace workspace, ThemeConfig theme, Color libraryBackground, PopupMenuButton popupMenuButton)
+		public PopupLibraryWidget(MainViewWidget mainViewWidget, PartWorkspace workspace, ThemeConfig theme, Color libraryBackground, PopupMenuButton popupMenuButton)
 		{
 			this.theme = theme;
 			this.mainViewWidget = mainViewWidget;
@@ -95,159 +95,26 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			{
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Fit,
-				Name = "Folders Toolbar"
+				Name = "Folders Toolbar",
 			};
+
+			toolbar.OverflowButton.ToolTipText = "Sort".Localize();
 
 			theme.ApplyBottomBorder(toolbar, shadedBorder: true);
 
 			toolbar.OverflowButton.Name = "Print Library View Options";
 			toolbar.Padding = theme.ToolbarPadding;
 
-			toolbar.ExtendOverflowMenu = (popupMenu) =>
-			{
-				var siblingList = new List<GuiWidget>();
-
-				popupMenu.CreateBoolMenuItem(
-					"Date Created".Localize(),
-					() => libraryView.ActiveSort == SortKey.CreatedDate,
-					(v) => libraryView.ActiveSort = SortKey.CreatedDate,
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateBoolMenuItem(
-					"Date Modified".Localize(),
-					() => libraryView.ActiveSort == SortKey.ModifiedDate,
-					(v) => libraryView.ActiveSort = SortKey.ModifiedDate,
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateBoolMenuItem(
-					"Name".Localize(),
-					() => libraryView.ActiveSort == SortKey.Name,
-					(v) => libraryView.ActiveSort = SortKey.Name,
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateSeparator();
-
-				siblingList = new List<GuiWidget>();
-
-				popupMenu.CreateBoolMenuItem(
-					"Ascending".Localize(),
-					() => libraryView.Ascending,
-					(v) => libraryView.Ascending = true,
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateBoolMenuItem(
-					"Descending".Localize(),
-					() => !libraryView.Ascending,
-					(v) => libraryView.Ascending = false,
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-			};
+			toolbar.ExtendOverflowMenu = (popupMenu) => LibraryWidget.CreateSortingMenu(popupMenu, theme, libraryView);
 
 			allControls.AddChild(toolbar);
 
-			var showFolders = new ExpandCheckboxButton("Folders".Localize(), theme)
-			{
-				HAnchor = HAnchor.Stretch,
-				VAnchor = VAnchor.Fit | VAnchor.Center,
-				Margin = theme.ButtonSpacing,
-				Name = "Show Folders Toggle",
-				Checked = this.ShowContainers,
-			};
-			showFolders.SetIconMargin(theme.ButtonSpacing);
-			showFolders.CheckedStateChanged += async (s, e) =>
-			{
-				this.ShowContainers = showFolders.Checked;
-				await libraryView.Reload();
-			};
-			toolbar.AddChild(showFolders);
+			toolbar.AddChild(new HorizontalSpacer());
 
-			PopupMenuButton viewMenuButton;
-
-			toolbar.AddChild(
-				viewMenuButton = new PopupMenuButton(
-					new ImageWidget(StaticData.Instance.LoadIcon("mi-view-list_10.png", 32, 32).GrayToColor(theme.TextColor))
-					{
-						//VAnchor = VAnchor.Center
-					},
-					theme)
-				{
-					AlignToRightEdge = true
-				});
-
-			viewMenuButton.DynamicPopupContent = () =>
-			{
-				var popupMenu = new PopupMenu(ApplicationController.Instance.MenuTheme);
-
-				var listView = this.libraryView;
-
-				var siblingList = new List<GuiWidget>();
-
-				popupMenu.CreateBoolMenuItem(
-					"View List".Localize(),
-					() => ApplicationController.Instance.ViewState.LibraryViewMode == ListViewModes.RowListView,
-					(isChecked) =>
-					{
-						ApplicationController.Instance.ViewState.LibraryViewMode = ListViewModes.RowListView;
-						listView.ListContentView = new RowListView(theme);
-						listView.Reload().ConfigureAwait(false);
-					},
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-#if DEBUG
-				popupMenu.CreateBoolMenuItem(
-					"View XSmall Icons".Localize(),
-					() => ApplicationController.Instance.ViewState.LibraryViewMode == ListViewModes.IconListView18,
-					(isChecked) =>
-					{
-						ApplicationController.Instance.ViewState.LibraryViewMode = ListViewModes.IconListView18;
-						listView.ListContentView = new IconListView(theme, 18);
-						listView.Reload().ConfigureAwait(false);
-					},
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateBoolMenuItem(
-					"View Small Icons".Localize(),
-					() => ApplicationController.Instance.ViewState.LibraryViewMode == ListViewModes.IconListView70,
-					(isChecked) =>
-					{
-						ApplicationController.Instance.ViewState.LibraryViewMode = ListViewModes.IconListView70;
-						listView.ListContentView = new IconListView(theme, 70);
-						listView.Reload().ConfigureAwait(false);
-					},
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-#endif
-				popupMenu.CreateBoolMenuItem(
-					"View Icons".Localize(),
-					() => ApplicationController.Instance.ViewState.LibraryViewMode == ListViewModes.IconListView,
-					(isChecked) =>
-					{
-						ApplicationController.Instance.ViewState.LibraryViewMode = ListViewModes.IconListView;
-						listView.ListContentView = new IconListView(theme);
-						listView.Reload().ConfigureAwait(false);
-					},
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				popupMenu.CreateBoolMenuItem(
-					"View Large Icons".Localize(),
-					() => ApplicationController.Instance.ViewState.LibraryViewMode == ListViewModes.IconListView256,
-					(isChecked) =>
-					{
-						ApplicationController.Instance.ViewState.LibraryViewMode = ListViewModes.IconListView256;
-						listView.ListContentView = new IconListView(theme, 256);
-						listView.Reload().ConfigureAwait(false);
-					},
-					useRadioStyle: true,
-					siblingRadioButtonList: siblingList);
-
-				return popupMenu;
-			};
+			toolbar.AddChild(LibraryWidget.CreateViewOptionsMenuButton(theme,
+				libraryView,
+				(show) => ShowContainers = show,
+				() => ShowContainers));
 
 			breadCrumbWidget = new FolderBreadCrumbWidget(workspace.LibraryView, theme);
 			navBar.AddChild(breadCrumbWidget);
@@ -399,7 +266,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 
 			bool containerSupportsEdits = activeContainer is ILibraryWritableContainer;
 
-			//searchInput.Text = activeContainer.KeywordFilter;
+			// searchInput.Text = activeContainer.KeywordFilter;
 			breadCrumbWidget.SetContainer(activeContainer);
 
 			activeContainer.ContentChanged += UpdateStatus;
@@ -413,7 +280,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 		{
 			if (libraryView.ActiveContainer is IMarkdownReadme readme)
 			{
-
 				string message = readme.HeaderMarkdown;
 				if (!string.IsNullOrEmpty(message))
 				{
