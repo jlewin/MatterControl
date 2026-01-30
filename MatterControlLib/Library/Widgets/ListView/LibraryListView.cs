@@ -31,9 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Markdig.Agg;
 using MatterHackers.Agg;
@@ -42,12 +40,8 @@ using MatterHackers.Agg.UI;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.Library;
 using MatterHackers.MatterControl.Library.Widgets;
-using MatterHackers.MatterControl.PartPreviewWindow;
-using MatterHackers.MatterControl.PrintLibrary;
 using MatterHackers.MatterControl.PrintQueue;
 using MatterHackers.VectorMath;
-using static MatterHackers.MatterControl.CustomWidgets.LibraryListView;
-using static MatterHackers.MatterControl.PrintLibrary.PrintLibraryWidget;
 
 namespace MatterHackers.MatterControl.CustomWidgets
 {
@@ -236,31 +230,31 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			this.PersistUserView();
 		}
 
-		public void SetContentView(PrintLibraryWidget.ListViewModes viewMode, bool userDriven = true)
+		public void SetContentView(ListViewModes viewMode, bool userDriven = true)
 		{
 			ApplicationController.Instance.ViewState.LibraryViewMode = viewMode;
 
 			switch (viewMode)
 			{
-				case PrintLibraryWidget.ListViewModes.RowListView:
+				case ListViewModes.RowListView:
 					this.ListContentView = new RowListView(theme);
 					break;
 
-				case PrintLibraryWidget.ListViewModes.IconListView18:
+				case ListViewModes.IconListView18:
 					this.ListContentView = new IconListView(theme, 18);
 					break;
 
-				case PrintLibraryWidget.ListViewModes.IconListView70:
+				case ListViewModes.IconListView70:
 					this.ListContentView = new IconListView(theme, 70);
 					break;
 
-				case PrintLibraryWidget.ListViewModes.IconListView256:
+				case ListViewModes.IconListView256:
 					this.ListContentView = new IconListView(theme, 256);
 					break;
 
-				case PrintLibraryWidget.ListViewModes.IconListView:
+				case ListViewModes.IconListView:
 				default:
-					if (viewMode != PrintLibraryWidget.ListViewModes.IconListView)
+					if (viewMode != ListViewModes.IconListView)
 					{
 						Debugger.Break(); // Unknown/unexpected value
 					}
@@ -412,7 +406,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private void AddHeaderMarkdown(IconListView listView)
 		{
-			if (sourceContainer is IMarkdownReadme readme 
+			if (sourceContainer is IMarkdownReadme readme
 				&& !string.IsNullOrEmpty(readme.HeaderMarkdown))
 			{
 				var markdownWidget = new MarkdownWidget(theme)

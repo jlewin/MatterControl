@@ -38,14 +38,12 @@ using MatterHackers.Agg.UI;
 using MatterHackers.ImageProcessing;
 using MatterHackers.Localizations;
 using MatterHackers.MatterControl.CustomWidgets;
-using MatterHackers.MatterControl.Library;
-using MatterHackers.MatterControl.Library.Widgets;
 using MatterHackers.MatterControl.PartPreviewWindow;
 using MatterHackers.MatterControl.PrintQueue;
 
-namespace MatterHackers.MatterControl.PrintLibrary
+namespace MatterHackers.MatterControl.Library.Widgets
 {
-    public class PrintLibraryWidget : GuiWidget, IIgnoredPopupChild
+	public class PrintLibraryWidget : GuiWidget, IIgnoredPopupChild
 	{
 		private FlowLayoutWidget buttonPanel;
 		private ILibraryContext libraryContext;
@@ -533,14 +531,5 @@ namespace MatterHackers.MatterControl.PrintLibrary
 		}
 
 		public bool KeepMenuOpen => this.ContainsFocus;
-
-		public enum ListViewModes
-		{
-			RowListView,
-			IconListView,
-			IconListView18,
-			IconListView70,
-			IconListView256
-		}
 	}
 }

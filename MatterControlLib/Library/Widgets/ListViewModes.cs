@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker, John Lewin
+Copyright (c) 2019, Kevin Pope, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,14 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-using MatterHackers.MatterControl.Library.Widgets;
-
-namespace MatterHackers.MatterControl
+namespace MatterHackers.MatterControl.Library.Widgets
 {
-	public class AppViewState
+    public enum ListViewModes
 	{
-		public ListViewModes LibraryViewMode { get; set; } = ListViewModes.IconListView;
+		RowListView,
+		IconListView,
+		IconListView18,
+		IconListView70,
+		IconListView256
 	}
 }
