@@ -822,7 +822,7 @@ namespace MatterHackers.MatterControl
 
 		public async Task OpenIntoNewTab(IEnumerable<ILibraryItem> selectedLibraryItems)
 		{
-			await this.MainView.CreateNewDesignTab(false);
+			await this.MainView.CreateNewDesignTab();
 
 			var workspace = this.Workspaces.Last();
 			var insertionGroup = workspace.SceneContext.AddToPlate(selectedLibraryItems);
@@ -1667,7 +1667,7 @@ namespace MatterHackers.MatterControl
 			return printer;
 		}
 
-		public async Task<PrinterConfig> OpenEmptyPrinter(string printerID, bool addPhilToBed = false)
+		public async Task<PrinterConfig> OpenEmptyPrinter(string printerID)
 		{
 			if (!string.IsNullOrEmpty(printerID)
 				&& ProfileManager.Instance[printerID] != null)
@@ -1686,11 +1686,6 @@ namespace MatterHackers.MatterControl
 				null);
 
 				this.OpenWorkspace(workspace);
-
-				if (addPhilToBed)
-                {
-					workspace.SceneContext.AddPhilToBed();
-				}
 
 				return printer;
 			}

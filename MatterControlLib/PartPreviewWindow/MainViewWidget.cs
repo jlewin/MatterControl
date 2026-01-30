@@ -176,7 +176,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			tabControl.PlusClicked += (s, e) => UiThread.RunOnIdle(() =>
 			{
-                CreateNewDesignTab(true);
+                CreateNewDesignTab();
 			});
 
 			// Force the ActionArea to be as high as ButtonHeight
@@ -434,7 +434,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
                     default:
 						{
-							var workspace = await CreateNewDesignTab(false);
+							var workspace = await CreateNewDesignTab();
 							workspace.SceneContext.AddToPlate(new string[] { filePath }, false);
 						}
 						break;
@@ -824,7 +824,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			popupMenu.ShowMenu(printerTab, mouseEvent);
 		}
 
-		public async Task<PartWorkspace> CreateNewDesignTab(bool addPhilToBed)
+		public async Task<PartWorkspace> CreateNewDesignTab()
 		{
 			var history = ApplicationController.Instance.Library.PlatingHistory;
 
@@ -836,11 +836,6 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			var newTab = CreateDesignTab(workspace, true);
 			tabControl.ActiveTab = newTab;
-
-			if (addPhilToBed)
-			{
-				workspace.SceneContext.AddPhilToBed();
-			}
 
 			ApplicationController.Instance.MainTabKey = workspace.Name;
 
