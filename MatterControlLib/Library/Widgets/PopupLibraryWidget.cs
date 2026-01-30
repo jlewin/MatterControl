@@ -91,31 +91,6 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			allControls.AddChild(navBar);
 			theme.ApplyBottomBorder(navBar);
 
-			var toolbar = new OverflowBar(StaticData.Instance.LoadIcon("fa-sort_16.png", 32, 32).GrayToColor(theme.TextColor), theme)
-			{
-				HAnchor = HAnchor.Stretch,
-				VAnchor = VAnchor.Fit,
-				Name = "Folders Toolbar",
-			};
-
-			toolbar.OverflowButton.ToolTipText = "Sort".Localize();
-
-			theme.ApplyBottomBorder(toolbar, shadedBorder: true);
-
-			toolbar.OverflowButton.Name = "Print Library View Options";
-			toolbar.Padding = theme.ToolbarPadding;
-
-			toolbar.ExtendOverflowMenu = (popupMenu) => LibraryWidget.CreateSortingMenu(popupMenu, theme, libraryView);
-
-			allControls.AddChild(toolbar);
-
-			toolbar.AddChild(new HorizontalSpacer());
-
-			toolbar.AddChild(LibraryWidget.CreateViewOptionsMenuButton(theme,
-				libraryView,
-				(show) => ShowContainers = show,
-				() => ShowContainers));
-
 			breadCrumbWidget = new FolderBreadCrumbWidget(workspace.LibraryView, theme);
 			navBar.AddChild(breadCrumbWidget);
 
@@ -162,6 +137,13 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				}
 			};
 			navBar.AddChild(searchButton);
+
+			navBar.AddChild(LibraryWidget.CreateSortingMenuButton(theme, libraryView));
+
+			navBar.AddChild(LibraryWidget.CreateViewOptionsMenuButton(theme,
+				libraryView,
+				(show) => ShowContainers = show,
+				() => ShowContainers));
 
 			allControls.AddChild(libraryView);
 
