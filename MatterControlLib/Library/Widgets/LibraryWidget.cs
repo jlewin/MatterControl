@@ -246,21 +246,21 @@ namespace MatterHackers.MatterControl.Library.Widgets
 
 			popupMenu.CreateBoolMenuItem(
 				"Date Created".Localize(),
-				() => libraryView.ActiveSort.HasFlag(SortKey.CreatedDate),
+				() => libraryView.ActiveSort == SortKey.CreatedDate,
 				(v) => libraryView.SetUserSort(SortKey.CreatedDate),
 				useRadioStyle: true,
 				siblingRadioButtonList: siblingList);
 
 			popupMenu.CreateBoolMenuItem(
 				"Date Modified".Localize(),
-				() => libraryView.ActiveSort.HasFlag(SortKey.ModifiedDate),
+				() => libraryView.ActiveSort == SortKey.ModifiedDate,
 				(v) => libraryView.SetUserSort(SortKey.ModifiedDate),
                 useRadioStyle: true,
 				siblingRadioButtonList: siblingList);
 
 			popupMenu.CreateBoolMenuItem(
 				"Name".Localize(),
-				() => libraryView.ActiveSort.HasFlag(SortKey.Name),
+				() => libraryView.ActiveSort == SortKey.Name,
 				(v) => libraryView.SetUserSort(SortKey.Name),
                 useRadioStyle: true,
 				siblingRadioButtonList: siblingList);
