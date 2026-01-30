@@ -31,11 +31,13 @@ using System;
 
 namespace MatterHackers.MatterControl.DesignTools
 {
-	[AttributeUsage(AttributeTargets.Property)]
+	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 	public class HideFromEditorAttribute : Attribute
 	{
-		public HideFromEditorAttribute()
+		public HideFromEditorAttribute(bool hide = true)
 		{
+			Hidden = hide;
 		}
+		public bool Hidden { get; }
 	}
 }
