@@ -64,7 +64,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 
 		public bool ShowContainers { get; private set; } = true;
 
-		public PopupLibraryWidget(MainViewWidget mainViewWidget, PartWorkspace workspace, ThemeConfig theme, Color libraryBackground, PopupMenuButton popupMenuButton)
+		public PopupLibraryWidget(MainViewWidget mainViewWidget, PartWorkspace workspace, ThemeConfig theme, PopupMenuButton popupMenuButton)
 		{
 			this.theme = theme;
 			this.mainViewWidget = mainViewWidget;
@@ -79,8 +79,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			{
 				Name = "LibraryView",
 				ContainerFilter = (container) => this.ShowContainers,
-				BackgroundColor = libraryBackground,
-				Border = new BorderDouble(top: 1)
+				BackgroundColor = theme.InteractionLayerOverlayColor,
 			};
 
 			navBar = new OverflowBar(theme)

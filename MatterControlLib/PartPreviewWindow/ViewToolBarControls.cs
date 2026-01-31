@@ -678,7 +678,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 						BackgroundColor = openColor,
 						MinimumSize = new Vector2(120, 50),
 						Height = libraryPopup.TransformToScreenSpace(libraryPopup.Position).Y,
-						SplitterBarColor = theme.SlightShade,
+						SplitterBarColor = theme.SplitterBackground,
 					};
 
 					double.TryParse(UserSettings.Instance.get(UserSettingsKey.PopupLibraryWidth), out double controlWidth);
@@ -696,15 +696,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 					var systemWindow = this.Parents<SystemWindow>().FirstOrDefault();
 
-					// Compute slight highlight of openColor for use as listView background color
-					var slightHighlight = theme.ResolveColor(openColor, Color.White.WithAlpha(theme.IsDarkTheme ? 10 : 50));
-
-					var popupLibraryWidget = new PopupLibraryWidget(mainViewWidget, workspace, theme, slightHighlight, libraryPopup)
+					var popupLibraryWidget = new PopupLibraryWidget(mainViewWidget, workspace, theme, libraryPopup)
 					{
 						HAnchor = HAnchor.Stretch,
 						VAnchor = VAnchor.Absolute,
 						Height = libraryPopup.TransformToScreenSpace(libraryPopup.Position).Y,
-						Margin = new BorderDouble(left: verticalResizeContainer.SplitterWidth)
 					};
 
 					systemWindow.SizeChanged += (s, e) =>
