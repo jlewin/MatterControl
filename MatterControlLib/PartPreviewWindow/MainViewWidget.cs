@@ -193,13 +193,13 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			ChromeTab tab = null;
 
 			// Library tab
-			var libraryWidget = new LibraryWidget(this, theme)
+			if (true)
 			{
-				BackgroundColor = theme.BackgroundColor
-			};
+				var libraryWidget = new LibraryWidget(this, theme)
+				{
+					BackgroundColor = theme.BackgroundColor
+				};
 
-			if (false)
-			{
 				tabControl.AddTab(
 					tab = new ChromeTab("Library", "Library".Localize(), tabControl, libraryWidget, theme, hasClose: false)
 					{
