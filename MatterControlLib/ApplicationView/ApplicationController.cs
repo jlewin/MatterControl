@@ -171,6 +171,7 @@ namespace MatterHackers.MatterControl
 
 			var workspaceActions = GetWorkspaceActions(view3DWidget);
 			var printer = view3DWidget.Printer;
+			var theme = AppContext.Theme;
 
 			var actions = new[]
 			{
@@ -181,6 +182,7 @@ namespace MatterHackers.MatterControl
 				new NamedAction()
 				{
 			 		Title = "Save As".Localize(),
+					Icon = theme.LoadIcon("material-design", "save_as.png"),
 			 		Action = () => UiThread.RunOnIdle(() =>
 					{
 						DialogWindow.Show(
@@ -209,7 +211,7 @@ namespace MatterHackers.MatterControl
 				{
 					ID = "Export",
 					Title = "Export".Localize(),
-					Icon = StaticData.Instance.LoadIcon("cube_export.png", 16, 16).GrayToColor(menuTheme.TextColor),
+					Icon = theme.LoadIcon("material-design", "file_export.png"),
 					Action = () =>
 					{
 						ApplicationController.Instance.ExportLibraryItems(
@@ -714,7 +716,7 @@ namespace MatterHackers.MatterControl
 				new NamedAction()
 				{
 					ID = "Delete",
-					Icon = StaticData.Instance.LoadIcon("remove.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
+					Icon = theme.LoadIcon("material-design", "remove_selection.png"),
 					Title = "Remove".Localize(),
 					Action = sceneContext.Scene.DeleteSelection,
 					IsEnabled = () => sceneContext.Scene.SelectedItem != null
@@ -723,7 +725,7 @@ namespace MatterHackers.MatterControl
 				{
 					ID = "Export",
 					Title = "Export".Localize(),
-					Icon = StaticData.Instance.LoadIcon("cube_export.png", 16, 16).GrayToColor(theme.TextColor),
+					Icon = theme.LoadIcon("material-design", "file_export.png"),
 					Action = () =>
 					{
 						ApplicationController.Instance.ExportLibraryItems(

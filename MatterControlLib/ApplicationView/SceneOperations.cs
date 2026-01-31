@@ -1248,7 +1248,7 @@ namespace MatterHackers.MatterControl
 			{
 				Action = (sceneContext) => sceneContext.Scene.DeleteSelection(),
 				HelpTextGetter = () => "At least 1 part must be selected".Localize().Stars(),
-				Icon = (theme) => StaticData.Instance.LoadIcon("remove.png", 16, 16).GrayToColor(theme.TextColor).SetPreMultiply(),
+				Icon = (theme) => theme.LoadIcon("material-design", "remove_selection.png"),
 				IsEnabled = (sceneContext) => IsMeshObject(sceneContext.Scene.SelectedItem),
 				ShowInModifyMenu = (sceneContext) => false,
 				TitleGetter = () => "Remove".Localize(),

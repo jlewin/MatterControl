@@ -35,7 +35,7 @@ using MatterHackers.MatterControl.PartPreviewWindow;
 
 namespace MatterHackers.MatterControl
 {
-    public class SplitButtonParams
+	public class SplitButtonParams
 	{
 		public ImageBuffer Icon { get; set; }
 

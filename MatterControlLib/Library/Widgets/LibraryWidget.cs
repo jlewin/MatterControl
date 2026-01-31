@@ -809,7 +809,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			menuActions.Add(new LibraryAction(ActionScope.ListItem)
 			{
 				Title = "Export".Localize(),
-				Icon = StaticData.Instance.LoadIcon("cube_export.png", 16, 16).GrayToColor(theme.TextColor),
+				Icon = theme.LoadIcon("material-design", "file_export.png"),
 				Action = (selectedLibraryItems, listView) =>
 				{
 					ApplicationController.Instance.ExportLibraryItems(libraryView.SelectedItems.Select(item => item.Model));

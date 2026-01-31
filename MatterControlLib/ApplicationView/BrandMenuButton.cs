@@ -62,7 +62,7 @@ namespace MatterHackers.MatterControl
 			};
 			this.AddChild(row);
 
-			row.AddChild(new ThemedIconButton(StaticData.Instance.LoadIcon("hamburger.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			row.AddChild(new ThemedIconButton(theme.LoadIcon("material-design", "menu.png"), theme)
 			{
 				VAnchor = VAnchor.Center,
 				Margin = theme.ButtonSpacing,

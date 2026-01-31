@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2022, Lars Brubaker, John Lewin
+Copyright (c) 2026, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -102,9 +102,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			this.RowBorder = new BorderDouble(0, 0, 0, 1);
 			this.RowBorderColor = theme.GetBorderColor(50);
 
-			var openLibraryButton = CreateOpenLibraryButton(sceneContext, theme);
+			this.AddChild(CreateOpenLibraryButton(sceneContext, theme));
 
-			this.AddChild(CreateOpenFileButton(openLibraryButton, theme));
+			this.AddChild(CreateOpenFileButton(theme));
 
 			this.AddChild(CreateSaveButton(theme));
 
@@ -123,7 +123,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 
 			this.AddChild(new ToolbarSeparator(theme.GetBorderColor(50), theme.SeparatorMargin));
 
-			undoButton = new ThemedIconButton(StaticData.Instance.LoadIcon("undo.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			undoButton = new ThemedIconButton(theme.LoadIcon("material-design", "undo.png"), theme)
 			{
 				Name = "3D View Undo",
 				ToolTipText = "Undo".Localize(),
@@ -139,7 +139,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			};
 			this.AddChild(undoButton);
 
-			redoButton = new ThemedIconButton(StaticData.Instance.LoadIcon("redo.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			redoButton = new ThemedIconButton(theme.LoadIcon("material-design", "redo.png"), theme)
 			{
 				Name = "3D View Redo",
 				Margin = theme.ButtonSpacing,
@@ -594,38 +594,21 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			redoButton.Enabled = undoBuffer.RedoCount > 0;
 		}
 
-		private GuiWidget CreateOpenFileButton(GuiWidget openLibraryButton, ThemeConfig theme)
+		private GuiWidget CreateOpenFileButton(ThemeConfig theme)
 		{
-			var popupMenu = new PopupMenuButton(openLibraryButton, theme)
+			var icon = theme.LoadIcon("material-design", "file_open.png");
+			var button = theme.CreateIconButton(icon);
+			button.ToolTipText = "Open File".Localize();
+			button.Name = "Open File Button";
+			button.Click += (s, e) => UiThread.RunOnIdle(() =>
 			{
-				Name = "Open File Button"
-			};
-			popupMenu.DistinctPopupButton = true;
-			popupMenu.DrawArrow = true;
-			openLibraryButton.Selectable = true;
+				ApplicationController.OpenFileWithSystemDialog((files) => sceneContext.AddToPlate(files));
+			});
 
-			if (popupMenu.Children<ThemedButton>().FirstOrDefault() is ThemedButton simpleButton)
-			{
-				simpleButton.Padding = 0;
-			};
-
-			var openMenuItems = new PopupMenu(ApplicationController.Instance.MenuTheme);
-			popupMenu.PopupContent = openMenuItems;
-
-			var openFileButton = openMenuItems.CreateMenuItem("Add System File to Bed".Localize(), StaticData.Instance.LoadIcon("fa-folder-open_16.png", 16, 16).GrayToColor(theme.TextColor));
-
-			openFileButton.Click += (s, e) =>
-            {
-                ApplicationController.OpenFileWithSystemDialog((fileNames) =>
-                {
-					sceneContext.AddToPlate(fileNames);
-				});
-            };
-
-			return popupMenu;
+			return button;
 		}
 
-        private void UpdateToolbarButtons(object sender, EventArgs e)
+		private void UpdateToolbarButtons(object sender, EventArgs e)
 		{
 			// Set enabled level based on operation rules
 			foreach (var (button, operation) in operationButtons.Select(kvp => (kvp.Key, kvp.Value)))
@@ -661,7 +644,7 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 			var openColor = theme.ResolveColor(theme.BackgroundColor, theme.SlightShade);
 
 			PopupMenuButton libraryPopup = null;
-			libraryPopup = new PopupMenuButton("Add to Bed".Localize(), StaticData.Instance.LoadIcon("fa-folder-open_16.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			libraryPopup = new PopupMenuButton(theme.LoadIcon("material-design", "local_library.png"), theme)
 			{
 				MakeScrollable = false,
 				Name = "Add Content Menu",
@@ -673,21 +656,20 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 						mainViewWidget = this.Parents<MainViewWidget>().FirstOrDefault();
 					}
 
-					var verticalResizeContainer = new VerticalResizeContainer(theme, GrabBarSide.Right)
-					{
-						BackgroundColor = openColor,
-						MinimumSize = new Vector2(120, 50),
-						Height = libraryPopup.TransformToScreenSpace(libraryPopup.Position).Y,
-						SplitterBarColor = theme.SplitterBackground,
-					};
-
 					double.TryParse(UserSettings.Instance.get(UserSettingsKey.PopupLibraryWidth), out double controlWidth);
 					if (controlWidth == 0)
 					{
 						controlWidth = 400;
 					}
 
-					verticalResizeContainer.Width = controlWidth;
+					var verticalResizeContainer = new VerticalResizeContainer(theme, GrabBarSide.Right)
+					{
+						BackgroundColor = openColor,
+						MinimumSize = new Vector2(120, 50),
+						Height = libraryPopup.TransformToScreenSpace(libraryPopup.Position).Y,
+						Width = controlWidth,
+						SplitterBarColor = theme.SplitterBackground,
+					};
 
 					verticalResizeContainer.BoundsChanged += (s2, e2) =>
 					{
@@ -746,6 +728,8 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 				PopupVAnchor = VAnchor.Fit
 			};
 
+			libraryPopup.ToolTipText = "Library".Localize();
+
 			return libraryPopup;
 		}
 
@@ -781,9 +765,9 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 		{
 			return theme.CreateSplitButton(new SplitButtonParams()
 			{
-				ButtonText = "Save".Localize(),
 				ButtonName = "Save",
-				Icon = StaticData.Instance.LoadIcon("save_grey_16x.png", 16, 16).GrayToColor(theme.TextColor),
+				ButtonTooltip = "Save".Localize(),
+				Icon = theme.LoadIcon("material-design", "file_save.png"),
 				ButtonAction = (menuButton) =>
 				{
 					ApplicationController.Instance.Tasks.Execute("Saving".Localize(), sceneContext.Printer, async (progress, cancellationToken) =>
