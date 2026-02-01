@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2018, Lars Brubaker, John Lewin
+Copyright (c) 2026, Lars Brubaker, John Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ either expressed or implied, of the FreeBSD Project.
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MatterHackers.Agg.Image;
@@ -70,29 +69,25 @@ namespace MatterHackers.MatterControl
 		{
 			var path = this.CachePath(cacheId, width, height);
 			ImageBuffer cachedItem = LoadImage(path);
-			if (cachedItem != null)
+			if (IsValidImage(cachedItem))
 			{
 				return cachedItem;
 			}
 
-			// could not find it in the user cache, try to load it from static data
+			// StaticData include prebuilt item thumbnails for some generators
 			path = Path.Combine("Images", "Thumbnails", $"{cacheId}-{256}x{256}.png");
 			if (StaticData.Instance.FileExists(path))
 			{
-				cachedItem = StaticData.Instance.LoadImage(path);
-				cachedItem = cachedItem.CreateScaledImage(width, height);
-
-				ImageIO.SaveImageData(path, cachedItem);
-
-				return cachedItem.SetPreMultiply();
+				// In this case, we load the prebuilt thumbnail and create a
+				// sized thumbnail for current and future use
+				return CreateCachedThumbnail(
+					cacheId,
+					StaticData.Instance.LoadImage(path),
+					width,
+					height);
 			}
 
 			return null;
-		}
-
-		public ImageBuffer LoadCachedImage(ILibraryItem libraryItem, int width, int height)
-		{
-			return LoadCachedImage(libraryItem.ID, width, height);
 		}
 
 		public string CachePath(string cacheId, int width = 0, int height = 0)
@@ -221,6 +216,28 @@ namespace MatterHackers.MatterControl
 		{
 			return image != null
 				&& image.Width > 0 && image.Height > 0;
+		}
+
+		/// <summary>
+		/// Creates a scaled thumbnail image from the specified source image and stores for future retrieval.
+		/// </summary>
+		/// <remarks>
+		/// Subsequent calls with the same parameters will overwrite the cached image. The returned
+		/// image has pre-multiplied alpha for optimal rendering performance.</remarks>
+		/// <param name="image">The source <see cref="ImageBuffer"/> to generate the thumbnail from. Cannot be null.</param>
+		/// <param name="width">The width, in pixels, of the generated thumbnail. Must be greater than zero.</param>
+		/// <param name="height">The height, in pixels, of the generated thumbnail. Must be greater than zero.</param>
+		/// <param name="cacheId">A unique identifier used to determine the cache location for the thumbnail. Cannot be null or empty.</param>
+		/// <returns>An <see cref="ImageBuffer"/> containing the scaled and pre-multiplied thumbnail image.</returns>
+		public ImageBuffer CreateCachedThumbnail(string cacheId, ImageBuffer image, int width, int height)
+		{
+			var scaled = image.CreateScaledImage(width, height);
+			var cachePath = this.CachePath(cacheId, width, height);
+
+			// Save all scaled images to cache for future use, and to avoid repeated scaling
+			ImageIO.SaveImageData(cachePath, scaled);
+
+			return scaled.SetPreMultiply();
 		}
 	}
 }
