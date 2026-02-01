@@ -68,21 +68,21 @@ namespace MatterHackers.MatterControl
 
 		public ImageBuffer LoadCachedImage(string cacheId, int width, int height)
 		{
-			var expectedCachePath = this.CachePath(cacheId, width, height);
-			ImageBuffer cachedItem = LoadImage(expectedCachePath);
+			var path = this.CachePath(cacheId, width, height);
+			ImageBuffer cachedItem = LoadImage(path);
 			if (cachedItem != null)
 			{
 				return cachedItem;
 			}
 
 			// could not find it in the user cache, try to load it from static data
-			var staticDataFilename = Path.Combine("Images", "Thumbnails", $"{cacheId}-{256}x{256}.png");
-			if (StaticData.Instance.FileExists(staticDataFilename))
+			path = Path.Combine("Images", "Thumbnails", $"{cacheId}-{256}x{256}.png");
+			if (StaticData.Instance.FileExists(path))
 			{
-				cachedItem = StaticData.Instance.LoadImage(staticDataFilename);
+				cachedItem = StaticData.Instance.LoadImage(path);
 				cachedItem = cachedItem.CreateScaledImage(width, height);
 
-				ImageIO.SaveImageData(expectedCachePath, cachedItem);
+				ImageIO.SaveImageData(path, cachedItem);
 
 				return cachedItem.SetPreMultiply();
 			}
