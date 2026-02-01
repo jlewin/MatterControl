@@ -215,7 +215,7 @@ namespace MatterHackers.MatterControl.Library
 			}
 
 			// Load from cache via LibraryID
-			var thumbnail = ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem, thumbWidth, thumbHeight);
+			var thumbnail = ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem.ID, thumbWidth, thumbHeight);
 			if (thumbnail != null)
 			{
 				setItemThumbnail(thumbnail);
