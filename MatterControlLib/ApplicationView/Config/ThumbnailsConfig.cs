@@ -43,6 +43,8 @@ namespace MatterHackers.MatterControl
 {
 	public class ThumbnailsConfig
 	{
+		private static readonly string cacheScope = Path.Combine("Thumbnails", "Library");
+
 		private static int[] cacheSizes = new int[]
 		{
 			18, 22, 50, 70, 100, 256
@@ -90,52 +92,29 @@ namespace MatterHackers.MatterControl
 
 		public ImageBuffer LoadCachedImage(ILibraryItem libraryItem, int width, int height)
 		{
-			var cachePath = this.CachePath(libraryItem, width, height);
+			return LoadCachedImage(libraryItem.ID, width, height);
+		}
 
-			ImageBuffer cachedItem = LoadImage(cachePath);
-			if (IsValidImage(cachedItem))
+		public string CachePath(string cacheId, int width = 0, int height = 0)
+		{
+			return ApplicationController.CacheablePath(
+				cacheScope,
+				CacheFilename(cacheId, width, height));
+		}
+
+		public string CachePath(ILibraryItem libraryItem, int width = 0, int height = 0)
+		{
+			return CachePath(libraryItem.ID, width, height);
+		}
+
+		public string CacheFilename(string cacheId, int width = 0, int height = 0)
+		{
+			if (width == 0 || height == 0)
 			{
-				return cachedItem.SetPreMultiply();
+				return $"{cacheId}.png";
 			}
 
-			// StaticData include prebuilt item thumbnails for some generators
-			var path = Path.Combine("Images", "Thumbnails", CacheFilename(libraryItem, 256, 256));
-			if (StaticData.Instance.FileExists(path))
-			{
-				cachedItem = StaticData.Instance.LoadImage(path);
-				cachedItem = cachedItem.CreateScaledImage(width, height);
-				ImageIO.SaveImageData(cachePath, cachedItem);
-
-				return cachedItem.SetPreMultiply();
-			}
-
-			return null;
-		}
-
-		public string CachePath(string cacheId, int width, int height)
-		{
-			return ApplicationController.CacheablePath(
-				Path.Combine("Thumbnails", "Content"),
-				$"{cacheId}-{width}x{height}.png");
-		}
-
-		public string CachePath(ILibraryItem libraryItem)
-		{
-			return ApplicationController.CacheablePath(
-				Path.Combine("Thumbnails", "Library"),
-				$"{libraryItem.ID}.png");
-		}
-
-		public string CacheFilename(ILibraryItem libraryItem, int width, int height)
-		{
-			return $"{libraryItem.ID}-{width}x{height}.png";
-		}
-
-		public string CachePath(ILibraryItem libraryItem, int width, int height)
-		{
-			return ApplicationController.CacheablePath(
-				Path.Combine("Thumbnails", "Library"),
-				CacheFilename(libraryItem, width, height));
+			return $"{cacheId}-{width}x{height}.png";
 		}
 
 		public void QueueForGeneration(Func<Task> func)
