@@ -927,6 +927,48 @@ namespace MatterHackers.MatterControl
 
 		private void InitializeLibrary()
 		{
+#if DEBUG
+
+			Func<string, string, ILibraryContainer> fsContainer = (name, path) => new FileSystemContainer(path)
+			{
+				Name = name,
+				DefaultSort = new SortBehavior()
+				{
+					SortKey = SortKey.ModifiedDate,
+				}
+			};
+
+			var links = new[] {
+				//("Downloads", ApplicationDataStorage.Instance.DownloadsDirectory, fsContainer),
+				//("StaticData", StaticData.RootPath, fsContainer),
+				("SvgTest", @"E:\svg", fsContainer),
+				//("ImageTest", @"D:\MatterControl\StaticData\Images\Macros", fsContainer),
+				//("Fontawesome",
+				//	@"C:\Users\mr_bl\Downloads\fontawesome-free-7.1.0-desktop.zip",
+				//	(name, path) => new ZipMemoryContainer()
+				//	{
+				//		Name = name,
+				//		Path = path
+				//	})
+			};
+
+			this.Library.ClearProviders();
+
+			foreach (var (name, path, creator) in links)
+			{
+				if (Path.Exists(path))
+				{
+					this.Library.RegisterContainer(
+						new DynamicContainerLink(
+							name,
+							StaticData.Instance.LoadIcon(Path.Combine("Library", "folder.png")),
+							StaticData.Instance.LoadIcon(Path.Combine("Library", "desktop.png")),
+							() => creator(name, path)));
+				}
+			}
+
+#endif
+/*
 			this.Library.RegisterContainer(
 				new DynamicContainerLink(
 					"Computer".Localize(),
@@ -981,6 +1023,7 @@ namespace MatterHackers.MatterControl
 				{
 					IsReadOnly = true
 				});
+				*/
 
 			// Create a new library context for the SaveAs view
 			this.LibraryTabContext = new LibraryConfig()

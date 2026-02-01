@@ -56,6 +56,11 @@ namespace MatterHackers.MatterControl.Library
 		void ClearFilter();
 	}
 
+	public interface IMarkdownReadme
+	{
+		string HeaderMarkdown { get; }
+	}
+
 	public interface ILibraryContainer : IDisposable
 	{
 		string ID { get; }

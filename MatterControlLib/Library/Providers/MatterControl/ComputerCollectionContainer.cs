@@ -112,18 +112,8 @@ namespace MatterHackers.MatterControl.Library
                             }
                         }));
             }
-
-            if (ProfileManager.Instance != null)
-			{
-				var userDirectory = ProfileManager.Instance.UserProfilesDirectory;
-				var libraryFiles = Directory.GetFiles(userDirectory, "*.library");
-				foreach (var libraryFile in libraryFiles)
-				{
-					this.ChildContainers.Add(LibraryJsonFile.ContainerFromLocalFile(libraryFile));
-				}
-			}
 		}
-		
+
 		public override void Load()
         {
         }

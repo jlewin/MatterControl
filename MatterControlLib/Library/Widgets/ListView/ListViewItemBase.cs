@@ -31,6 +31,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Agg;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
@@ -72,79 +73,17 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		public async Task LoadItemThumbnail()
 		{
+			DebugLogger.LogMessage("thumbnails", $"LoadItemThumbnail: {listViewItem.Model.Name}");
+
 			// On first draw, lookup and set best thumbnail
 			await ApplicationController.Instance.Library.LoadItemThumbnail(
+				this,
 				this.SetSizedThumbnail,
-				(meshContentProvider) =>
-				{
-					// Store meshContentProvider reference
-					this.meshContentProvider = meshContentProvider;
-
-					// Schedule work
-					this.ScheduleRaytraceOperation();
-				},
 				listViewItem.Model,
 				listViewItem.Container,
-				this.thumbWidth,
-				this.thumbHeight,
+				thumbWidth,
+				thumbHeight,
 				theme);
-		}
-
-		private void ScheduleRaytraceOperation()
-		{
-			if (meshContentProvider == null)
-			{
-				return;
-			}
-
-			ApplicationController.Instance.Thumbnails.QueueForGeneration(async () =>
-			{
-				// When dequeued for generation, ensure visible before raytracing. Off-screen widgets are dequeue and will reschedule if redrawn
-				if (!this.ActuallyVisibleOnScreen())
-				{
-					// Skip raytracing operation, requeue on next draw
-					raytraceSkipped = true;
-					raytracePending = false;
-					requeueRaytraceOnDraw = true;
-				}
-				else
-				{
-					raytraceSkipped = false;
-					requeueRaytraceOnDraw = false;
-
-					// Show processing image
-					this.SetUnsizedThumbnail(theme.GeneratingThumbnailIcon);
-
-					// Ask the MeshContentProvider to RayTrace the image
-					var thumbnail = await meshContentProvider.GetThumbnail(listViewItem.Model, thumbWidth, thumbHeight);
-					if (thumbnail != null)
-					{
-						requeueRaytraceOnDraw = false;
-						raytracePending = false;
-
-						if (GuiWidget.DeviceScale != 1
-							&& thumbnail.Width != thumbWidth * GuiWidget.DeviceScale)
-						{
-							thumbnail = thumbnail.CreateScaledImage(GuiWidget.DeviceScale);
-						}
-
-						if (thumbnail.Width != thumbWidth
-						|| thumbnail.Height != thumbHeight)
-						{
-							this.SetUnsizedThumbnail(thumbnail);
-						}
-						else
-						{
-							this.SetSizedThumbnail(thumbnail);
-
-							if (listViewItem.Container is ILibraryWritableContainer writableContainer)
-							{
-								writableContainer.SetThumbnail(listViewItem.Model, thumbWidth, thumbHeight, thumbnail);
-							}
-						}
-					}
-				}
-			});
 		}
 
 		internal void EnsureSelection()
@@ -200,20 +139,16 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			}
 		}
 
-		protected void SetUnsizedThumbnail(ImageBuffer thumbnail)
+		internal void SetUnsizedThumbnail(ImageBuffer thumbnail)
 		{
 			this.SetSizedThumbnail(
 				ApplicationController.Instance.Library.EnsureCorrectThumbnailSizing(
 					thumbnail,
 					thumbWidth,
-					thumbHeight,
-					(image) =>
-					{
-						SetSizedThumbnail(image);
-					}));
+					thumbHeight));
 		}
 
-		private void SetSizedThumbnail(ImageBuffer thumbnail)
+		internal void SetSizedThumbnail(ImageBuffer thumbnail)
 		{
 			if (thumbnail != null
 				&& this.imageWidget != null
@@ -264,24 +199,16 @@ namespace MatterHackers.MatterControl.CustomWidgets
 				child.Selectable = false;
 			}
 
+			DebugLogger.LogMessage("thumbnails", $"ListViewItemBase - OnLoad LoadItemThumb: {listViewItem.Model.Name}");
+
 			// On first draw, lookup and set best thumbnail
-			Task.Run(this.LoadItemThumbnail);
+			this.LoadItemThumbnail().ConfigureAwait(false);
 
 			base.OnLoad(args);
 		}
 
 		public override void OnDraw(Graphics2D graphics2D)
 		{
-			if (requeueRaytraceOnDraw
-				&& !raytracePending
-				&& raytraceSkipped)
-			{
-				raytracePending = true;
-
-				// Requeue thumbnail generation
-				this.ScheduleRaytraceOperation();
-			}
-
 			if (this.mouseInBounds
 				&& this.HasMenu)
 			{
@@ -449,18 +376,10 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		public virtual bool EditMode { get; set; }
 
 		private bool isSelected = false;
-		private bool raytraceSkipped;
-		private bool requeueRaytraceOnDraw;
-		private bool raytracePending;
-		private MeshContentProvider meshContentProvider;
 
 		public bool IsSelected
 		{
-			get
-			{
-				return isSelected;
-			}
-
+			get =>  isSelected;
 			set
 			{
 				if (isSelected != value)

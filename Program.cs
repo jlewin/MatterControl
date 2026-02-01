@@ -34,6 +34,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Agg;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Platform;
 using MatterHackers.Agg.UI;
@@ -82,6 +83,8 @@ namespace MatterHackers.MatterControl
 		[STAThread]
 		public static void Main(string[] args)
 		{
+			DebugLogger.EnableFilter("thumbnails");
+
 #if false // this is for some early testing of SLA output
 			var test = new PhotonFile();
 			void Progress(string message)

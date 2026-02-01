@@ -72,6 +72,7 @@
 		<ProjectReference Include="MatterControl.SLA\MatterControl.SLA.csproj" />
 		<ProjectReference Include="MatterControl.Winforms\MatterControl.Winforms.csproj" />
 		<ProjectReference Include="MatterControlLib\MatterControlLib.csproj" />
+		<ProjectReference Include="Plugins\Svg\SvgTools.csproj" />
 		<ProjectReference Include="PrinterDriverInstaller\InfInstaller.csproj" />
 		<ProjectReference Include="Submodules\agg-sharp\agg\Agg.csproj" />
 		<ProjectReference Include="Submodules\agg-sharp\Gui\Gui.csproj" />
@@ -102,6 +103,7 @@
 		<PackageReference Include="SocketIoClientDotNet">
 			<Version>1.0.2-beta1</Version>
 		</PackageReference>
+		<PackageReference Include="Svg" Version="3.4.7" />
 		<PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
 		<PackageReference Include="System.IO.Ports" Version="9.0.8" />
 	</ItemGroup>

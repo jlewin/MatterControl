@@ -84,6 +84,11 @@ namespace MatterHackers.MatterControl.Library
 			this.ActiveContainer = this.RootLibaryContainer;
 		}
 
+		public void ClearProviders()
+		{
+  			libraryProviders.Clear();
+		}
+
 		public event EventHandler<ContainerChangedEventArgs> ContainerChanged;
 
 		public event EventHandler<ContainerChangedEventArgs> ContentChanged;
@@ -139,35 +144,25 @@ namespace MatterHackers.MatterControl.Library
 
 		public ILibraryContainer RootLibaryContainer { get; }
 
-        public ImageBuffer EnsureCorrectThumbnailSizing(ImageBuffer originalThumbnail, int thumbWidth, int thumbHeight, Action<ImageBuffer> resizedImage)
+		public ImageBuffer EnsureCorrectThumbnailSizing(ImageBuffer thumbnail, int width, int height)
 		{
-			var processingImage = originalThumbnail;
 			// Resize canvas to target as fallback
-			if (processingImage.Width < thumbWidth || processingImage.Height < thumbHeight)
+			if (thumbnail.Width < width || thumbnail.Height < height)
 			{
-				processingImage = LibraryListView.ResizeCanvas(processingImage, thumbWidth, thumbHeight);
+				thumbnail = LibraryListView.ResizeCanvas(thumbnail, width, height);
 			}
-			else if (processingImage.Width > thumbWidth || processingImage.Height > thumbHeight)
+			else if (thumbnail.Width > width || thumbnail.Height > height)
 			{
-				processingImage = LibraryProviderHelpers.ResizeImage(processingImage, thumbWidth, thumbHeight);
+				thumbnail = LibraryProviderHelpers.ResizeImage(thumbnail, width, height);
 			}
 
 			if (GuiWidget.DeviceScale != 1
-				&& processingImage.Width != thumbWidth * GuiWidget.DeviceScale)
+				&& thumbnail.Width != width * GuiWidget.DeviceScale)
 			{
-				processingImage = processingImage.CreateScaledImage(GuiWidget.DeviceScale);
+				thumbnail = thumbnail.CreateScaledImage(GuiWidget.DeviceScale);
 			}
 
-			originalThumbnail.ImageChanged += (s, e) =>
-			{
-				// this happens when we get an updated image from a web request
-				UiThread.RunOnIdle(() =>
-				{
-					resizedImage?.Invoke(originalThumbnail.CreateScaledImage(GuiWidget.DeviceScale));
-				});
-			};
-
-			return processingImage;
+			return thumbnail;
 		}
 
 		public IContentProvider GetContentProvider(ILibraryItem item)
@@ -205,29 +200,22 @@ namespace MatterHackers.MatterControl.Library
 				&& ApplicationSettings.ValidFileExtensions.Contains(fileExtensionLower);
 		}
 
-		public async Task LoadItemThumbnail(Action<ImageBuffer> thumbnailListenerIn, Action<MeshContentProvider> buildThumbnail, ILibraryItem libraryItem, ILibraryContainer libraryContainer, int thumbWidth, int thumbHeight, ThemeConfig theme)
+		public async Task LoadItemThumbnail(GuiWidget target, Action<ImageBuffer> thumbnailReciever, ILibraryItem libraryItem, ILibraryContainer libraryContainer, int thumbWidth, int thumbHeight, ThemeConfig theme)
 		{
-			async void setItemThumbnail(ImageBuffer icon)
+			void setItemThumbnail(ImageBuffer icon)
 			{
-				var thumbnailListener = thumbnailListenerIn;
-
-                if (icon != null)
+				if (icon?.Width > 0)
 				{
-					if (icon.Width == 0)
+					if (icon.Width != thumbWidth || icon.Height != thumbHeight)
 					{
-						return;
+						icon = this.EnsureCorrectThumbnailSizing(icon, thumbWidth, thumbHeight);
 					}
-
-					icon = await Task.Run(() => this.EnsureCorrectThumbnailSizing(icon, thumbWidth, thumbHeight, (image) =>
-					{
-						setItemThumbnail(image);
-					}));
-					thumbnailListener?.Invoke(icon);
+					thumbnailReciever(icon);
 				}
 			}
 
 			// Load from cache via LibraryID
-			var thumbnail = await Task.Run(() => ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem, thumbWidth, thumbHeight));
+			var thumbnail = ApplicationController.Instance.Thumbnails.LoadCachedImage(libraryItem, thumbWidth, thumbHeight);
 			if (thumbnail != null)
 			{
 				setItemThumbnail(thumbnail);
@@ -263,7 +251,43 @@ namespace MatterHackers.MatterControl.Library
 
 					if (contentProvider is MeshContentProvider meshContentProvider)
 					{
-						buildThumbnail?.Invoke(meshContentProvider);
+						ApplicationController.Instance.Thumbnails.QueueForGeneration(
+						libraryItem.Name,
+						async () =>
+						{
+							// When dequeued for generation, ensure visible before raytracing. Off-screen widgets are dequeue and will reschedule if redrawn
+							if (!target.ActuallyVisibleOnScreen())
+							{
+								// Show processing image
+								setItemThumbnail(theme.GeneratingThumbnailIcon);
+
+								// Ask the MeshContentProvider to RayTrace the image
+								var thumbnail = await meshContentProvider.GetThumbnail(libraryItem, thumbWidth, thumbHeight);
+								if (thumbnail != null)
+								{
+									if (GuiWidget.DeviceScale != 1
+										&& thumbnail.Width != thumbWidth * GuiWidget.DeviceScale)
+									{
+										thumbnail = thumbnail.CreateScaledImage(GuiWidget.DeviceScale);
+									}
+
+									if (thumbnail.Width != thumbWidth
+									|| thumbnail.Height != thumbHeight)
+									{
+										setItemThumbnail(thumbnail);
+									}
+									else
+									{
+										setItemThumbnail(thumbnail);
+
+										if (libraryContainer is ILibraryWritableContainer writableContainer)
+										{
+											writableContainer.SetThumbnail(libraryItem, thumbWidth, thumbHeight, thumbnail);
+										}
+									}
+								}
+							}
+						});
 					}
 					else
 					{

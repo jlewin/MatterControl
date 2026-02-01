@@ -33,6 +33,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Agg;
 using Markdig.Agg;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
@@ -68,6 +69,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		private ImageSequenceWidget loadingIndicator;
 
 		public List<LibraryAction> MenuActions { get; set; }
+
+		private bool containerReloading = false;
 
 		// Default constructor uses IconListView
 		public LibraryListView(ILibraryContext context, ThemeConfig theme)
@@ -124,6 +127,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private async void ActiveContainer_Changed(object sender, ContainerChangedEventArgs e)
 		{
+			containerReloading = true;
+
 			var activeContainer = e.ActiveContainer;
 
 			if (activeContainer.DefaultSort != null)
@@ -169,6 +174,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			}
 
 			await DisplayContainerContent(activeContainer);
+
+			containerReloading = false;
 		}
 
 		public async Task Reload()
@@ -186,6 +193,7 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		public IEnumerable<ListViewItem> Items => items;
 
 		private SortKey _activeSort = SortKey.Name;
+
 
 		public SortKey ActiveSort
 		{
@@ -270,6 +278,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			}
 		}
 
+
+
 		public void PersistUserView()
 		{
 			this.ActiveContainer.PersistUserView(new LibraryViewState()
@@ -285,7 +295,13 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 		private void ApplySort()
 		{
-			this.Reload().ConfigureAwait(false);
+			DebugLogger.LogMessage("thumbnails", $"ListView - ApplySort ON*** {this.ActiveContainer.Name}");
+
+			// Skip reload actions if sort setters are called during a container load
+			if (!containerReloading)
+			{
+				this.Reload().ConfigureAwait(false);
+			}
 		}
 
 		private bool ContainsActiveFilter(ILibraryItem item)
@@ -300,6 +316,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 		/// <param name="sourceContainer">The container to load</param>
 		private Task DisplayContainerContent(ILibraryContainer sourceContainer)
 		{
+			DebugLogger.LogMessage("thumbnails", $"DisplayContainerContent");
+
 			this.sourceContainer = sourceContainer;
 			if (this.ActiveContainer is ILibraryWritableContainer activeWritable)
 			{
@@ -314,6 +332,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 			var itemsNeedingLoad = new List<ListViewItem>();
 
 			this.items.Clear();
+
+			DebugLogger.LogMessage("thumbnails", $"items.clear");
 
 			this.SelectedItems.Clear();
 			contentView.CloseChildren();
@@ -362,6 +382,8 @@ namespace MatterHackers.MatterControl.CustomWidgets
 
 				foreach (var item in this.SortItems(filteredResults))
 				{
+					DebugLogger.LogMessage("thumbnails", $"new listview loop item");
+
 					var listViewItem = new ListViewItem(item, this.ActiveContainer, this);
 
 					if (DoubleClickItemEvent != null)

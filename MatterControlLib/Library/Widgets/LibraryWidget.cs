@@ -452,11 +452,11 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			};
 
 			ApplicationController.Instance.Library.LoadItemThumbnail(
+				this,
 				(icon) =>
 				{
 					treeNode.Image = icon.SetPreMultiply();
 				},
-				null,
 				containerItem,
 				null,
 				20,

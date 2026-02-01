@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Agg;
 using MatterHackers.Agg;
 using MatterHackers.Agg.Image;
 using MatterHackers.Agg.Platform;
@@ -512,23 +513,11 @@ namespace MatterHackers.MatterControl.PartPreviewWindow
 							bedHistory.Invalidate();
 						}
 
+						DebugLogger.LogMessage("thumbnails", $"SetView3DWidget LoadItemThumb: {item.Name}");
+
 						ApplicationController.Instance.Library.LoadItemThumbnail(
+							this,
 							UpdateImageBuffer,
-							(contentProvider) =>
-							{
-								if (contentProvider is MeshContentProvider meshContentProvider)
-								{
-									ApplicationController.Instance.Thumbnails.QueueForGeneration(async () =>
-									{
-										// Ask the MeshContentProvider to RayTrace the image
-										var thumbnail = await meshContentProvider.GetThumbnail(item, thumbWidth, thumbWidth);
-										if (thumbnail != null)
-										{
-											UpdateImageBuffer(thumbnail);
-										}
-									});
-								}
-							},
 							item,
 							ApplicationController.Instance.Library.PlatingHistory,
 							thumbWidth,

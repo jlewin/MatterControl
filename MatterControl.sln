@@ -106,6 +106,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platform.DataConverters3D",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Triangle", "Submodules\agg-sharp\Triangle\Triangle.csproj", "{B3A84945-53CB-3628-9AC8-A7FDF9DDD69B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SvgTools", "Plugins\Svg\SvgTools.csproj", "{7F737D82-114B-02FE-CAD1-12E1E3DEE282}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -280,6 +282,10 @@ Global
 		{B3A84945-53CB-3628-9AC8-A7FDF9DDD69B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3A84945-53CB-3628-9AC8-A7FDF9DDD69B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3A84945-53CB-3628-9AC8-A7FDF9DDD69B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F737D82-114B-02FE-CAD1-12E1E3DEE282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F737D82-114B-02FE-CAD1-12E1E3DEE282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F737D82-114B-02FE-CAD1-12E1E3DEE282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F737D82-114B-02FE-CAD1-12E1E3DEE282}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -328,6 +334,7 @@ Global
 		{0A52216F-ECD2-7463-DDA5-E8A9D3E6FEF2} = {FED00F38-E911-45E1-A788-26980E84C3D6}
 		{3EB797C8-9CE3-3669-2455-FFEB6D480D1D} = {FED00F38-E911-45E1-A788-26980E84C3D6}
 		{B3A84945-53CB-3628-9AC8-A7FDF9DDD69B} = {2AB9B589-5C98-4C05-BBEA-F97DAE168EAB}
+		{7F737D82-114B-02FE-CAD1-12E1E3DEE282} = {FED00F38-E911-45E1-A788-26980E84C3D6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {42D74E06-00EA-43D2-A05B-9BEAD4A2C8A0}

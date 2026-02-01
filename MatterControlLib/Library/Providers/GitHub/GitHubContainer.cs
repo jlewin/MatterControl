@@ -43,11 +43,6 @@ using Newtonsoft.Json;
 
 namespace MatterHackers.MatterControl.Library
 {
-	public interface IMarkdownReadme
-	{
-		string HeaderMarkdown { get; }
-	}
-
 	public class GitHubContainer : LibraryContainer, IMarkdownReadme
 	{
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
@@ -179,7 +174,7 @@ namespace MatterHackers.MatterControl.Library
 				foreach (var item in this.Items)
 				{
 					// check if we have any of the images cached
-					var thumbnail = await Task.Run(() => ApplicationController.Instance.Thumbnails.LoadCachedImage(item, 256, 256));
+					var thumbnail = Task.Run(() => ApplicationController.Instance.Thumbnails.LoadCachedImage(item, 256, 256));
 
 					if (thumbnail != null
 						&& thumbnail.Width == 256)

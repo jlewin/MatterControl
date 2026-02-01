@@ -60,6 +60,15 @@
 
   <ItemGroup>
     <Compile Remove="DesignTools\Primitives\HexGridObject3D.cs" />
+    <Compile Remove="Library\Providers\GitHub\GitHubContainer.cs" />
+    <Compile Remove="Library\Providers\GitHub\GitHubLibraryItem.cs" />
+    <Compile Remove="Library\Providers\MatterControl\LibraryJsonFile.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Library\Providers\GitHub\GitHubContainer.cs" />
+    <None Include="Library\Providers\GitHub\GitHubLibraryItem.cs" />
+    <None Include="Library\Providers\MatterControl\LibraryJsonFile.cs" />
   </ItemGroup>
 
   <ItemGroup>

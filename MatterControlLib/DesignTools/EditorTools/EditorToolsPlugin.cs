@@ -40,13 +40,13 @@ namespace MatterHackers.Plugins.EditorTools
 		{
 			var applicationController = ApplicationController.Instance;
 
-			var primitives = new Primitives3DContainer();
-			primitives.Load();
+			//var primitives = new Primitives3DContainer();
+			//primitives.Load();
 
-			foreach (var item in primitives.Items.OfType<ILibraryObject3D>())
-			{
-				applicationController.Library.RegisterCreator(item);
-			}
+			//foreach (var item in primitives.Items.OfType<ILibraryObject3D>())
+			//{
+			//	applicationController.Library.RegisterCreator(item);
+			//}
 
 			applicationController.EditorExtensions.RegisterFactory((theme, undoBuffer) => new OpenSCADBuilder());
 			// applicationController.Extensions.Register(new PrimitivesEditor());

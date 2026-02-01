@@ -73,19 +73,6 @@ namespace MatterHackers.MatterControl
 				return cachedItem;
 			}
 
-			// if we don't find it see if it in the cache at a bigger size
-			foreach (var cacheSize in cacheSizes.Where(s => s > width))
-			{
-				cachedItem = LoadImage(this.CachePath(cacheId, cacheSize, cacheSize));
-				if (IsValidImage(cachedItem))
-				{
-					cachedItem = cachedItem.CreateScaledImage(width, height);
-					ImageIO.SaveImageData(expectedCachePath, cachedItem);
-
-					return cachedItem.SetPreMultiply();
-				}
-			}
-
 			// could not find it in the user cache, try to load it from static data
 			var staticDataFilename = Path.Combine("Images", "Thumbnails", $"{cacheId}-{256}x{256}.png");
 			if (StaticData.Instance.FileExists(staticDataFilename))
@@ -109,19 +96,6 @@ namespace MatterHackers.MatterControl
 			if (IsValidImage(cachedItem))
 			{
 				return cachedItem.SetPreMultiply();
-			}
-
-			// if we don't find it see if it in the cache at a bigger size
-			foreach (var cacheSize in cacheSizes.Where(s => s > width))
-			{
-				cachedItem = LoadImage(this.CachePath(libraryItem, cacheSize, cacheSize));
-				if (IsValidImage(cachedItem))
-				{
-					cachedItem = cachedItem.CreateScaledImage(width, height);
-					ImageIO.SaveImageData(cachePath, cachedItem);
-
-					return cachedItem.SetPreMultiply();
-				}
 			}
 
 			// StaticData include prebuilt item thumbnails for some generators
