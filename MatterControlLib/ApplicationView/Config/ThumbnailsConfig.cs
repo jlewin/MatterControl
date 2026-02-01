@@ -77,15 +77,12 @@ namespace MatterHackers.MatterControl
 			foreach (var cacheSize in cacheSizes.Where(s => s > width))
 			{
 				cachedItem = LoadImage(this.CachePath(cacheId, cacheSize, cacheSize));
-				if (cachedItem != null
-					&& cachedItem.Width > 0 && cachedItem.Height > 0)
+				if (IsValidImage(cachedItem))
 				{
 					cachedItem = cachedItem.CreateScaledImage(width, height);
-					cachedItem.SetRecieveBlender(new BlenderPreMultBGRA());
-
 					ImageIO.SaveImageData(expectedCachePath, cachedItem);
 
-					return cachedItem;
+					return cachedItem.SetPreMultiply();
 				}
 			}
 
@@ -94,13 +91,11 @@ namespace MatterHackers.MatterControl
 			if (StaticData.Instance.FileExists(staticDataFilename))
 			{
 				cachedItem = StaticData.Instance.LoadImage(staticDataFilename);
-				cachedItem.SetRecieveBlender(new BlenderPreMultBGRA());
-
 				cachedItem = cachedItem.CreateScaledImage(width, height);
 
 				ImageIO.SaveImageData(expectedCachePath, cachedItem);
 
-				return cachedItem;
+				return cachedItem.SetPreMultiply();
 			}
 
 			return null;
@@ -108,45 +103,36 @@ namespace MatterHackers.MatterControl
 
 		public ImageBuffer LoadCachedImage(ILibraryItem libraryItem, int width, int height)
 		{
-			// try to load it from the users cache
-			var expectedCachePath = this.CachePath(libraryItem, width, height);
+			var cachePath = this.CachePath(libraryItem, width, height);
 
-			ImageBuffer cachedItem = LoadImage(expectedCachePath);
-			if (cachedItem != null
-				&& cachedItem.Width > 0 && cachedItem.Height > 0)
+			ImageBuffer cachedItem = LoadImage(cachePath);
+			if (IsValidImage(cachedItem))
 			{
-				cachedItem.SetRecieveBlender(new BlenderPreMultBGRA());
-				return cachedItem;
+				return cachedItem.SetPreMultiply();
 			}
 
 			// if we don't find it see if it in the cache at a bigger size
 			foreach (var cacheSize in cacheSizes.Where(s => s > width))
 			{
 				cachedItem = LoadImage(this.CachePath(libraryItem, cacheSize, cacheSize));
-				if (cachedItem != null
-					&& cachedItem.Width > 0 && cachedItem.Height > 0)
+				if (IsValidImage(cachedItem))
 				{
 					cachedItem = cachedItem.CreateScaledImage(width, height);
-					cachedItem.SetRecieveBlender(new BlenderPreMultBGRA());
+					ImageIO.SaveImageData(cachePath, cachedItem);
 
-					ImageIO.SaveImageData(expectedCachePath, cachedItem);
-
-					return cachedItem;
+					return cachedItem.SetPreMultiply();
 				}
 			}
 
-			// could not find it in the user cache, try to load it from static data
-			var staticDataFilename = Path.Combine("Images", "Thumbnails", CacheFilename(libraryItem, 256, 256));
-			if (StaticData.Instance.FileExists(staticDataFilename))
+			// StaticData include prebuilt item thumbnails for some generators
+			var path = Path.Combine("Images", "Thumbnails", CacheFilename(libraryItem, 256, 256));
+			if (StaticData.Instance.FileExists(path))
 			{
-				cachedItem = StaticData.Instance.LoadImage(staticDataFilename);
-				cachedItem.SetRecieveBlender(new BlenderPreMultBGRA());
-
+				cachedItem = StaticData.Instance.LoadImage(path);
 				cachedItem = cachedItem.CreateScaledImage(width, height);
+				ImageIO.SaveImageData(cachePath, cachedItem);
 
-				ImageIO.SaveImageData(expectedCachePath, cachedItem);
-
-				return cachedItem;
+				return cachedItem.SetPreMultiply();
 			}
 
 			return null;
@@ -270,6 +256,18 @@ namespace MatterHackers.MatterControl
 			{
 				File.Delete(sizedThumbnail);
 			}
+		}
+
+		/// <summary>
+		/// Determines whether the specified image buffer represents a valid image with non-zero dimensions.
+		/// </summary>
+		/// <param name="image">The image buffer to validate. Must not be null. The image is considered valid if its width and height are both
+		/// greater than zero.</param>
+		/// <returns>true if the image buffer is not null and has both width and height greater than zero; otherwise, false.</returns>
+		public static bool IsValidImage(ImageBuffer image)
+		{
+			return image != null
+				&& image.Width > 0 && image.Height > 0;
 		}
 	}
 }
