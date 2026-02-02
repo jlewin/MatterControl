@@ -45,6 +45,8 @@ namespace MatterHackers.MatterControl.Plugins
 	/// </summary>
 	public class OpenScadContentProvider : ISceneContentProvider
 	{
+		private static ImageBuffer logo = StaticData.Instance.LoadIcon("openscad.png", 256, 256);
+
 		public Task<IObject3D> CreateItem(ILibraryItem item, Action<double, string> reporter)
 		{
 			Mesh logomesh = null;
@@ -64,9 +66,9 @@ namespace MatterHackers.MatterControl.Plugins
 
 		public Task<ImageBuffer> GetThumbnail(ILibraryItem item, int width, int height)
 		{
-			return Task.FromResult<ImageBuffer>(null);
+			return Task.FromResult<ImageBuffer>(logo);
 		}
 
-		public ImageBuffer DefaultImage => StaticData.Instance.LoadIcon("image_converter.png", 16, 16);
+		public ImageBuffer DefaultImage => logo;
 	}
 }
