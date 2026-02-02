@@ -89,8 +89,6 @@ namespace MatterHackers.MatterControl
 				MinimumSize = new Vector2(300, 0)
 			};
 
-			var linkIcon = StaticData.Instance.LoadIcon("fa-link_16.png", 16, 16).GrayToColor(menuTheme.TextColor);
-
 			PopupMenu.MenuItem menuItem;
 
 			menuItem = popupMenu.CreateMenuItem("Help".Localize(), StaticData.Instance.LoadIcon("help_page.png", 16, 16).GrayToColor(menuTheme.TextColor));

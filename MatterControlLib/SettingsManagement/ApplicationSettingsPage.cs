@@ -347,7 +347,7 @@ namespace MatterHackers.MatterControl
 				true,
 				false);
 
-			var openCacheButton = new ThemedIconButton(StaticData.Instance.LoadIcon("fa-link_16.png", 16, 16).GrayToColor(theme.TextColor), theme)
+			var openCacheButton = new ThemedIconButton(theme.LoadIcon("fa-link_16.png"), theme)
 			{
 				ToolTipText = "Open Folder".Localize(),
 			};

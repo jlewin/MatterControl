@@ -86,7 +86,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				DoubleClickBehavior = LibraryListView.DoubleClickBehaviors.PreviewItem
 			};
 
-			navBar = new OverflowBar(theme, "File".Localize())
+			navBar = new OverflowBar(theme)
 			{
 				HAnchor = HAnchor.Stretch,
 				VAnchor = VAnchor.Fit,
@@ -885,7 +885,7 @@ namespace MatterHackers.MatterControl.Library.Widgets
 			menuActions.Add(new LibraryAction(ActionScope.ListItem)
 			{
 				Title = "Show in Explorer".Localize(),
-				// Icon = StaticData.Instance.LoadIcon("remove.png", 16, 16).SetToColor(theme.TextColor),
+				Icon = theme.LoadIcon("fa-link_16.png"),
 				Action = (selectedLibraryItems, listView) =>
 				{
 					if (AggContext.OperatingSystem == OSType.Windows)

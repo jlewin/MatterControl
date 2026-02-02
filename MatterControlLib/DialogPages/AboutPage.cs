@@ -107,13 +107,11 @@ namespace MatterHackers.MatterControl
 
 			var data = JsonConvert.DeserializeObject<List<LibraryLicense>>(StaticData.Instance.ReadAllText(Path.Combine("License", "license.json")));
 
-			var linkIcon = StaticData.Instance.LoadIcon("fa-link_16.png", 16, 16).GrayToColor(theme.TextColor);
-
 			SectionWidget section = null;
 
 			foreach (var item in data.OrderBy(i => i.Name))
 			{
-				var linkButton = new ThemedIconButton(linkIcon, theme);
+				var linkButton = new ThemedIconButton(theme.LoadIcon("fa-link_16.png"), theme);
 				linkButton.Click += (s, e) => UiThread.RunOnIdle(() =>
 				{
 					ApplicationController.LaunchBrowser(item.Url);
