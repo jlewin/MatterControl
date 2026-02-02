@@ -631,6 +631,34 @@ namespace MatterHackers.MatterControl
 
 		public ThumbnailsConfig Thumbnails { get; }
 
+		/// <summary>
+		/// Opens the parent folder of the specified file or directory in Windows Explorer and selects it.
+		/// </summary>
+		/// <remarks>This method is supported only on Windows operating systems. On other platforms, this method
+		/// is not implemented and has no effect.
+		/// </remarks>
+		/// <param name="path">The full or relative path to the file or directory to select. Cannot be null or empty.</param>
+		public void ShellToSelection(string path)
+		{
+			if (AggContext.OperatingSystem == OSType.Windows)
+			{
+				// Opens the parent directory and selects the given item
+				Process.Start("explorer.exe", $"/select, \"{Path.GetFullPath(path)}\"");
+			}
+		}
+
+		/// <summary>
+		/// Opens a shell window to the requested path
+		/// </summary>
+		/// <param name="path">The path to open</param>
+		public void ShellToFolder(string path)
+		{
+			if (AggContext.OperatingSystem == OSType.Windows)
+			{
+				Process.Start("explorer.exe", path);
+			}
+		}
+
 		public Dictionary<string, NamedAction> GetWorkspaceActions(View3DWidget view3DWidget)
 		{
 			var sceneContext = view3DWidget.sceneContext;

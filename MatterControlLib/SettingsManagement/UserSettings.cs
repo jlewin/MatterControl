@@ -16,7 +16,6 @@ namespace MatterHackers.MatterControl
 		public const string AfterPrintFinishedSendEmail = nameof(AfterPrintFinishedSendEmail);
 		public const string AfterPrintFinishedSendTextMessage = nameof(AfterPrintFinishedSendTextMessage);
 		public const string ApplicationUseHeigResDisplays = nameof(ApplicationUseHeigResDisplays);
-		public const string ApplicationUseSocketeer = nameof(ApplicationUseSocketeer);
 		public const string ApplicationTextSize = nameof(ApplicationTextSize);
 		public const string ApplyLevelingDurringExport = nameof(ApplyLevelingDurringExport);
 		public const string CollectPrintHistoryData = nameof(CollectPrintHistoryData);

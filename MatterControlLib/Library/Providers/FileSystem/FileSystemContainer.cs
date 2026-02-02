@@ -312,14 +312,17 @@ namespace MatterHackers.MatterControl.Library
 			// Removing content from the filesystem can have devastating effects - open a shell window allowing the customer make changes as they seem fit
 			if (AggContext.OperatingSystem == OSType.Windows)
 			{
-				if (items.Count() == 1
-					&& items.FirstOrDefault() is FileSystemFileItem fileItem)
+				if (items.Count() == 1)
 				{
-					Process.Start("explorer.exe", $"/select, \"{fileItem.Path}\"");
-				}
-				else
-				{
-					Process.Start(this.FullPath);
+					switch (items.FirstOrDefault())
+					{
+						case FileSystemFileItem fileItem:
+							ApplicationController.Instance.ShellToSelection(fileItem.Path);
+							break;
+						case DirectoryContainerLink directoryLink:
+							ApplicationController.Instance.ShellToSelection(directoryLink.Path);
+							break;
+					}
 				}
 			}
 		}

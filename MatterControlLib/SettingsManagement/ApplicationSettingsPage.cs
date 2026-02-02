@@ -342,12 +342,6 @@ namespace MatterHackers.MatterControl
 				advancedPanel);
 
 			AddUserBoolToggle(advancedPanel,
-				"Enable Socketeer Client".Localize(),
-				UserSettingsKey.ApplicationUseSocketeer,
-				true,
-				false);
-
-			AddUserBoolToggle(advancedPanel,
 				"Utilize High Res Monitors".Localize(),
 				UserSettingsKey.ApplicationUseHeigResDisplays,
 				true,
@@ -359,7 +353,7 @@ namespace MatterHackers.MatterControl
 			};
 			openCacheButton.Click += (s, e) => UiThread.RunOnIdle(() =>
 			{
-				Process.Start(ApplicationDataStorage.ApplicationUserDataPath);
+				ApplicationController.Instance.ShellToFolder(ApplicationDataStorage.ApplicationUserDataPath);
 			});
 
 			this.AddSettingsRow(

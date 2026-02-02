@@ -890,20 +890,20 @@ namespace MatterHackers.MatterControl.Library.Widgets
 				{
 					if (AggContext.OperatingSystem == OSType.Windows)
 					{
-						if (AggContext.OperatingSystem == OSType.Windows
-							&& listView.SelectedItems.Count() == 1)
+						if (listView.SelectedItems.Count() == 1
+							&& listView.SelectedItems.FirstOrDefault() is ListViewItem viewItem)
 						{
-							if (listView.SelectedItems.FirstOrDefault().Model is FileSystemFileItem fileItem)
+							if (viewItem.Model is FileSystemFileItem fileItem)
 							{
-								Process.Start("explorer.exe", $"/select, \"{fileItem.Path}\"");
+								ApplicationController.Instance.ShellToSelection(fileItem.Path);
 							}
-							else if (listView.SelectedItems.FirstOrDefault().Model is FileSystemContainer.DirectoryContainerLink container)
+							else if (viewItem.Model is FileSystemContainer.DirectoryContainerLink container)
 							{
-								Process.Start("explorer.exe", $"/select, \"{container.Path}\"");
+								ApplicationController.Instance.ShellToFolder(container.Path);
 							}
-							else if (listView.SelectedItems.FirstOrDefault().Model is LocalZipContainerLink zipContainer)
+							else if (viewItem.Model is LocalZipContainerLink zipContainer)
 							{
-								Process.Start("explorer.exe", $"/select, \"{zipContainer.Path}\"");
+								ApplicationController.Instance.ShellToSelection(zipContainer.Path);
 							}
 						}
 					}
